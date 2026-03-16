@@ -1316,12 +1316,19 @@ def pull() -> None:
     default=True,
     help="启用质量评估与去重 (默认启用)",
 )
+@click.option(
+    "--skip-threshold",
+    type=float,
+    default=0.85,
+    help="Embedding 预过滤阈值 (0 禁用, 默认: 0.85)",
+)
 def pull_rss(
     feeds: Path | None,
     since: int | None,
     dry_run: bool,
     workers: int,
     quality_check: bool,
+    skip_threshold: float,
 ) -> None:
     """从 RSS feeds 拉取技术博客文章。
 
@@ -1434,6 +1441,38 @@ def pull_rss(
         return
 
     console.print(f"\n[bold green]共拉取 {len(all_documents)} 篇文章[/]")
+
+    # ── Embedding pre-filter ────────────────────────────────────────
+    if skip_threshold > 0 and all_documents:
+        from agents.prefilter import prefilter_documents
+
+        console.print(
+            f"[dim]正在进行 embedding 预过滤（阈值: {skip_threshold:.2f}）...[/]"
+        )
+        passed_docs, skipped_results = prefilter_documents(
+            all_documents, config, skip_threshold
+        )
+
+        if skipped_results:
+            console.print(
+                f"[yellow]预过滤跳过 {len(skipped_results)} 篇重复文章:[/]"
+            )
+            for result in skipped_results:
+                console.print(
+                    f"  [dim]✗[/] {result.document.title[:60]}"
+                    f" [dim](相似度: {result.similarity:.2f},"
+                    f" 匹配: {result.matched_title[:40]})[/]"
+                )
+
+        all_documents = passed_docs
+        console.print(
+            f"[bold green]预过滤后剩余 {len(all_documents)} 篇文章[/]"
+        )
+
+        if not all_documents:
+            console.print("[yellow]所有文章均为重复内容，无需处理。[/]")
+            return
+
     console.print(f"[bold blue]开始提取知识条目（{workers} 并发）...[/]")
 
     # Process documents through ingest pipeline — parallel

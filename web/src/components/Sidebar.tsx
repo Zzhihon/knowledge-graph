@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Search, Play, AlertTriangle, GitMerge, BrainCircuit,
-  Plus, Trash2, MessageSquare, Library,
+  Plus, Trash2, MessageSquare, Library, Rss,
 } from 'lucide-react'
 import type { ConversationListItem } from '../types'
 
@@ -11,6 +11,7 @@ const navItems = [
   { id: 'problems', icon: Library, label: '面试题库' },
   { id: 'health', icon: AlertTriangle, label: '健康巡检' },
   { id: 'graph', icon: GitMerge, label: '图谱演进' },
+  { id: 'rss', icon: Rss, label: 'RSS 摄取' },
 ]
 
 interface Props {

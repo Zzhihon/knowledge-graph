@@ -1,13 +1,15 @@
 """API client manager with load balancing support.
 
 Manages multiple API keys with different models and provides
-round-robin or weighted load balancing.
+weighted load balancing. Supports both Anthropic and OpenAI models
+through a unified interface.
 """
 
 from __future__ import annotations
 
+import os
 import random
-from typing import Any
+from typing import Any, Generator
 
 import anthropic
 import httpx
@@ -15,117 +17,174 @@ import httpx
 from agents.config import AgentConfig, APIKeyConfig
 
 
+def _is_openai_model(model: str) -> bool:
+    """Check if a model name requires the OpenAI SDK."""
+    return model.startswith(("gpt-", "o1", "o3", "o4"))
+
+
+class UnifiedClient:
+    """Wraps either Anthropic or OpenAI client behind a common interface."""
+
+    def __init__(self, key_config: APIKeyConfig, base_url: str):
+        self.key_config = key_config
+        self.model = key_config.model
+        self.is_openai = _is_openai_model(key_config.model)
+
+        if self.is_openai:
+            # 使用 httpx 直接调用 /v1/responses (OpenAI Responses API)
+            self._api_key = key_config.key
+            self._base_url = base_url.rstrip("/") if base_url else "https://api.openai.com"
+            self._http = httpx.Client(timeout=httpx.Timeout(180.0, connect=30.0))
+            self._openai = None
+            self._anthropic = None
+        else:
+            # 清除环境变量以避免冲突
+            env_backup = {}
+            for env_key in ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"]:
+                if env_key in os.environ:
+                    env_backup[env_key] = os.environ.pop(env_key)
+            try:
+                self._anthropic = anthropic.Anthropic(
+                    api_key=key_config.key,
+                    base_url=base_url if base_url else None,
+                    http_client=httpx.Client(
+                        timeout=httpx.Timeout(180.0, connect=30.0),
+                    ),
+                )
+            finally:
+                for env_key, env_value in env_backup.items():
+                    os.environ[env_key] = env_value
+            self._openai = None
+
+    def stream_extract(
+        self,
+        prompt: str,
+        max_tokens: int = 16384,
+    ) -> tuple[str, str]:
+        """Send extraction prompt and return (response_text, stop_reason).
+
+        Uses streaming for both Anthropic and OpenAI to avoid proxy timeouts.
+        """
+        if self.is_openai:
+            return self._stream_openai(prompt, max_tokens)
+        else:
+            return self._stream_anthropic(prompt, max_tokens)
+
+    def _stream_anthropic(self, prompt: str, max_tokens: int) -> tuple[str, str]:
+        """Stream via Anthropic SDK."""
+        response_text = ""
+        with self._anthropic.messages.stream(
+            model=self.model,
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": prompt}],
+        ) as stream:
+            for text in stream.text_stream:
+                response_text += text
+            message = stream.get_final_message()
+
+        return response_text, message.stop_reason or "end_turn"
+
+    def _stream_openai(self, prompt: str, max_tokens: int) -> tuple[str, str]:
+        """Stream via OpenAI Responses API (/v1/responses)."""
+        import json
+
+        response_text = ""
+        stop_reason = "end_turn"
+
+        with self._http.stream(
+            "POST",
+            f"{self._base_url}/v1/responses",
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": self.model,
+                "input": prompt,
+                "max_output_tokens": max_tokens,
+                "stream": True,
+            },
+        ) as resp:
+            resp.raise_for_status()
+            for line in resp.iter_lines():
+                if not line or line.startswith(":"):
+                    continue
+                if line.startswith("data: "):
+                    data_str = line[6:]
+                    if data_str == "[DONE]":
+                        break
+                    try:
+                        data = json.loads(data_str)
+                    except json.JSONDecodeError:
+                        continue
+                    # Extract text delta from response.output_text.delta events
+                    event_type = data.get("type", "")
+                    if event_type == "response.output_text.delta":
+                        response_text += data.get("delta", "")
+                    elif event_type == "response.completed":
+                        usage = data.get("response", {}).get("usage", {})
+                        if usage.get("output_tokens") and usage["output_tokens"] >= max_tokens:
+                            stop_reason = "max_tokens"
+
+        return response_text, stop_reason
+
+
 class APIClientManager:
     """Manages multiple API clients with load balancing."""
 
     def __init__(self, config: AgentConfig):
-        """Initialize the API client manager.
-
-        Args:
-            config: Agent configuration with API keys.
-        """
         self.config = config
-        self.clients: list[tuple[anthropic.Anthropic, APIKeyConfig]] = []
+        self.clients: list[tuple[UnifiedClient, APIKeyConfig]] = []
 
-        # Create clients for each API key
         if config.api_keys:
             for key_config in config.api_keys:
-                # 创建客户端时，需要清除环境变量以避免冲突
-                import os
-                env_backup = {}
-                for env_key in ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"]:
-                    if env_key in os.environ:
-                        env_backup[env_key] = os.environ.pop(env_key)
-
-                try:
-                    client = anthropic.Anthropic(
-                        api_key=key_config.key,
-                        base_url=config.base_url if config.base_url else None,
-                        http_client=httpx.Client(
-                            timeout=httpx.Timeout(180.0, connect=30.0),
-                        ),
-                    )
-                    self.clients.append((client, key_config))
-                finally:
-                    # 恢复环境变量
-                    for env_key, env_value in env_backup.items():
-                        os.environ[env_key] = env_value
+                # 跳过 embedding 专用 key (weight=0)
+                if key_config.weight <= 0:
+                    continue
+                client = UnifiedClient(key_config, config.base_url)
+                self.clients.append((client, key_config))
         else:
-            # Fallback to environment variable
-            client = anthropic.Anthropic(
-                base_url=config.base_url if config.base_url else None,
-                http_client=httpx.Client(
-                    timeout=httpx.Timeout(180.0, connect=30.0),
-                ),
+            # Fallback: 用环境变量创建默认 Anthropic 客户端
+            default_kc = APIKeyConfig(
+                key="", model=config.model, weight=1.0, description="Default (env)",
             )
-            # Create a default key config
-            default_key_config = APIKeyConfig(
-                key="",  # Will use env var
-                model=config.model,
-                weight=1.0,
-                description="Default (from env)",
-            )
-            self.clients.append((client, default_key_config))
+            client = UnifiedClient(default_kc, config.base_url)
+            self.clients.append((client, default_kc))
 
         self._current_index = 0
 
-    def get_client(self, prefer_model: str | None = None) -> tuple[anthropic.Anthropic, str]:
-        """Get an API client using load balancing.
-
-        Args:
-            prefer_model: Preferred model name. If specified, tries to find
-                         a client configured for that model.
-
-        Returns:
-            Tuple of (client, model_name).
-        """
+    def get_client(self, prefer_model: str | None = None) -> tuple[UnifiedClient, str]:
+        """Get a client using weighted random load balancing."""
         if not self.clients:
             raise RuntimeError("No API clients configured")
 
-        # If prefer_model is specified, try to find a matching client
+        # 如果指定了 prefer_model，优先匹配
         if prefer_model:
-            for client, key_config in self.clients:
-                if key_config.model == prefer_model:
-                    return client, key_config.model
+            for client, kc in self.clients:
+                if kc.model == prefer_model:
+                    return client, kc.model
 
-        # Weighted random selection
+        # 加权随机
         total_weight = sum(kc.weight for _, kc in self.clients)
-        if total_weight == 0:
-            # All weights are 0, use round-robin
-            client, key_config = self.clients[self._current_index]
-            self._current_index = (self._current_index + 1) % len(self.clients)
-            return client, key_config.model
-
-        # Weighted random
         rand = random.uniform(0, total_weight)
         cumulative = 0.0
-        for client, key_config in self.clients:
-            cumulative += key_config.weight
+        for client, kc in self.clients:
+            cumulative += kc.weight
             if rand <= cumulative:
-                return client, key_config.model
+                return client, kc.model
 
-        # Fallback to first client
         return self.clients[0][0], self.clients[0][1].model
 
     def get_all_models(self) -> list[str]:
-        """Get all configured model names.
-
-        Returns:
-            List of model names.
-        """
-        return [key_config.model for _, key_config in self.clients]
+        return [kc.model for _, kc in self.clients]
 
     def get_client_info(self) -> list[dict[str, Any]]:
-        """Get information about all configured clients.
-
-        Returns:
-            List of client info dicts.
-        """
         return [
             {
-                "model": key_config.model,
-                "weight": key_config.weight,
-                "description": key_config.description,
+                "model": kc.model,
+                "weight": kc.weight,
+                "description": kc.description,
+                "type": "openai" if _is_openai_model(kc.model) else "anthropic",
             }
-            for _, key_config in self.clients
+            for _, kc in self.clients
         ]

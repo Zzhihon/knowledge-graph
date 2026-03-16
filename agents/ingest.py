@@ -13,7 +13,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import anthropic
 import frontmatter
 from rich.console import Console
 from rich.panel import Panel
@@ -104,45 +103,35 @@ def _call_claude_extract(
     )
 
     last_error = None
+    response_text = ""
+    stop_reason = "end_turn"
+
     for attempt in range(max_retries):
         try:
-            # Get client with load balancing
+            # Get client with load balancing (UnifiedClient supports both Anthropic and OpenAI)
             client, model = api_manager.get_client()
 
             console.print(f"[dim]使用模型: {model}[/]")
 
-            # 使用 streaming 模式接收响应，避免代理超时截断
-            response_text = ""
-            with client.messages.stream(
-                model=model,
-                max_tokens=16384,
-                messages=[{"role": "user", "content": prompt}],
-            ) as stream:
-                for text in stream.text_stream:
-                    response_text += text
-
-            # 获取最终消息（含 stop_reason）
-            message = stream.get_final_message()
+            # 使用统一 streaming 接口，自动适配 Anthropic / OpenAI
+            response_text, stop_reason = client.stream_extract(prompt, max_tokens=16384)
             break  # 成功则跳出重试循环
-        except (anthropic.APIConnectionError, anthropic.APITimeoutError) as exc:
+
+        except Exception as exc:
             last_error = exc
             if attempt < max_retries - 1:
                 wait_time = 2 ** attempt  # 指数退避: 1s, 2s, 4s
                 console.print(f"[yellow]API 调用失败，{wait_time}秒后重试... (尝试 {attempt + 1}/{max_retries})[/]")
                 time.sleep(wait_time)
             else:
-                raise RuntimeError(f"Claude API 调用失败（已重试 {max_retries} 次）: {exc}") from exc
-        except anthropic.APIError as exc:
-            raise RuntimeError(f"Claude API 调用失败: {exc}") from exc
+                raise RuntimeError(f"API 调用失败（已重试 {max_retries} 次）: {exc}") from exc
     else:
-        # 如果循环正常结束（没有 break），说明所有重试都失败了
-        raise RuntimeError(f"Claude API 调用失败（已重试 {max_retries} 次）: {last_error}") from last_error
+        raise RuntimeError(f"API 调用失败（已重试 {max_retries} 次）: {last_error}") from last_error
 
-    # response_text already accumulated via streaming above
     # Check if response was truncated
-    if message.stop_reason == "max_tokens":
-        console.print("[yellow]警告: Claude 响应被截断（达到 max_tokens 限制）[/]")
-        console.print(f"[dim]响应长度: {len(response_text)} 字符[/]")
+    console.print(f"[dim]响应长度: {len(response_text)} 字符, stop_reason: {stop_reason}[/]")
+    if stop_reason == "max_tokens":
+        console.print("[yellow]警告: 响应被截断（达到 max_tokens 限制）[/]")
 
     response_text = strip_code_fence(response_text)
 
@@ -150,10 +139,9 @@ def _call_claude_extract(
         entries = parse_json_robust(response_text)
     except RuntimeError as exc:
         # 如果 JSON 解析失败且是因为截断，记录警告但继续
-        if message.stop_reason == "max_tokens":
-            console.print(f"[red]错误: Claude 响应被截断，无法解析 JSON[/]")
+        if stop_reason == "max_tokens":
+            console.print(f"[red]错误: 响应被截断，无法解析 JSON[/]")
             console.print(f"[yellow]建议: 文章可能太长，考虑分段处理或增加 max_tokens[/]")
-            # 返回空列表，跳过这篇文章
             return []
         # 其他错误继续抛出
         raise

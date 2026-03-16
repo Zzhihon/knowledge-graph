@@ -1,0 +1,28 @@
+# 国内大厂技术博客 RSS 测试配置
+
+feeds:
+  - url: https://tech.meituan.com/feed/
+    name: 美团技术团队
+    domain: architecture
+    tags: [engineering, backend, scalability]
+    quality_weight: 1.0
+
+  - url: http://www.alloyteam.com/feed/
+    name: 腾讯 AlloyTeam
+    domain: frontend
+    tags: [frontend, web, performance]
+    quality_weight: 0.9
+
+  - url: https://keenlab.tencent.com/zh/atom.xml
+    name: 腾讯科恩实验室
+    domain: cs-theory
+    tags: [security, research]
+    quality_weight: 0.9
+
+config:
+  max_age_days: 30
+  min_content_length: 500
+  parallel_workers: 3
+  user_agent: "KG-Vault/0.2 (+https://github.com/bt1q/knowledge-graph)"
+  novelty_threshold: 0.3
+  quality_threshold: 0.4

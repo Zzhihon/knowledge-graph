@@ -49,3 +49,5 @@ node_modules/
 
 # ── 环境 ──
 .env
+graph-export.json
+graph-viewer.html
