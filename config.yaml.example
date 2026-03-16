@@ -1,0 +1,186 @@
+project:
+  name: "Knowledge Graph"
+  version: "0.1.0"
+  author: "Your Name"
+  vault_type: obsidian
+
+# 知识域定义 - 基于你的技术栈，后续可扩展
+domains:
+  golang:
+    label: "Golang"
+    icon: "🔵"
+    sub_domains:
+      - runtime       # GMP, GC, memory escape
+      - concurrency   # goroutine, channel, sync
+      - performance   # pprof, cgo optimization
+      - patterns      # hexagonal, DDD, clean arch
+
+  cloud-native:
+    label: "Cloud Native & DevOps"
+    icon: "☸️"
+    sub_domains:
+      - kubernetes    # HA, scheduling, networking
+      - cilium        # eBPF, CNI, network policy
+      - observability # Prometheus, Grafana, EFK
+      - cicd          # Jenkins, Kaniko, GitOps
+      - storage       # SeaweedFS, PV/PVC
+
+  distributed-systems:
+    label: "Distributed Systems"
+    icon: "🌐"
+    sub_domains:
+      - consensus     # Raft, Paxos
+      - consistency   # CAP, ACID, eventual
+      - rpc           # gRPC, protobuf
+      - tracing       # Jaeger, OpenTelemetry
+
+  databases:
+    label: "Databases"
+    icon: "🗄️"
+    sub_domains:
+      - mysql         # InnoDB, indexing, transactions
+      - postgresql    # MVCC, extensions
+      - redis         # data structures, sentinel, cluster
+      - mongodb       # document model
+
+  networking:
+    label: "Networking"
+    icon: "🔗"
+    sub_domains:
+      - tcp-ip        # handshake, flow control
+      - http          # HTTP/2, HTTP/3, QUIC
+      - security      # TLS, mTLS, zero-trust
+
+  frontend:
+    label: "Frontend"
+    icon: "🎨"
+    sub_domains:
+      - react         # hooks, concurrent mode, RSC
+      - typescript    # type system, generics
+      - tooling       # Vite, bundling
+
+  ai-agent:
+    label: "AI Agent"
+    icon: "🤖"
+    sub_domains:
+      - framework     # LangChain, CrewAI, Claude SDK
+      - orchestration # multi-agent, tool use
+      - memory        # RAG, context management
+      - evaluation    # benchmarking, testing
+
+  ai-infra:
+    label: "AI Infrastructure"
+    icon: "⚙️"
+    sub_domains:
+      - serving       # vLLM, TGI, inference
+      - training      # fine-tuning, RLHF
+      - data          # pipeline, feature store
+      - platform      # MLOps, model registry
+
+  algorithm:
+    label: "Algorithm"
+    icon: "🧮"
+    sub_domains:
+      - array-string
+      - linked-list
+      - hash-table
+      - binary-tree
+      - graph
+      - dynamic-programming
+      - backtracking
+      - binary-search
+      - heap
+      - stack-queue
+      - greedy
+      - sorting
+      - bit-manipulation
+      - math
+      - design
+
+# 知识条目类型
+entry_types:
+  principle:
+    label: "原理深究"
+    description: "深入底层原理的分析"
+    template: "knowledge-entry"
+  pattern:
+    label: "模式方案"
+    description: "可复用的设计模式和解决方案"
+    template: "knowledge-entry"
+  debug:
+    label: "排障记录"
+    description: "问题排查过程和根因分析"
+    template: "knowledge-entry"
+  architecture:
+    label: "架构设计"
+    description: "系统架构决策和权衡分析"
+    template: "knowledge-entry"
+  research:
+    label: "研究探索"
+    description: "技术调研和前沿探索"
+    template: "knowledge-entry"
+  problem:
+    label: "算法题目"
+    description: "算法面试题目与解法分析"
+    template: "problem-entry"
+
+# 深度层级
+depth_levels:
+  surface: "概览级 - 知道是什么"
+  intermediate: "应用级 - 知道怎么用"
+  deep: "原理级 - 知道为什么"
+
+# 访问范围
+scopes:
+  personal: "个人知识"
+  team: "团队共享"
+
+# Agent 配置
+agent:
+  model: "claude-sonnet-4-20250514"
+  embedding_model: "gemini-embedding-2-preview"
+
+  # 多 API Key 负载均衡配置
+  # 从代理获取你的 API Key，填入下方
+  api_keys:
+    - key: "YOUR_CLAUDE_API_KEY_1"
+      model: "claude-sonnet-4-20250514"
+      weight: 1.0
+      description: "主 Key - Sonnet"
+
+    - key: "YOUR_CLAUDE_API_KEY_2"
+      model: "claude-opus-4-6"
+      weight: 1.0
+      description: "备用 Key - Opus"
+
+    - key: "YOUR_GEMINI_EMBEDDING_KEY"
+      model: "gemini-embedding-2-preview"
+      weight: 0.0
+      description: "Embedding Key - Gemini"
+
+  # API 代理配置
+  base_url: "https://your-proxy-url.example.com"
+  embedding_dim: 3072
+  vector_db: "qdrant"
+  vector_db_path: "./indexes/qdrant"
+  graph_db: "surrealdb"
+  graph_db_path: "./indexes/surrealdb"
+  surrealdb:
+    namespace: "knowledge_graph"
+    database: "main"
+  confidence_threshold: 0.7
+  search_alpha: 0.7   # 向量权重 (0.0=纯BM25, 1.0=纯向量)
+
+# 审查周期
+review:
+  cycle_days: 30
+  auto_flag_outdated_days: 180
+  domains_priority:
+    - ai-agent       # 变化最快
+    - ai-infra
+    - cloud-native
+    - frontend
+    - algorithm
+    - golang          # 相对稳定
+    - distributed-systems
+    - networking

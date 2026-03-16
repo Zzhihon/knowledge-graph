@@ -1,0 +1,153 @@
+# RSS Feed Subscriptions
+#
+# 配置你的技术博客订阅，系统会自动拉取并提取知识条目
+
+feeds:
+  # ============================================================
+  # Go 生态
+  # ============================================================
+  - url: https://go.dev/blog/feed.atom
+    name: Go Official Blog
+    domain: golang
+    tags: [official, language-design]
+    quality_weight: 1.0
+
+  - url: https://dave.cheney.net/feed
+    name: Dave Cheney
+    domain: golang
+    tags: [performance, best-practices]
+    quality_weight: 0.9
+
+  - url: https://www.ardanlabs.com/blog/index.xml
+    name: Ardan Labs
+    domain: golang
+    tags: [training, concurrency]
+    quality_weight: 0.85
+
+  # ============================================================
+  # 云原生与基础设施
+  # ============================================================
+  - url: https://blog.cloudflare.com/rss/
+    name: Cloudflare Engineering
+    domain: cloud-native
+    tags: [cdn, edge-computing, distributed]
+    quality_weight: 1.0
+
+  - url: https://kubernetes.io/feed.xml
+    name: Kubernetes Blog
+    domain: cloud-native
+    tags: [k8s, orchestration]
+    quality_weight: 0.95
+
+  - url: https://www.cncf.io/feed/
+    name: CNCF Blog
+    domain: cloud-native
+    tags: [ecosystem, projects]
+    quality_weight: 0.8
+
+  # ============================================================
+  # 分布式系统
+  # ============================================================
+  - url: https://netflixtechblog.com/feed
+    name: Netflix Tech Blog
+    domain: distributed-systems
+    tags: [microservices, scalability]
+    quality_weight: 1.0
+
+  - url: https://jepsen.io/atom.xml
+    name: Jepsen
+    domain: distributed-systems
+    tags: [consistency, testing]
+    quality_weight: 1.0
+
+  - url: https://www.uber.com/blog/engineering/rss/
+    name: Uber Engineering
+    domain: distributed-systems
+    tags: [golang, microservices]
+    quality_weight: 0.9
+
+  # ============================================================
+  # 架构与模式
+  # ============================================================
+  - url: https://martinfowler.com/feed.atom
+    name: Martin Fowler
+    domain: architecture
+    tags: [patterns, refactoring]
+    quality_weight: 1.0
+
+  - url: https://aws.amazon.com/blogs/architecture/feed/
+    name: AWS Architecture Blog
+    domain: architecture
+    tags: [cloud, patterns]
+    quality_weight: 0.85
+
+  # ============================================================
+  # 性能与系统
+  # ============================================================
+  - url: https://www.brendangregg.com/blog/rss.xml
+    name: Brendan Gregg
+    domain: performance
+    tags: [profiling, ebpf, linux]
+    quality_weight: 0.95
+
+  # ============================================================
+  # 大厂工程博客
+  # ============================================================
+  - url: https://engineering.fb.com/feed/
+    name: Meta Engineering
+    domain: distributed-systems
+    tags: [scalability, infrastructure]
+    quality_weight: 0.9
+
+  - url: https://stripe.com/blog/feed.rss
+    name: Stripe Engineering
+    domain: architecture
+    tags: [api-design, payments]
+    quality_weight: 0.9
+
+  - url: https://github.blog/engineering/feed/
+    name: GitHub Engineering
+    domain: devops
+    tags: [git, ci-cd]
+    quality_weight: 0.85
+
+  - url: https://dropbox.tech/feed
+    name: Dropbox Tech
+    domain: distributed-systems
+    tags: [storage, sync]
+    quality_weight: 0.85
+
+  # ============================================================
+  # 理论与研究
+  # ============================================================
+  - url: https://paperswelove.org/rss.xml
+    name: Papers We Love
+    domain: cs-theory
+    tags: [papers, research]
+    quality_weight: 0.85
+
+  - url: https://blog.research.google/feeds/posts/default
+    name: Google Research Blog
+    domain: cs-theory
+    tags: [ai, systems]
+    quality_weight: 0.9
+
+# ============================================================
+# 全局配置
+# ============================================================
+config:
+  # 只拉取最近 N 天的文章
+  max_age_days: 30
+
+  # 最小正文长度（字符数），过滤太短的文章
+  min_content_length: 500
+
+  # 并行拉取的 feed 数量
+  parallel_workers: 5
+
+  # User-Agent 标识
+  user_agent: "KG-Vault/0.2 (+https://github.com/bt1q/knowledge-graph)"
+
+  # 质量评估阈值（复用现有 ingest pipeline）
+  novelty_threshold: 0.3
+  quality_threshold: 0.4

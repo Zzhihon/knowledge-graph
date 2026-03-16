@@ -1,0 +1,10 @@
+{
+  "newFileLocation": "folder",
+  "newFileFolderPath": "00-Index",
+  "attachmentFolderPath": "Assets",
+  "showLineCount": true,
+  "strictLineBreaks": true,
+  "readableLineLength": true,
+  "defaultViewMode": "preview",
+  "showFrontmatter": false
+}

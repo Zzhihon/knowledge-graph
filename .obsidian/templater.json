@@ -1,0 +1,9 @@
+{
+  "templates_folder": "Templates",
+  "trigger_on_file_creation": true,
+  "auto_jump_to_cursor": true,
+  "enable_system_command_templates": false,
+  "command_timeout": 5,
+  "template_date_format": "YYYY-MM-DD",
+  "template_filename_format": "ke-{{date:YYYYMMDD}}-"
+}

@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Flip card 3D transforms */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Markdown prose in chat bubbles */
+.prose-chat {
+  line-height: 1.7;
+  color: #d4d4d8; /* zinc-300 */
+}
+.prose-chat h1,
+.prose-chat h2,
+.prose-chat h3,
+.prose-chat h4 {
+  color: #f4f4f5; /* zinc-100 */
+  font-weight: 600;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+}
+.prose-chat h1 { font-size: 1.25em; }
+.prose-chat h2 { font-size: 1.125em; }
+.prose-chat h3 { font-size: 1em; }
+.prose-chat h4 { font-size: 0.9em; }
+.prose-chat p {
+  margin: 0.6em 0;
+}
+.prose-chat strong {
+  color: #e4e4e7; /* zinc-200 */
+  font-weight: 600;
+}
+.prose-chat em {
+  color: #a1a1aa; /* zinc-400 */
+}
+.prose-chat ul,
+.prose-chat ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+.prose-chat li {
+  margin: 0.25em 0;
+}
+.prose-chat li::marker {
+  color: #71717a; /* zinc-500 */
+}
+.prose-chat code {
+  background: rgba(39, 39, 42, 0.8); /* zinc-800 */
+  color: #a5b4fc; /* indigo-300 */
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+}
+.prose-chat pre {
+  background: #18181b; /* zinc-900 */
+  border: 1px solid #27272a; /* zinc-800 */
+  border-radius: 8px;
+  padding: 0.875em 1em;
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+.prose-chat pre code {
+  background: transparent;
+  color: #d4d4d8;
+  padding: 0;
+  font-size: 0.8125em;
+  line-height: 1.6;
+}
+.prose-chat blockquote {
+  border-left: 3px solid #3f3f46; /* zinc-700 */
+  padding-left: 1em;
+  margin: 0.75em 0;
+  color: #a1a1aa;
+}
+.prose-chat a {
+  color: #818cf8; /* indigo-400 */
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-chat a:hover {
+  color: #a5b4fc;
+}
+.prose-chat hr {
+  border: none;
+  border-top: 1px solid #27272a;
+  margin: 1em 0;
+}
+/* GFM tables */
+.prose-chat table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75em 0;
+  font-size: 0.8125em;
+}
+.prose-chat th {
+  text-align: left;
+  padding: 0.5em 0.75em;
+  border-bottom: 1px solid #3f3f46;
+  color: #a1a1aa;
+  font-weight: 500;
+}
+.prose-chat td {
+  padding: 0.4em 0.75em;
+  border-bottom: 1px solid #27272a;
+}
+.prose-chat tr:hover td {
+  background: rgba(39, 39, 42, 0.3);
+}
+/* First element in chat bubble — remove top margin */
+.prose-chat > :first-child {
+  margin-top: 0;
+}
+.prose-chat > :last-child {
+  margin-bottom: 0;
+}
+
+/* Entry preview slide-in */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.2s ease-out;
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.15s ease-out;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
