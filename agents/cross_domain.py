@@ -213,11 +213,10 @@ def _generate_insight_descriptions(
 只返回 JSON 数组，不要有其他文字。"""
 
     try:
-        client = anthropic.Anthropic(
-            http_client=httpx.Client(timeout=httpx.Timeout(60.0, connect=15.0)),
-        )
+        from agents.api_client import get_anthropic_client
+        client, model = get_anthropic_client()
         message = client.messages.create(
-            model=config.agent.model,
+            model=model,
             max_tokens=2048,
             messages=[{"role": "user", "content": prompt}],
         )

@@ -25,16 +25,10 @@ from agents.api_client import APIClientManager
 
 console = Console()
 
-# Global API client manager (initialized on first use)
-_api_manager: APIClientManager | None = None
-
-
 def _get_api_manager(config: ProjectConfig) -> APIClientManager:
-    """Get or create the global API client manager."""
-    global _api_manager
-    if _api_manager is None:
-        _api_manager = APIClientManager(config.agent)
-    return _api_manager
+    """Get the global API client manager from api_client module."""
+    from agents.api_client import _get_manager
+    return _get_manager()
 
 # Extraction prompt template for Claude
 _EXTRACTION_PROMPT = """\
@@ -111,7 +105,8 @@ def _call_claude_extract(
             # Get client with load balancing (UnifiedClient supports both Anthropic and OpenAI)
             client, model = api_manager.get_client()
 
-            console.print(f"[dim]使用模型: {model}[/]")
+            key_hint = client.key_config.key[:8] if hasattr(client, 'key_config') else "?"
+            console.print(f"[dim]使用模型: {model} (key: {key_hint}...)[/]")
 
             # 使用统一 streaming 接口，自动适配 Anthropic / OpenAI
             response_text, stop_reason = client.stream_extract(prompt, max_tokens=16384)

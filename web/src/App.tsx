@@ -11,6 +11,7 @@ import GraphView from './views/GraphView'
 import ProblemBankView from './views/ProblemBankView'
 import ExamView from './views/ExamView'
 import RSSView from './views/RSSView'
+import NetworkGraphView from './views/NetworkGraphView'
 import EntryPreview from './components/EntryPreview'
 import { get, post, del } from './api/client'
 import type { SyncResult, ConversationListItem, ExamPaper } from './types'
@@ -96,36 +97,42 @@ export default function App() {
           onOpenExport={() => setIsExportOpen(true)}
         />
 
-        <div className="flex-1 overflow-y-auto p-8 scroll-smooth">
-          <div className="max-w-5xl mx-auto h-full">
-            {activeTab === 'dashboard' && <DashboardView setActiveTab={setActiveTab} />}
-            {activeTab === 'ask' && (
-              <AskView
-                conversationId={currentConversationId}
-                onConversationCreated={handleConversationCreated}
-                onPreviewEntry={setPreviewEntryId}
-              />
-            )}
-            {activeTab === 'quiz' && <QuizView onPreviewEntry={setPreviewEntryId} />}
-            {activeTab === 'problems' && (
-              <ProblemBankView
-                onPreviewEntry={setPreviewEntryId}
-                onStartExam={(exam) => { setExamData(exam); setActiveTab('exam') }}
-                setActiveTab={setActiveTab}
-              />
-            )}
-            {activeTab === 'exam' && (
-              <ExamView
-                examData={examData}
-                onPreviewEntry={setPreviewEntryId}
-                setActiveTab={setActiveTab}
-              />
-            )}
-            {activeTab === 'health' && <HealthView onPreviewEntry={setPreviewEntryId} />}
-            {activeTab === 'graph' && <GraphView onPreviewEntry={setPreviewEntryId} />}
-            {activeTab === 'rss' && <RSSView />}
+        {activeTab === 'network' ? (
+          <div className="flex-1 overflow-hidden">
+            <NetworkGraphView onPreviewEntry={setPreviewEntryId} />
           </div>
-        </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto p-8 scroll-smooth">
+            <div className="max-w-5xl mx-auto h-full">
+              {activeTab === 'dashboard' && <DashboardView setActiveTab={setActiveTab} />}
+              {activeTab === 'ask' && (
+                <AskView
+                  conversationId={currentConversationId}
+                  onConversationCreated={handleConversationCreated}
+                  onPreviewEntry={setPreviewEntryId}
+                />
+              )}
+              {activeTab === 'quiz' && <QuizView onPreviewEntry={setPreviewEntryId} />}
+              {activeTab === 'problems' && (
+                <ProblemBankView
+                  onPreviewEntry={setPreviewEntryId}
+                  onStartExam={(exam) => { setExamData(exam); setActiveTab('exam') }}
+                  setActiveTab={setActiveTab}
+                />
+              )}
+              {activeTab === 'exam' && (
+                <ExamView
+                  examData={examData}
+                  onPreviewEntry={setPreviewEntryId}
+                  setActiveTab={setActiveTab}
+                />
+              )}
+              {activeTab === 'health' && <HealthView onPreviewEntry={setPreviewEntryId} />}
+              {activeTab === 'graph' && <GraphView onPreviewEntry={setPreviewEntryId} />}
+              {activeTab === 'rss' && <RSSView />}
+            </div>
+          </div>
+        )}
       </main>
 
       {isExportOpen && <ExportModal onClose={() => setIsExportOpen(false)} />}

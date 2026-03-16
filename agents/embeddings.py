@@ -59,12 +59,17 @@ def _init_backend() -> None:
     # 1. embedding_model is set to gemini-embedding-* in config
     # 2. OR api_keys are configured (implies Gemini API is available)
     if "gemini" in model_name.lower() or api_keys:
-        # Find the right API key (prefer non-opus key for embeddings)
+        # Find the embedding-dedicated key (weight=0, gemini model)
         api_key = None
         if api_keys:
-            api_key = api_keys[0].key  # use first key
-        elif os.environ.get("ANTHROPIC_AUTH_TOKEN"):
-            api_key = os.environ["ANTHROPIC_AUTH_TOKEN"]
+            # 优先找 embedding 专用 key (gemini model)
+            for kc in api_keys:
+                if "gemini" in kc.model.lower() or "embedding" in kc.description.lower():
+                    api_key = kc.key
+                    break
+            # 没有专用 key 就用第一个
+            if not api_key:
+                api_key = api_keys[0].key
 
         if api_key and base_url:
             _use_gemini = True

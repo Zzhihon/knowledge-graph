@@ -242,6 +242,36 @@ export interface SyncResult {
   edges_created: number
 }
 
+// --- Network Graph types ---
+
+export interface NetworkNode {
+  id: string
+  title: string
+  domain: string[]
+  type: string
+  depth: string
+  status: string
+  confidence: number | null
+  tags: string[]
+}
+
+export interface NetworkEdge {
+  source: string
+  target: string
+  type: 'references' | 'prerequisites' | 'supersedes'
+}
+
+export interface NetworkData {
+  nodes: NetworkNode[]
+  edges: NetworkEdge[]
+  meta: {
+    domains: string[]
+    edge_types: string[]
+    node_count: number
+    edge_count: number
+  }
+}
+
 // --- Problem Bank types ---
 
 export interface ProblemListItem {

@@ -157,7 +157,8 @@ def generate_pattern_batch(
     # Limit to available anchors
     selected_anchors = anchors[:problem_count]
 
-    client = anthropic.Anthropic()
+    from agents.api_client import get_anthropic_client
+    client, _ = get_anthropic_client()
     result = PatternBatchResult(pattern_name=pattern_name, pattern_file="")
 
     # --- Step 1: Generate pattern template ---

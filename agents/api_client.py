@@ -188,3 +188,52 @@ class APIClientManager:
             }
             for _, kc in self.clients
         ]
+
+
+# ── 全局单例 ─────────────────────────────────────────────────────────
+# 所有模块应通过此处获取 LLM 客户端，而非直接 anthropic.Anthropic()
+
+_manager: APIClientManager | None = None
+
+
+def _get_manager() -> APIClientManager:
+    """Lazy init global APIClientManager singleton."""
+    global _manager
+    if _manager is None:
+        from agents.config import load_config
+        _manager = APIClientManager(load_config().agent)
+    return _manager
+
+
+def get_anthropic_client() -> tuple[anthropic.Anthropic, str]:
+    """获取受权重控制的 Anthropic 客户端。
+
+    替代直接调用 anthropic.Anthropic()，确保走 config 中的
+    负载均衡逻辑，不受环境变量影响。
+
+    Returns:
+        (client, model_name) — client 是原生 anthropic.Anthropic 实例
+    """
+    mgr = _get_manager()
+    # 只从 Anthropic 类型的客户端中选
+    anthropic_clients = [
+        (c, kc) for c, kc in mgr.clients if not _is_openai_model(kc.model)
+    ]
+    if not anthropic_clients:
+        # 没有配置 Anthropic key，fallback 到任意可用的
+        uc, model = mgr.get_client()
+        if uc._anthropic is None:
+            raise RuntimeError("No Anthropic client available")
+        return uc._anthropic, model
+
+    # 加权随机选一个 Anthropic 客户端
+    total = sum(kc.weight for _, kc in anthropic_clients)
+    rand = random.uniform(0, total)
+    cumulative = 0.0
+    for uc, kc in anthropic_clients:
+        cumulative += kc.weight
+        if rand <= cumulative:
+            return uc._anthropic, kc.model
+
+    uc, kc = anthropic_clients[0]
+    return uc._anthropic, kc.model

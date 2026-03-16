@@ -105,6 +105,71 @@ def get_cross_domain(
     ]
 
 
+@router.get("/graph/network")
+def get_graph_network() -> dict[str, Any]:
+    """Return full knowledge network: all nodes + edges for D3 visualization."""
+    from agents.config import load_config
+    from agents.graph_store import GraphStore, get_graph_store, _extract_rows, _extract_id_from_record
+
+    config = load_config()
+    gs = get_graph_store(config)
+    gs.connect()
+    try:
+        # Nodes
+        entries = gs.list_entries()
+        nodes = []
+        for e in entries:
+            eid = _extract_id_from_record(e.get("id", ""))
+            domain = e.get("domain", [])
+            if isinstance(domain, str):
+                domain = [domain]
+            nodes.append({
+                "id": eid,
+                "title": e.get("title", ""),
+                "domain": domain,
+                "type": e.get("entry_type", ""),
+                "depth": e.get("depth", ""),
+                "status": e.get("status", ""),
+                "confidence": e.get("confidence"),
+                "tags": e.get("tags", []),
+            })
+
+        # Edges — query each relation type
+        edges = []
+        rel_types = ("references", "prerequisites", "supersedes")
+        for rt in rel_types:
+            result = gs._db.query(f"SELECT * FROM {rt};")
+            rows = _extract_rows(result)
+            for row in rows:
+                src = _extract_id_from_record(row.get("in", ""))
+                tgt = _extract_id_from_record(row.get("out", ""))
+                if src and tgt:
+                    edges.append({
+                        "source": src,
+                        "target": tgt,
+                        "type": rt,
+                    })
+
+        # Collect unique domains
+        domains: set[str] = set()
+        for n in nodes:
+            for d in n["domain"]:
+                domains.add(d)
+
+        return {
+            "nodes": nodes,
+            "edges": edges,
+            "meta": {
+                "domains": sorted(domains),
+                "edge_types": list(rel_types),
+                "node_count": len(nodes),
+                "edge_count": len(edges),
+            },
+        }
+    finally:
+        gs.close()
+
+
 @router.get("/graph/backlinks/{entry_id}")
 def get_backlinks(entry_id: str) -> list[dict[str, str]]:
     """Get all entries that reference the given entry (backlinks)."""

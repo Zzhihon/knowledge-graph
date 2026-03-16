@@ -9,6 +9,7 @@ const TAB_LABELS: Record<string, string> = {
   exam: '模拟面试',
   health: '知识健康巡检',
   graph: '图谱与演进链路',
+  network: '知识网络图谱',
 }
 
 interface Props {

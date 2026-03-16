@@ -1,0 +1,33 @@
+# 新增高质量 RSS 源测试
+
+feeds:
+  - url: https://blog.pragmaticengineer.com/rss/
+    name: The Pragmatic Engineer
+    domain: architecture
+    tags: [engineering-culture, career, big-tech]
+    quality_weight: 1.0
+
+  - url: https://newsletter.systemdesign.one/feed
+    name: System Design Newsletter
+    domain: distributed-systems
+    tags: [system-design, scalability]
+    quality_weight: 0.95
+
+  - url: https://simonwillison.net/atom/everything/
+    name: Simon Willison
+    domain: ai-agent
+    tags: [llm, ai-tools, python]
+    quality_weight: 1.0
+
+  - url: https://thenewstack.io/feed/
+    name: The New Stack
+    domain: cloud-native
+    tags: [devops, platform-engineering, k8s]
+    quality_weight: 0.85
+
+config:
+  max_age_days: 7
+  min_content_length: 500
+  parallel_workers: 4
+  novelty_threshold: 0.3
+  quality_threshold: 0.4

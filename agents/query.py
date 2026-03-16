@@ -88,9 +88,10 @@ def _expand_query(query: str, config: ProjectConfig) -> list[str]:
 示例: ["大模型微调 fine-tuning LoRA", "RAG 检索增强生成 向量数据库"]"""
 
     try:
-        client = anthropic.Anthropic()
+        from agents.api_client import get_anthropic_client
+        client, model = get_anthropic_client()
         message = client.messages.create(
-            model=config.agent.model,
+            model=model,
             max_tokens=512,
             messages=[{"role": "user", "content": prompt}],
         )

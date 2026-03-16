@@ -328,9 +328,8 @@ def _call_claude_distill(
     config: ProjectConfig,
 ) -> dict[str, Any]:
     """Call Claude to synthesise multiple entries into one."""
-    client = anthropic.Anthropic(
-        http_client=httpx.Client(timeout=httpx.Timeout(120.0, connect=15.0)),
-    )
+    from agents.api_client import get_anthropic_client
+    client, _ = get_anthropic_client()
 
     # Build entries text for the prompt
     parts: list[str] = []

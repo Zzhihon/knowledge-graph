@@ -116,7 +116,8 @@ def _stream_answer(
     model: str,
 ) -> None:
     """Stream a Claude answer to the console."""
-    client = anthropic.Anthropic()
+    from agents.api_client import get_anthropic_client
+    client, model = get_anthropic_client()
 
     messages = [
         {
@@ -252,7 +253,8 @@ def ask_stream(
 
     context = _build_context(results, config, use_graph=use_graph)
 
-    client = anthropic.Anthropic()
+    from agents.api_client import get_anthropic_client
+    client, model = get_anthropic_client()
     messages = [
         {
             "role": "user",
