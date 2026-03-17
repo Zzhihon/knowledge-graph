@@ -6,13 +6,16 @@ interface Props {
   cmd: string
   onClick: () => void
   primary?: boolean
+  disabled?: boolean
 }
 
-export default function ActionButton({ icon, label, cmd, onClick, primary }: Props) {
+export default function ActionButton({ icon, label, cmd, onClick, primary, disabled }: Props) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={`group flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-all ${
+        disabled ? 'opacity-50 cursor-not-allowed' :
         primary
           ? 'bg-zinc-100 text-zinc-900 hover:bg-white'
           : 'border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:bg-zinc-800'

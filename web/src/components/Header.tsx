@@ -34,9 +34,10 @@ export default function Header({ activeTab, isSyncing, onSync, onOpenIngest, onO
       <div className="flex items-center gap-3">
         <ActionButton
           icon={<RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />}
-          label="同步索引"
+          label={isSyncing ? '同步中...' : '同步索引'}
           cmd="kg sync"
           onClick={onSync}
+          disabled={isSyncing}
         />
         <ActionButton
           icon={<Upload className="w-4 h-4" />}

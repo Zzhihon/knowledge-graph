@@ -235,7 +235,10 @@ export default function GraphView({ onPreviewEntry }: Props) {
                 {links.slice(0, 3).map((link, i) => (
                   <button
                     key={i}
-                    onClick={() => loadDiff(link.source_title)}
+                    onClick={() => {
+                      loadDiff(link.source_id)
+                      onPreviewEntry?.(link.source_id)
+                    }}
                     className="block text-xs text-indigo-400 hover:text-indigo-300"
                   >
                     查看 {link.source_title} 的演进 →
@@ -267,7 +270,11 @@ export default function GraphView({ onPreviewEntry }: Props) {
                     </div>
                     {record.entry_id && (
                       <button
-                        onClick={() => onPreviewEntry?.(record.entry_id)}
+                        onClick={() => {
+                          if (record.entry_id) {
+                            onPreviewEntry?.(record.entry_id)
+                          }
+                        }}
                         className="mt-1 text-xs text-zinc-400 hover:text-indigo-400 transition-colors flex items-center gap-1"
                       >
                         查看此版本

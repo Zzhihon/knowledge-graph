@@ -66,12 +66,21 @@ export default function App() {
     refreshConversations()
   }
 
+  const [syncResult, setSyncResult] = useState<SyncResult | null>(null)
+  const [syncError, setSyncError] = useState<string | null>(null)
+
   const handleSync = async () => {
     setIsSyncing(true)
+    setSyncResult(null)
+    setSyncError(null)
     try {
-      await post<SyncResult>('/sync', { full: false })
-    } catch {
-      // Error handling
+      const result = await post<SyncResult>('/sync', { full: false })
+      setSyncResult(result)
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => setSyncResult(null), 5000)
+    } catch (err) {
+      setSyncError(err instanceof Error ? err.message : '同步失败')
+      setTimeout(() => setSyncError(null), 4000)
     } finally {
       setIsSyncing(false)
     }
@@ -97,6 +106,39 @@ export default function App() {
           onOpenIngest={() => setIsIngestOpen(true)}
           onOpenExport={() => setIsExportOpen(true)}
         />
+
+        {/* Sync result notification bar */}
+        {syncResult && (
+          <div className="px-6 py-2.5 bg-emerald-950/40 border-b border-emerald-800/30 flex items-center justify-between animate-fade-in">
+            <div className="flex items-center gap-4 text-sm">
+              <span className="text-emerald-400 font-medium">✓ 同步完成</span>
+              <span className="text-zinc-400">
+                新增 <span className="text-emerald-400">{syncResult.new}</span>
+                {' · '}更新 <span className="text-amber-400">{syncResult.changed}</span>
+                {' · '}删除 <span className="text-rose-400">{syncResult.deleted}</span>
+                {' · '}未变 <span className="text-zinc-500">{syncResult.unchanged}</span>
+                {' · '}向量 <span className="text-indigo-400">{syncResult.qdrant_upserted}</span>
+              </span>
+            </div>
+            <button
+              onClick={() => setSyncResult(null)}
+              className="text-zinc-500 hover:text-zinc-300 text-xs"
+            >
+              关闭
+            </button>
+          </div>
+        )}
+        {syncError && (
+          <div className="px-6 py-2.5 bg-rose-950/40 border-b border-rose-800/30 flex items-center justify-between animate-fade-in">
+            <span className="text-sm text-rose-400">✗ 同步失败：{syncError}</span>
+            <button
+              onClick={() => setSyncError(null)}
+              className="text-zinc-500 hover:text-zinc-300 text-xs"
+            >
+              关闭
+            </button>
+          </div>
+        )}
 
         {activeTab === 'network' ? (
           <div className="flex-1 overflow-hidden">
