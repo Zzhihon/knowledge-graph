@@ -10,6 +10,7 @@ const TAB_LABELS: Record<string, string> = {
   health: '知识健康巡检',
   graph: '图谱与演进链路',
   network: '知识网络图谱',
+  topics: '知识主题总览',
 }
 
 interface Props {

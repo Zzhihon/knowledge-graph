@@ -331,3 +331,37 @@ export interface ExamPaper {
   difficulty_distribution: Record<string, number>
   pattern_coverage: string[]
 }
+
+// --- Domain Overview types ---
+
+export interface DomainMetrics {
+  coverage: number
+  depth_score: number
+  freshness: number
+  avg_confidence: number
+  total_entries: number
+}
+
+export interface DomainEntry {
+  id: string
+  title: string
+  type: string
+  depth: string
+  confidence: number
+  status: string
+  domain: string[]
+}
+
+export interface DomainOverview {
+  key: string
+  label: string
+  icon: string
+  sub_domains: string[]
+  metrics: DomainMetrics
+  entries: DomainEntry[]
+}
+
+export interface DomainsOverviewResponse {
+  domains: DomainOverview[]
+}
+

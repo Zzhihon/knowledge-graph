@@ -12,6 +12,7 @@ import ProblemBankView from './views/ProblemBankView'
 import ExamView from './views/ExamView'
 import RSSView from './views/RSSView'
 import NetworkGraphView from './views/NetworkGraphView'
+import TopicExplorerView from './views/TopicExplorerView'
 import EntryPreview from './components/EntryPreview'
 import { get, post, del } from './api/client'
 import type { SyncResult, ConversationListItem, ExamPaper } from './types'
@@ -129,6 +130,7 @@ export default function App() {
               )}
               {activeTab === 'health' && <HealthView onPreviewEntry={setPreviewEntryId} />}
               {activeTab === 'graph' && <GraphView onPreviewEntry={setPreviewEntryId} />}
+              {activeTab === 'topics' && <TopicExplorerView />}
               {activeTab === 'rss' && <RSSView />}
             </div>
           </div>
