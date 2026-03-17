@@ -248,6 +248,8 @@ def _merge_suggestions(
             source_info.append(f"graph:{graph_score:.2f}")
 
         suggestions.append({
+            "source_id": source_id,
+            "target_id": target_id,
             "source_path": source_path,
             "target_path": target_path,
             "source_title": source_title,

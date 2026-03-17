@@ -190,10 +190,20 @@ export default function GraphView({ onPreviewEntry }: Props) {
               <div className="text-zinc-500 text-sm p-3">暂无关联建议。请先运行同步索引。</div>
             ) : (
               links.map((link, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-zinc-950/50 rounded-lg border border-zinc-800/50">
-                  <span className="text-sm text-zinc-300 truncate">{link.source_title}</span>
+                <div key={i} className="flex items-center gap-3 p-3 bg-zinc-950/50 rounded-lg border border-zinc-800/50 hover:border-zinc-700/50 transition-colors">
+                  <button
+                    onClick={() => onPreviewEntry?.(link.source_id)}
+                    className="text-sm text-zinc-300 hover:text-indigo-400 truncate text-left transition-colors"
+                  >
+                    {link.source_title}
+                  </button>
                   <Activity className="w-4 h-4 text-zinc-600 shrink-0" />
-                  <span className="text-sm text-zinc-300 truncate">{link.target_title}</span>
+                  <button
+                    onClick={() => onPreviewEntry?.(link.target_id)}
+                    className="text-sm text-zinc-300 hover:text-indigo-400 truncate text-left transition-colors"
+                  >
+                    {link.target_title}
+                  </button>
                   <span className="ml-auto text-xs text-emerald-400 font-mono shrink-0">
                     {link.similarity.toFixed(2)}
                   </span>
@@ -238,23 +248,32 @@ export default function GraphView({ onPreviewEntry }: Props) {
               {diffs.map((record, i) => {
                 const isCreate = record.change_type === 'created'
                 return (
-                  <div key={i} className="relative">
+                  <div key={i} className="relative group">
                     <div className={`absolute -left-[25px] top-1 w-2.5 h-2.5 rounded-full ring-4 ring-zinc-950 ${
                       isCreate ? 'bg-emerald-500' :
                       record.change_type === 'modified' ? 'bg-amber-500' : 'bg-zinc-700'
                     }`}></div>
                     <p className="text-xs text-zinc-500 mb-1">{record.timestamp}</p>
-                    <p className="text-sm text-zinc-300">
-                      <span className={`font-medium ${
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-medium ${
                         isCreate ? 'text-emerald-400' :
                         record.change_type === 'modified' ? 'text-amber-400' : 'text-rose-400'
                       }`}>{record.change_type}</span>
                       {record.stats && (
-                        <span className="text-zinc-500 ml-2 text-xs">
+                        <span className="text-zinc-500 text-xs">
                           +{record.stats.additions} -{record.stats.deletions}
                         </span>
                       )}
-                    </p>
+                    </div>
+                    {record.entry_id && (
+                      <button
+                        onClick={() => onPreviewEntry?.(record.entry_id)}
+                        className="mt-1 text-xs text-zinc-400 hover:text-indigo-400 transition-colors flex items-center gap-1"
+                      >
+                        查看此版本
+                        <ExternalLink className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 )
               })}

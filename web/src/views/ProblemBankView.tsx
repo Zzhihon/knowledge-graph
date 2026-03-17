@@ -64,14 +64,39 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
   const handleGeneratePattern = async (patternName: string, chineseName: string) => {
     setGenerating(patternName)
     try {
-      await post('/problems/generate-pattern', {
+      const result = await post<{
+        pattern_name: string
+        pattern_file: string
+        problems: Array<{ entry_id: string; title: string; leetcode_id: number | null; difficulty: string; file_path: string }>
+        errors: string[]
+      }>('/problems/generate-pattern', {
         pattern_name: patternName,
         chinese_name: chineseName,
         problem_count: 5,
       })
+
+      // Show success notification
+      const problemCount = result.problems.length
+      const errorCount = result.errors.length
+      const message = errorCount > 0
+        ? `✅ 生成完成：${problemCount} 题成功，${errorCount} 题失败`
+        : `✅ 成功生成 ${problemCount} 道题目`
+
+      // Simple toast notification (you can replace with a proper toast library)
+      const toast = document.createElement('div')
+      toast.className = 'fixed top-4 right-4 px-4 py-3 bg-emerald-600 text-white rounded-lg shadow-lg z-50 animate-fade-in'
+      toast.textContent = message
+      document.body.appendChild(toast)
+      setTimeout(() => toast.remove(), 3000)
+
       await fetchData()
-    } catch {
-      // handle error
+    } catch (error) {
+      // Show error notification
+      const toast = document.createElement('div')
+      toast.className = 'fixed top-4 right-4 px-4 py-3 bg-rose-600 text-white rounded-lg shadow-lg z-50 animate-fade-in'
+      toast.textContent = `❌ 生成失败：${error instanceof Error ? error.message : '未知错误'}`
+      document.body.appendChild(toast)
+      setTimeout(() => toast.remove(), 4000)
     } finally {
       setGenerating(null)
     }
@@ -151,6 +176,8 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
               className={`p-3 rounded-xl border transition-colors ${
                 p.status === 'active'
                   ? 'border-zinc-800 bg-zinc-900/40'
+                  : generating === p.name
+                  ? 'border-violet-500/50 bg-violet-500/5'
                   : 'border-dashed border-zinc-700/50 bg-zinc-900/20 hover:border-violet-500/30 cursor-pointer'
               }`}
               onClick={() => {
@@ -172,9 +199,18 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
               <div className="flex items-center justify-between">
                 <span className="text-xs text-zinc-500">{p.name}</span>
                 <span className="text-xs text-zinc-500">
-                  {p.status === 'active' ? `${p.problem_count} 题` : '待生成'}
+                  {p.status === 'active'
+                    ? `${p.problem_count} 题`
+                    : generating === p.name
+                    ? '生成中...'
+                    : '待生成'}
                 </span>
               </div>
+              {generating === p.name && (
+                <div className="mt-2 text-xs text-violet-400">
+                  正在调用 Claude API 生成题目，预计 30-60 秒...
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -21,6 +21,8 @@ def get_graph_links(
     # Ensure Path objects are serialized
     return [
         {
+            "source_id": s.get("source_id", ""),
+            "target_id": s.get("target_id", ""),
             "source_title": s.get("source_title", ""),
             "target_title": s.get("target_title", ""),
             "similarity": s.get("similarity", 0),
@@ -195,7 +197,12 @@ def get_graph_diff(
         gs.connect()
         try:
             ds = DiffStore(gs)
-            return ds.get_history(entry_id, limit=limit)
+            records = ds.get_history(entry_id, limit=limit)
+            # Ensure entry_id is in each record
+            for record in records:
+                if "entry_id" not in record:
+                    record["entry_id"] = entry_id
+            return records
         finally:
             gs.close()
     except Exception:

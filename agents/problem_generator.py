@@ -7,6 +7,7 @@ Writes files in the same frontmatter schema as existing 02-Patterns/ and
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -79,16 +80,113 @@ class PatternBatchResult:
 _PATTERN_TEMPLATE_PROMPT = """\
 你是一个算法面试教练。请为「{chinese_name}」({pattern_name}) 生成一个详细的算法模式模板。
 
-请以 JSON 格式返回，包含以下字段：
-- title: 中文标题，格式为 "{chinese_name}模式模板"
-- recognition_signals: 识别信号列表（关键词、数据特征、反面信号）
-- variants: 变体列表，每个变体包含 name, description, typical_problems, cpp_template, go_template
-- key_insights: 5 条核心洞察
-- tradeoffs: 优劣势对比列表
-- related_patterns: 相关模式列表
+参考以下现有模式模板的格式，生成一个完整的 Markdown 文件（包括 frontmatter）：
 
-模板代码使用 C++ 和 Go 双语言，代码中用注释标记关键决策点。
-确保所有代码可编译运行。只返回 JSON，不要有其他文字。
+---
+id: "ke-{date_compact}-{pattern_name}-pattern"
+title: "{chinese_name}模式"
+domain:
+  - algorithm
+tags:
+  - {pattern_name}
+  - algorithm-pattern
+type: pattern
+depth: deep
+status: validated
+scope: personal
+source:
+  type: claude-generated
+  date: "{date}"
+  context: "算法模式自动生成"
+related:
+{related_problems}
+prerequisites: []
+supersedes: null
+confidence: 0.85
+ease_factor: 2.5
+review_interval: 14
+code_refs: []
+created: "{date}"
+updated: "{date}"
+review_date: ""
+---
+
+# {chinese_name}模式
+
+## Question
+
+> [!question] 核心问题
+> 什么时候使用{chinese_name}？有哪些主要应用场景？如何根据题目特征选择正确的模板？
+
+## Context
+
+[简要介绍该模式的核心思想和基本原理]
+
+### 基础模板 — C++
+
+```cpp
+// [模板代码，包含关键注释]
+```
+
+### 基础模板 — Go
+
+```go
+// [模板代码，包含关键注释]
+```
+
+[如果有变体，继续添加变体模板]
+
+## Analysis
+
+### 表层理解
+
+[模式的本质和适用前提]
+
+### 识别信号
+
+> [!tip] 何时使用{chinese_name}
+> **关键词识别**：
+> - [关键词列表]
+>
+> **数据特征**：
+> - [数据特征列表]
+>
+> **反面信号（不适用）**：
+> - [反面信号列表]
+
+### 深层分析
+
+[深入分析模式的工作原理、与其他模式的对比等]
+
+### 应用场景分类
+
+[列举主要应用场景，每个场景包含特征说明]
+
+## Key Insights
+
+> [!tip] 核心洞察
+> 1. [洞察1]
+> 2. [洞察2]
+> 3. [洞察3]
+> 4. [洞察4]
+> 5. [洞察5]
+
+## Trade-offs
+
+| 维度 | 优势 | 劣势 |
+|------|------|------|
+| [维度1] | [优势] | [劣势] |
+| [维度2] | [优势] | [劣势] |
+
+## Related
+
+{related_links}
+
+## References
+
+- [参考资料列表]
+
+请直接返回完整的 Markdown 内容，不要有任何额外的解释或包装。
 """
 
 _PROBLEM_PROMPT = """\
@@ -157,32 +255,65 @@ def generate_pattern_batch(
     # Limit to available anchors
     selected_anchors = anchors[:problem_count]
 
+    print(f"[问题生成器] 开始生成模式: {chinese_name} ({pattern_name})")
+    print(f"[问题生成器] 将生成 {len(selected_anchors)} 道题目: {selected_anchors}")
+
     from agents.api_client import get_anthropic_client
     client, _ = get_anthropic_client()
     result = PatternBatchResult(pattern_name=pattern_name, pattern_file="")
 
     # --- Step 1: Generate pattern template ---
     try:
-        pattern_data = _call_claude(
+        print(f"[问题生成器] 步骤 1/2: 生成模式模板...")
+
+        # Prepare prompt parameters
+        now_str = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
+        date_compact = datetime.now(tz=timezone.utc).strftime("%Y%m%d")
+
+        # Build related problems list for frontmatter
+        related_problems = "\n".join(
+            f'  - "ke-{date_compact}-lc{lc_id}"'
+            for lc_id in selected_anchors
+        )
+
+        # Build related links for content
+        related_links = "\n".join(
+            f'- [[ke-{date_compact}-lc{lc_id}]] — LC-{lc_id}'
+            for lc_id in selected_anchors
+        )
+
+        markdown_content = _call_claude(
             client,
             _PATTERN_TEMPLATE_PROMPT.format(
                 chinese_name=chinese_name,
                 pattern_name=pattern_name,
+                date_compact=date_compact,
+                date=now_str,
+                related_problems=related_problems,
+                related_links=related_links,
             ),
             config.agent.model,
+            expect_json=False,  # 返回 Markdown
         )
-        pattern_file = _write_pattern_template(
-            pattern_name, chinese_name, pattern_data,
-            selected_anchors, config, dry_run,
+
+        # Write markdown directly to file
+        pattern_file = _write_pattern_markdown(
+            pattern_name, markdown_content, config, dry_run
         )
         result.pattern_file = pattern_file
+        print(f"[问题生成器] ✓ 模式模板已生成: {pattern_file}")
     except Exception as exc:
+        print(f"[问题生成器] ✗ 模式模板生成失败: {exc}")
         result.errors.append(f"模式模板生成失败: {exc}")
         return result
 
-    # --- Step 2: Generate each problem ---
-    for lc_id in selected_anchors:
+    # --- Step 2: Generate each problem (并行化) ---
+    print(f"[问题生成器] 步骤 2/2: 并行生成题目条目...")
+
+    def generate_single_problem(lc_id: int, idx: int) -> tuple[int, GeneratedProblem | None, str | None]:
+        """生成单个题目，返回 (lc_id, problem, error)"""
         try:
+            print(f"[问题生成器]   [{idx}/{len(selected_anchors)}] 开始生成 LC-{lc_id}...")
             problem_data = _call_claude(
                 client,
                 _PROBLEM_PROMPT.format(
@@ -197,16 +328,35 @@ def generate_pattern_batch(
                 lc_id, difficulty, pattern_name, chinese_name,
                 problem_data, result.pattern_file, config, dry_run,
             )
-            result.problems.append(GeneratedProblem(
+            problem = GeneratedProblem(
                 entry_id=Path(problem_file).stem,
                 title=problem_data.get("title", f"LC-{lc_id}"),
                 leetcode_id=lc_id,
                 difficulty=difficulty,
                 file_path=problem_file,
-            ))
+            )
+            print(f"[问题生成器]   ✓ LC-{lc_id} 已生成")
+            return (lc_id, problem, None)
         except Exception as exc:
-            result.errors.append(f"LC-{lc_id} 生成失败: {exc}")
+            error_msg = f"LC-{lc_id} 生成失败: {exc}"
+            print(f"[问题生成器]   ✗ {error_msg}")
+            return (lc_id, None, error_msg)
 
+    # 使用线程池并行生成（最多 3 个并发）
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = {
+            executor.submit(generate_single_problem, lc_id, idx): lc_id
+            for idx, lc_id in enumerate(selected_anchors, 1)
+        }
+
+        for future in as_completed(futures):
+            lc_id, problem, error = future.result()
+            if problem:
+                result.problems.append(problem)
+            if error:
+                result.errors.append(error)
+
+    print(f"[问题生成器] 完成! 成功: {len(result.problems)}, 失败: {len(result.errors)}")
     return result
 
 
@@ -271,11 +421,16 @@ def _call_claude(
     client: anthropic.Anthropic,
     prompt: str,
     model: str,
-) -> dict[str, Any]:
-    """Call Claude and parse JSON response."""
+    expect_json: bool = True,
+) -> dict[str, Any] | str:
+    """Call Claude and parse response.
+
+    Args:
+        expect_json: If True, parse as JSON. If False, return raw text.
+    """
     message = client.messages.create(
         model=model,
-        max_tokens=8192,
+        max_tokens=16384,
         messages=[{"role": "user", "content": prompt}],
     )
 
@@ -284,6 +439,11 @@ def _call_claude(
         if block.type == "text":
             response_text += block.text
 
+    if not expect_json:
+        # Return raw markdown
+        return strip_code_fence(response_text)
+
+    # Parse as JSON
     response_text = strip_code_fence(response_text)
     data = parse_json_robust(response_text)
 
@@ -296,6 +456,27 @@ def _call_claude(
 # ---------------------------------------------------------------------------
 # File writers
 # ---------------------------------------------------------------------------
+
+def _write_pattern_markdown(
+    pattern_name: str,
+    markdown_content: str,
+    config: ProjectConfig,
+    dry_run: bool,
+) -> str:
+    """Write pattern template markdown directly to 02-Patterns/."""
+    date_compact = datetime.now(tz=timezone.utc).strftime("%Y%m%d")
+    entry_id = f"ke-{date_compact}-{pattern_name}-pattern"
+    filename = f"{entry_id}.md"
+    file_path = config.vault_path / "02-Patterns" / filename
+
+    if dry_run:
+        print(f"[DRY RUN] 将写入: {file_path}")
+        return str(file_path)
+
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_path.write_text(markdown_content, encoding="utf-8")
+    return str(file_path)
+
 
 def _write_pattern_template(
     pattern_name: str,

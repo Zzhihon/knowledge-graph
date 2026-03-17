@@ -85,6 +85,8 @@ export interface GapAnalysis {
 export interface LinkSuggestion {
   source_title: string
   target_title: string
+  source_id: string
+  target_id: string
   similarity: number
   source: string
 }
@@ -93,6 +95,7 @@ export interface DiffRecord {
   change_type: string
   timestamp: string
   diff_text: string
+  entry_id?: string
   stats: {
     additions: number
     deletions: number

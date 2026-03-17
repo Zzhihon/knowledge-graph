@@ -1535,6 +1535,17 @@ def pull_rss(
             tmp_path = Path(tmp.name)
 
         try:
+            # Build source tags from RSS metadata
+            source_tags = ["source:rss"]
+            if doc.metadata.get("feed_name"):
+                feed_slug = (
+                    doc.metadata["feed_name"]
+                    .lower().replace(" ", "-").replace(".", "")[:30]
+                )
+                source_tags.append(f"feed:{feed_slug}")
+            if doc.domain:
+                source_tags.append(f"domain:{doc.domain}")
+
             if quality_check:
                 results = ingest_file_with_quality(
                     file_path=tmp_path,
@@ -1542,6 +1553,7 @@ def pull_rss(
                     dry_run=dry_run,
                     novelty_threshold=global_config.get("novelty_threshold", 0.3),
                     quality_threshold=global_config.get("quality_threshold", 0.4),
+                    extra_tags=source_tags,
                 )
             else:
                 raw_results = ingest_file(

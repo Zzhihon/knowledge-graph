@@ -207,6 +207,7 @@ def ingest_file_with_quality(
     dry_run: bool = False,
     novelty_threshold: float = 0.3,
     quality_threshold: float = 0.4,
+    extra_tags: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Ingest a file with quality assessment and deduplication.
 
@@ -263,6 +264,11 @@ def ingest_file_with_quality(
         }
 
         if assessment.action == "create":
+            # Inject extra_tags (e.g. RSS source tags) into the entry
+            if extra_tags:
+                existing = entry.get("tags", [])
+                entry["tags"] = list(dict.fromkeys(existing + extra_tags))
+
             entry_type = entry.get("entry_type", "research")
             try:
                 target_dir_name = get_entry_dir(entry_type)
