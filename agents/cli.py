@@ -1473,15 +1473,56 @@ def pull_rss(
             console.print("[yellow]所有文章均为重复内容，无需处理。[/]")
             return
 
+    # ── Checkpoint: load previous progress ──────────────────────────
+    checkpoint_path = config.vault_path / ".kg" / "rss_checkpoint.yaml"
+    checkpoint: dict = {}
+    processed_ids: set[str] = set()
+
+    if checkpoint_path.exists():
+        with open(checkpoint_path, encoding="utf-8") as f:
+            checkpoint = yaml.safe_load(f) or {}
+        processed_ids = set(checkpoint.get("processed", {}).keys())
+        if processed_ids:
+            before = len(all_documents)
+            all_documents = [d for d in all_documents if d.source_id not in processed_ids]
+            resumed = before - len(all_documents)
+            if resumed:
+                console.print(
+                    f"[cyan]从断点恢复: 跳过已处理的 {resumed} 篇文章，"
+                    f"剩余 {len(all_documents)} 篇[/]"
+                )
+                # 累计之前的计数
+                for v in checkpoint.get("processed", {}).values():
+                    if isinstance(v, dict):
+                        pass  # 计数在最终汇总时从 checkpoint 读取
+
+    if not all_documents:
+        console.print("[yellow]所有文章均已处理，无需继续。[/]")
+        # 清理 checkpoint
+        checkpoint_path.unlink(missing_ok=True)
+        return
+
     console.print(f"[bold blue]开始提取知识条目（{workers} 并发）...[/]")
 
-    # Process documents through ingest pipeline — parallel
+    # ── Checkpoint helper ─────────────────────────────────────────
     from threading import Lock
+    _ckpt_lock = Lock()
+
+    def _save_checkpoint(source_id: str, result: dict) -> None:
+        """Save single article result to checkpoint file."""
+        with _ckpt_lock:
+            if not checkpoint.get("processed"):
+                checkpoint["processed"] = {}
+            checkpoint["processed"][source_id] = result
+            checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(checkpoint_path, "w", encoding="utf-8") as f:
+                yaml.safe_dump(checkpoint, f, allow_unicode=True, sort_keys=False)
+
+    # ── Process documents ─────────────────────────────────────────
     total_created = 0
     total_merged = 0
     total_skipped = 0
     total_failed = 0
-    counters_lock = Lock()
 
     def process_doc(args):
         i, doc = args
@@ -1516,11 +1557,25 @@ def pull_rss(
             created = sum(1 for r in results if r.get("action") == "create")
             merged = sum(1 for r in results if r.get("action") == "merge")
             skipped = sum(1 for r in results if r.get("action") == "skip")
+
+            # 保存到 checkpoint
+            _save_checkpoint(doc.source_id, {
+                "title": doc.title,
+                "created": created, "merged": merged, "skipped": skipped,
+            })
+
             return created, merged, skipped, None
 
         except Exception as exc:
             console.print(f"  [red]✗[/] 处理失败: {doc.title[:60]}")
             console.print(f"  [dim]  原因: {exc}[/]")
+
+            # 失败也记录 checkpoint（标记为 failed），下次不重试
+            # 如需重试失败的，删除 checkpoint 文件即可
+            _save_checkpoint(doc.source_id, {
+                "title": doc.title, "failed": True, "error": str(exc)[:200],
+            })
+
             return 0, 0, 0, str(exc)
 
         finally:
@@ -1537,6 +1592,14 @@ def pull_rss(
         else:
             total_failed += 1
 
+    # 加上之前 checkpoint 中已处理的计数
+    for v in checkpoint.get("processed", {}).values():
+        if isinstance(v, dict) and not v.get("failed"):
+            if v.get("created") and v.get("title") not in {d.title for d in all_documents}:
+                total_created += v.get("created", 0)
+                total_merged += v.get("merged", 0)
+                total_skipped += v.get("skipped", 0)
+
     # Summary
     summary = (
         f"\n[bold]RSS 拉取完成:[/] "
@@ -1547,6 +1610,10 @@ def pull_rss(
     if total_failed:
         summary += f" | [red]失败 {total_failed}[/]"
     console.print(summary)
+
+    # 全部完成后清理 checkpoint
+    checkpoint_path.unlink(missing_ok=True)
+    console.print("[dim]checkpoint 已清理[/]")
 
     if not dry_run:
         console.print(
