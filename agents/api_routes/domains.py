@@ -34,7 +34,9 @@ async def get_domains_overview() -> Dict[str, Any]:
                     "depth": meta.get("depth", ""),
                     "confidence": meta.get("confidence", 0.0),
                     "status": meta.get("status", ""),
-                    "domain": entry_domains
+                    "domain": entry_domains,
+                    "created": meta.get("created", ""),
+                    "updated": meta.get("updated", ""),
                 })
 
         # Build domain overview list

@@ -14,6 +14,7 @@ import RSSView from './views/RSSView'
 import NetworkGraphView from './views/NetworkGraphView'
 import TopicExplorerView from './views/TopicExplorerView'
 import EntryPreview from './components/EntryPreview'
+import { useRSSPull } from './hooks/useRSSPull'
 import { get, post, del } from './api/client'
 import type { SyncResult, ConversationListItem, ExamPaper } from './types'
 
@@ -27,6 +28,9 @@ export default function App() {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
   const [previewEntryId, setPreviewEntryId] = useState<string | null>(null)
   const [examData, setExamData] = useState<ExamPaper | null>(null)
+
+  // RSS pull state — lives at App level so it persists across tab switches
+  const [rssPullState, rssPullActions] = useRSSPull()
 
   const refreshConversations = useCallback(async () => {
     try {
@@ -173,7 +177,7 @@ export default function App() {
               {activeTab === 'health' && <HealthView onPreviewEntry={setPreviewEntryId} />}
               {activeTab === 'graph' && <GraphView onPreviewEntry={setPreviewEntryId} />}
               {activeTab === 'topics' && <TopicExplorerView />}
-              {activeTab === 'rss' && <RSSView />}
+              {activeTab === 'rss' && <RSSView pullState={rssPullState} pullActions={rssPullActions} />}
             </div>
           </div>
         )}

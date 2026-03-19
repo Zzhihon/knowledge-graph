@@ -353,6 +353,8 @@ export interface DomainEntry {
   confidence: number
   status: string
   domain: string[]
+  created: string
+  updated: string
 }
 
 export interface DomainOverview {

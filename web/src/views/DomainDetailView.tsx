@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'
-import { ArrowLeft, Search } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { ArrowLeft, Search, ArrowUpDown, ArrowDown, ArrowUp } from 'lucide-react'
 import EntryPreview from '../components/EntryPreview'
 import type { DomainOverview, DomainEntry } from '../types'
+
+type SortKey = 'date' | 'confidence' | 'title'
+type SortDir = 'asc' | 'desc'
 
 interface DomainDetailViewProps {
   domainKey: string
@@ -25,6 +28,8 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedEntry, setSelectedEntry] = useState<DomainEntry | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>('date')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
 
   useEffect(() => {
     fetchDomainDetail()
@@ -45,9 +50,43 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
     }
   }
 
-  const filteredEntries = domain?.entries.filter(entry =>
-    entry.title.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || []
+  const sortedEntries = useMemo(() => {
+    const filtered = domain?.entries.filter(entry =>
+      entry.title.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || []
+
+    return [...filtered].sort((a, b) => {
+      let cmp = 0
+      switch (sortKey) {
+        case 'date':
+          cmp = (a.created || '').localeCompare(b.created || '')
+          break
+        case 'confidence':
+          cmp = (a.confidence ?? 0) - (b.confidence ?? 0)
+          break
+        case 'title':
+          cmp = a.title.localeCompare(b.title)
+          break
+      }
+      return sortDir === 'desc' ? -cmp : cmp
+    })
+  }, [domain?.entries, searchQuery, sortKey, sortDir])
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'desc' ? 'asc' : 'desc')
+    } else {
+      setSortKey(key)
+      setSortDir(key === 'title' ? 'asc' : 'desc')
+    }
+  }
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sortKey !== k) return <ArrowUpDown className="w-3 h-3 text-zinc-600" />
+    return sortDir === 'desc'
+      ? <ArrowDown className="w-3 h-3 text-indigo-400" />
+      : <ArrowUp className="w-3 h-3 text-indigo-400" />
+  }
 
   if (loading) {
     return (
@@ -160,36 +199,69 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
 
       {/* Entries list */}
       <div className="bg-zinc-900/40 backdrop-blur-sm rounded-xl border border-zinc-800/50 overflow-hidden">
-        <div className="p-4 border-b border-zinc-800/50">
+        <div className="p-4 border-b border-zinc-800/50 flex items-center justify-between">
           <h2 className="text-sm font-medium text-zinc-400">
-            条目列表 ({filteredEntries.length})
+            条目列表 ({sortedEntries.length})
           </h2>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => toggleSort('date')}
+              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${
+                sortKey === 'date' ? 'bg-indigo-500/15 text-indigo-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+              }`}
+            >
+              日期 <SortIcon k="date" />
+            </button>
+            <button
+              onClick={() => toggleSort('confidence')}
+              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${
+                sortKey === 'confidence' ? 'bg-indigo-500/15 text-indigo-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+              }`}
+            >
+              置信度 <SortIcon k="confidence" />
+            </button>
+            <button
+              onClick={() => toggleSort('title')}
+              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${
+                sortKey === 'title' ? 'bg-indigo-500/15 text-indigo-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+              }`}
+            >
+              名称 <SortIcon k="title" />
+            </button>
+          </div>
         </div>
         <div className="divide-y divide-zinc-800/50">
-          {filteredEntries.length === 0 ? (
+          {sortedEntries.length === 0 ? (
             <div className="p-8 text-center text-zinc-500">
               {searchQuery ? '未找到匹配的条目' : '暂无条目'}
             </div>
           ) : (
-            filteredEntries.map(entry => (
+            sortedEntries.map(entry => (
               <button
                 key={entry.id}
                 onClick={() => setSelectedEntry(entry)}
-                className="w-full text-left px-5 py-4 hover:bg-zinc-800/30 transition-colors group"
+                className="w-full text-left px-5 py-3.5 hover:bg-zinc-800/30 transition-colors group"
               >
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-zinc-200 group-hover:text-zinc-100 flex-1">
-                    {entry.title}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm text-zinc-200 group-hover:text-zinc-100">
+                      {entry.title}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className="text-xs px-2.5 py-1 rounded-md bg-zinc-800/50 text-zinc-400 border border-zinc-700/50">
+                    {entry.created && (
+                      <span className="text-xs text-zinc-600 font-mono tabular-nums">
+                        {entry.created}
+                      </span>
+                    )}
+                    <span className="text-xs px-2 py-0.5 rounded-md bg-zinc-800/50 text-zinc-400 border border-zinc-700/50">
                       {entry.type}
                     </span>
-                    <span className="text-xs px-2.5 py-1 rounded-md bg-zinc-800/50 border border-zinc-700/50">
-                      <span className="text-zinc-500">{entry.depth}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-md bg-zinc-800/50 text-zinc-500 border border-zinc-700/50">
+                      {entry.depth}
                     </span>
                     {entry.confidence !== null && (
-                      <span className={`text-sm font-medium ${getMetricTextColor(entry.confidence)}`}>
+                      <span className={`text-sm font-medium tabular-nums w-10 text-right ${getMetricTextColor(entry.confidence)}`}>
                         {(entry.confidence * 100).toFixed(0)}%
                       </span>
                     )}

@@ -7,8 +7,10 @@ and converts to SourceDocument format.
 from __future__ import annotations
 
 import logging
+import ssl
 from datetime import datetime, timezone
 from typing import Any
+from urllib.request import build_opener, HTTPSHandler
 
 import feedparser
 import html2text
@@ -18,6 +20,12 @@ from agents.sources.base import BaseAdapter, SourceDocument
 from agents.sources.state import SourceStateManager
 
 logger = logging.getLogger(__name__)
+
+# Build a permissive SSL context for feeds with certificate issues
+_ssl_context = ssl.create_default_context()
+_ssl_context.check_hostname = False
+_ssl_context.verify_mode = ssl.CERT_NONE
+_ssl_handlers = [HTTPSHandler(context=_ssl_context)]
 
 
 class RSSAdapter(BaseAdapter):
@@ -56,24 +64,34 @@ class RSSAdapter(BaseAdapter):
         self.h2t.body_width = 0  # No wrapping
 
     def fetch(self, since: datetime | None = None) -> list[SourceDocument]:
-        """Fetch articles from the RSS feed.
+        """Fetch articles from the RSS feed."""
+        docs, _ = self.fetch_with_status(since=since)
+        return docs
 
-        Args:
-            since: Only fetch articles published after this time.
-
-        Returns:
-            List of SourceDocument objects.
-        """
+    def fetch_with_status(
+        self, since: datetime | None = None,
+    ) -> tuple[list[SourceDocument], str | None]:
+        """Fetch articles and return (documents, warning_message_or_none)."""
         logger.info(f"Fetching RSS feed: {self.feed_name} ({self.feed_url})")
+        warning: str | None = None
 
         try:
-            feed = feedparser.parse(self.feed_url)
+            feed = feedparser.parse(
+                self.feed_url,
+                handlers=_ssl_handlers,
+            )
         except Exception as exc:
             logger.error(f"Failed to parse feed {self.feed_url}: {exc}")
-            return []
+            return [], str(exc)
 
         if feed.bozo:
-            logger.warning(f"Feed parsing warning for {self.feed_url}: {feed.bozo_exception}")
+            bozo_exc = feed.bozo_exception
+            exc_str = str(bozo_exc)
+            if not feed.entries:
+                logger.error(f"Feed {self.feed_name} 不可用: {exc_str}")
+                return [], exc_str
+            logger.info(f"Feed {self.feed_name} 解析有警告但仍获取到 {len(feed.entries)} 条: {exc_str}")
+            warning = exc_str
 
         documents: list[SourceDocument] = []
 
@@ -87,7 +105,7 @@ class RSSAdapter(BaseAdapter):
                 continue
 
         logger.info(f"Fetched {len(documents)} articles from {self.feed_name}")
-        return documents
+        return documents, warning
 
     def _process_entry(
         self,

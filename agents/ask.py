@@ -3,12 +3,18 @@
 Retrieves top-k entries via hybrid search, augments with 1-hop graph
 context, and streams a synthesized answer from Claude with source
 citations.
+
+Features:
+- Automatic continuation when response hits max_tokens
+- Fallback to direct LLM answering when knowledge base has no results
+- Auto-ingestion of fallback answers into the knowledge base
 """
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Generator
 
 import anthropic
 from rich.console import Console
@@ -25,6 +31,14 @@ _SYSTEM_PROMPT = """\
 引用来源时使用 [条目ID] 格式。如果知识库中没有相关信息，明确说明。
 回答应准确、简洁，并整合多个条目的信息给出综合性回答。"""
 
+_FALLBACK_SYSTEM_PROMPT = """\
+你是知识库问答助手。知识库中暂无相关条目，请基于你的知识给出准确、详细的回答。
+回答时注意结构清晰，分段阐述，并在适当位置给出示例。"""
+
+_MAX_TOKENS = 8192
+_MAX_CONTINUATIONS = 5
+_CONTINUATION_MSG = "请继续。"
+
 
 def _load_entry_content(file_path: str) -> str:
     """Read full markdown content from a knowledge entry file."""
@@ -38,11 +52,7 @@ def _load_entry_content(file_path: str) -> str:
 
 
 def _get_graph_neighbors(entry_id: str, config: ProjectConfig) -> list[str]:
-    """Get 1-hop neighbor titles from the graph store.
-
-    Returns a list of neighbor titles. If the graph is unavailable,
-    returns an empty list (graceful degradation).
-    """
+    """Get 1-hop neighbor titles from the graph store."""
     try:
         from agents.graph_store import get_graph_store
 
@@ -70,11 +80,7 @@ def _build_context(
     config: ProjectConfig,
     use_graph: bool = True,
 ) -> str:
-    """Assemble context from top-k search results + graph neighbors.
-
-    For each result, loads full entry content and optionally fetches
-    1-hop graph neighbor titles as supplementary context.
-    """
+    """Assemble context from top-k search results + graph neighbors."""
     blocks: list[str] = []
 
     for result in results:
@@ -85,7 +91,6 @@ def _build_context(
 
         content = _load_entry_content(file_path) if file_path else ""
 
-        # Graph context: 1-hop neighbor titles
         neighbors_str = ""
         if use_graph and entry_id:
             neighbors = _get_graph_neighbors(entry_id, config)
@@ -110,33 +115,199 @@ def _build_context(
     return "\n\n".join(blocks)
 
 
+# ---------------------------------------------------------------------------
+# Streaming with automatic continuation
+# ---------------------------------------------------------------------------
+
 def _stream_answer(
     question: str,
-    context: str,
+    context: str | None,
     model: str,
-) -> None:
-    """Stream a Claude answer to the console."""
-    from agents.api_client import get_anthropic_client
-    client, model = get_anthropic_client()
+    client: anthropic.Anthropic | None = None,
+    system_prompt: str | None = None,
+) -> str:
+    """Stream a Claude answer to the console with automatic continuation.
 
-    messages = [
-        {
-            "role": "user",
-            "content": f"知识库上下文:\n\n{context}\n\n---\n问题: {question}",
-        },
+    Returns the full accumulated text (used by auto-ingest).
+    """
+    if client is None:
+        from agents.api_client import get_anthropic_client
+        client, model = get_anthropic_client()
+
+    sys_prompt = system_prompt or _SYSTEM_PROMPT
+
+    if context:
+        user_content = f"知识库上下文:\n\n{context}\n\n---\n问题: {question}"
+    else:
+        user_content = question
+
+    messages: list[dict[str, Any]] = [
+        {"role": "user", "content": user_content},
     ]
 
+    full_text = ""
+    continuations = 0
+
     console.print()
-    with client.messages.stream(
-        model=model,
-        max_tokens=4096,
-        temperature=0,
-        system=_SYSTEM_PROMPT,
-        messages=messages,
-    ) as stream:
-        for text in stream.text_stream:
-            console.print(text, end="", highlight=False)
+    while True:
+        with client.messages.stream(
+            model=model,
+            max_tokens=_MAX_TOKENS,
+            temperature=0,
+            system=sys_prompt,
+            messages=messages,
+        ) as stream:
+            chunk_text = ""
+            for text in stream.text_stream:
+                console.print(text, end="", highlight=False)
+                chunk_text += text
+            msg = stream.get_final_message()
+
+        full_text += chunk_text
+
+        if msg.stop_reason != "max_tokens" or continuations >= _MAX_CONTINUATIONS:
+            break
+
+        # Continue: append assistant response + user continuation message
+        continuations += 1
+        console.print("\n[dim](...续传中)[/]", highlight=False)
+        messages.append({"role": "assistant", "content": full_text})
+        messages.append({"role": "user", "content": _CONTINUATION_MSG})
+
     console.print("\n")
+    return full_text
+
+
+def _stream_answer_sse(
+    question: str,
+    context: str | None,
+    model: str,
+    client: anthropic.Anthropic | None = None,
+    system_prompt: str | None = None,
+) -> Generator[dict[str, Any], None, str]:
+    """SSE streaming generator with automatic continuation.
+
+    Yields:
+        {"type": "token", "data": {"text": "..."}}
+
+    Returns (via StopIteration.value):
+        The full accumulated text.
+    """
+    if client is None:
+        from agents.api_client import get_anthropic_client
+        client, model = get_anthropic_client()
+
+    sys_prompt = system_prompt or _SYSTEM_PROMPT
+
+    if context:
+        user_content = f"知识库上下文:\n\n{context}\n\n---\n问题: {question}"
+    else:
+        user_content = question
+
+    messages: list[dict[str, Any]] = [
+        {"role": "user", "content": user_content},
+    ]
+
+    full_text = ""
+    continuations = 0
+
+    while True:
+        with client.messages.stream(
+            model=model,
+            max_tokens=_MAX_TOKENS,
+            temperature=0,
+            system=sys_prompt,
+            messages=messages,
+        ) as stream:
+            chunk_text = ""
+            for text in stream.text_stream:
+                yield {"type": "token", "data": {"text": text}}
+                chunk_text += text
+            msg = stream.get_final_message()
+
+        full_text += chunk_text
+
+        if msg.stop_reason != "max_tokens" or continuations >= _MAX_CONTINUATIONS:
+            break
+
+        continuations += 1
+        messages.append({"role": "assistant", "content": full_text})
+        messages.append({"role": "user", "content": _CONTINUATION_MSG})
+
+    return full_text
+
+
+# ---------------------------------------------------------------------------
+# Auto-ingest Q&A into knowledge base (no LLM call)
+# ---------------------------------------------------------------------------
+
+def _auto_ingest_qa(
+    question: str,
+    answer: str,
+    config: ProjectConfig,
+    entry_type: str = "research",
+    depth: str = "intermediate",
+    do_sync: bool = True,
+) -> str | None:
+    """Write a Q&A pair directly as a knowledge entry. No LLM extraction.
+
+    Returns entry_id on success, None on failure.
+    """
+    try:
+        import frontmatter as fm
+
+        from agents.query import _detect_domains
+        from agents.utils import generate_id, get_entry_dir
+
+        # Detect domains from question
+        domains = _detect_domains(question)
+        domain = domains[0] if domains else "general"
+
+        # Generate ID and target path
+        # Use first ~60 chars of question as title
+        title = question[:60].rstrip("？?。. ")
+        entry_id = generate_id(title)
+        target_dir = config.vault_path / get_entry_dir(entry_type)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_file = target_dir / f"{entry_id}.md"
+
+        now = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        metadata: dict[str, Any] = {
+            "id": entry_id,
+            "title": title,
+            "domain": domain,
+            "sub_domain": "",
+            "type": entry_type,
+            "depth": depth,
+            "confidence": 0.6,
+            "status": "draft",
+            "tags": ["source:fallback", f"domain:{domain}"],
+            "created": now,
+            "updated": now,
+            "related_topics": [],
+        }
+
+        body_parts = [
+            f"## 问题\n\n{question}\n",
+            f"## 回答\n\n{answer}\n",
+        ]
+        body = "\n".join(body_parts)
+
+        post = fm.Post(body, **metadata)
+        target_file.write_text(fm.dumps(post), encoding="utf-8")
+
+        if do_sync:
+            try:
+                from agents.sync_engine import incremental_sync
+                incremental_sync(config)
+            except Exception:
+                pass  # sync failure is non-fatal
+
+        return entry_id
+    except Exception as exc:
+        console.print(f"[yellow]自动写入失败: {exc}[/]")
+        return None
 
 
 def _print_sources(results: list[dict[str, Any]]) -> None:
@@ -160,11 +331,16 @@ def _print_sources(results: list[dict[str, Any]]) -> None:
     console.print(table)
 
 
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
 def ask(
     question: str,
     top_k: int = 5,
     domain: str | None = None,
     use_graph: bool = True,
+    enable_fallback: bool = True,
     config: ProjectConfig | None = None,
 ) -> None:
     """RAG question-answering: retrieve + graph context + Claude streaming.
@@ -174,6 +350,7 @@ def ask(
         top_k: Number of entries to retrieve.
         domain: Optional domain filter for retrieval.
         use_graph: Whether to include 1-hop graph neighbor context.
+        enable_fallback: Whether to use fallback when no results found.
         config: Project configuration. Auto-loaded if None.
     """
     if config is None:
@@ -193,6 +370,40 @@ def ask(
     )
 
     if not results:
+        fb = config.fallback
+        if enable_fallback and fb.enabled:
+            # Fallback: direct LLM answer + auto-ingest
+            console.print(Panel(
+                "[yellow]知识库中未找到相关条目，正在使用 Fallback 直接回答...[/]",
+                title=f"问题: {question}",
+                border_style="yellow",
+            ))
+
+            from agents.api_client import get_fallback_client
+            client, model = get_fallback_client(fb.key_index)
+
+            console.print(Panel(f"[bold]{question}[/]", title="问题 (Fallback)", border_style="magenta"))
+            full_text = _stream_answer(
+                question, None, model,
+                client=client,
+                system_prompt=_FALLBACK_SYSTEM_PROMPT,
+            )
+
+            if fb.auto_ingest and full_text.strip():
+                entry_id = _auto_ingest_qa(
+                    question, full_text, config,
+                    entry_type=fb.entry_type,
+                    depth=fb.depth,
+                    do_sync=fb.auto_sync,
+                )
+                if entry_id:
+                    console.print(Panel(
+                        f"[green]已自动创建知识条目: {entry_id}[/]",
+                        border_style="green",
+                    ))
+            return
+
+        # No fallback — original behavior
         console.print(Panel(
             "[yellow]未找到相关知识条目。[/]\n"
             "建议:\n"
@@ -209,7 +420,7 @@ def ask(
     # Step 2: Build context with graph augmentation
     context = _build_context(results, config, use_graph=use_graph)
 
-    # Step 3: Stream answer from Claude
+    # Step 3: Stream answer from Claude (with continuation)
     console.print(Panel(f"[bold]{question}[/]", title="问题", border_style="blue"))
     _stream_answer(question, context, config.agent.model)
 
@@ -222,13 +433,16 @@ def ask_stream(
     top_k: int = 5,
     domain: str | None = None,
     use_graph: bool = True,
+    enable_fallback: bool = True,
     config: ProjectConfig | None = None,
 ) -> Any:
     """Streaming RAG generator: yields dicts for SSE consumption.
 
     Yields:
+        {"type": "status", "data": {"message": "..."}}
         {"type": "token", "data": {"text": "..."}}
         {"type": "sources", "data": {"sources": [...]}}
+        {"type": "ingested", "data": {"entry_id": "..."}}
         {"type": "done", "data": {}}
     """
     if config is None:
@@ -246,6 +460,45 @@ def ask_stream(
     )
 
     if not results:
+        fb = config.fallback
+        if enable_fallback and fb.enabled:
+            yield {"type": "status", "data": {"message": "知识库无结果，Fallback 直接回答..."}}
+
+            from agents.api_client import get_fallback_client
+            client, model = get_fallback_client(fb.key_index)
+
+            gen = _stream_answer_sse(
+                question, None, model,
+                client=client,
+                system_prompt=_FALLBACK_SYSTEM_PROMPT,
+            )
+
+            # Consume the generator, collecting full_text from StopIteration
+            full_text = ""
+            try:
+                while True:
+                    event = next(gen)
+                    yield event
+                    if event["type"] == "token":
+                        full_text += event["data"]["text"]
+            except StopIteration as stop:
+                full_text = stop.value or full_text
+
+            if fb.auto_ingest and full_text.strip():
+                entry_id = _auto_ingest_qa(
+                    question, full_text, config,
+                    entry_type=fb.entry_type,
+                    depth=fb.depth,
+                    do_sync=fb.auto_sync,
+                )
+                if entry_id:
+                    yield {"type": "ingested", "data": {"entry_id": entry_id}}
+
+            yield {"type": "sources", "data": {"sources": []}}
+            yield {"type": "done", "data": {}}
+            return
+
+        # No fallback
         yield {"type": "token", "data": {"text": "未找到相关知识条目，请尝试不同的关键词。"}}
         yield {"type": "sources", "data": {"sources": []}}
         yield {"type": "done", "data": {}}
@@ -255,22 +508,13 @@ def ask_stream(
 
     from agents.api_client import get_anthropic_client
     client, model = get_anthropic_client()
-    messages = [
-        {
-            "role": "user",
-            "content": f"知识库上下文:\n\n{context}\n\n---\n问题: {question}",
-        },
-    ]
 
-    with client.messages.stream(
-        model=config.agent.model,
-        max_tokens=4096,
-        temperature=0,
-        system=_SYSTEM_PROMPT,
-        messages=messages,
-    ) as stream:
-        for text in stream.text_stream:
-            yield {"type": "token", "data": {"text": text}}
+    gen = _stream_answer_sse(question, context, model, client=client)
+    try:
+        while True:
+            yield next(gen)
+    except StopIteration:
+        pass
 
     sources = [
         {

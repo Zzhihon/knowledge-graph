@@ -84,6 +84,18 @@ class AgentConfig:
 
 
 @dataclass(frozen=True)
+class FallbackConfig:
+    """Fallback settings for knowledge-miss direct answering."""
+
+    enabled: bool = True
+    key_index: int = 0
+    auto_ingest: bool = True
+    auto_sync: bool = True
+    entry_type: str = "research"
+    depth: str = "intermediate"
+
+
+@dataclass(frozen=True)
 class ReviewConfig:
     """Review cycle settings."""
 
@@ -107,6 +119,7 @@ class ProjectConfig:
     scopes: dict[str, str]
     agent: AgentConfig
     review: ReviewConfig
+    fallback: FallbackConfig
 
     def get_domain(self, key: str) -> DomainConfig | None:
         """Look up a domain by its key."""
@@ -186,6 +199,18 @@ def _parse_agent(raw: dict[str, Any]) -> AgentConfig:
     )
 
 
+def _parse_fallback(raw: dict[str, Any]) -> FallbackConfig:
+    """Parse the fallback section of config.yaml."""
+    return FallbackConfig(
+        enabled=bool(raw.get("enabled", True)),
+        key_index=int(raw.get("key_index", 0)),
+        auto_ingest=bool(raw.get("auto_ingest", True)),
+        auto_sync=bool(raw.get("auto_sync", True)),
+        entry_type=raw.get("entry_type", "research"),
+        depth=raw.get("depth", "intermediate"),
+    )
+
+
 def _parse_review(raw: dict[str, Any]) -> ReviewConfig:
     """Parse the review section of config.yaml."""
     return ReviewConfig(
@@ -236,4 +261,5 @@ def load_config(config_path: Path | None = None) -> ProjectConfig:
         scopes=raw.get("scopes", {}),
         agent=_parse_agent(raw.get("agent", {})),
         review=_parse_review(raw.get("review", {})),
+        fallback=_parse_fallback(raw.get("fallback", {})),
     )

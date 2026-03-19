@@ -119,24 +119,28 @@ def pull_rss(req: RSSPullRequest) -> StreamingResponse:
             fetch_since = cutoff
             if fetch_since is None:
                 fetch_since = adapter.get_watermark()
-            docs = adapter.fetch(since=fetch_since)
+            docs, warning = adapter.fetch_with_status(since=fetch_since)
             if docs:
                 latest = max(doc.timestamp for doc in docs)
                 adapter.set_watermark(latest)
-            return feed_cfg["name"], docs
+            return feed_cfg["name"], docs, warning
 
         with ThreadPoolExecutor(max_workers=req.workers) as executor:
             futures = {executor.submit(fetch_feed, feed): feed for feed in feed_list}
             for future in as_completed(futures):
                 feed_cfg = futures[future]
                 try:
-                    feed_name, docs = future.result()
+                    feed_name, docs, warning = future.result()
                     all_documents.extend(docs)
-                    yield _sse("feed_done", {
+                    status = "ok" if docs else ("error" if warning else "empty")
+                    event: dict[str, Any] = {
                         "name": feed_name,
                         "count": len(docs),
-                        "status": "ok" if docs else "empty",
-                    })
+                        "status": status,
+                    }
+                    if warning:
+                        event["error"] = warning
+                    yield _sse("feed_done", event)
                 except Exception as exc:
                     yield _sse("feed_done", {
                         "name": feed_cfg["name"],
@@ -190,9 +194,24 @@ def pull_rss(req: RSSPullRequest) -> StreamingResponse:
                 c = sum(1 for r in results if r.get("action") == "create")
                 m = sum(1 for r in results if r.get("action") == "merge")
                 s = sum(1 for r in results if r.get("action") == "skip")
-                return idx, doc.title, c, m, s, None
+
+                # Build entry summaries for frontend preview
+                entries = []
+                for r in results:
+                    entry = {
+                        "id": r.get("id", ""),
+                        "title": r.get("title", ""),
+                        "action": r.get("action", "create"),
+                        "type": r.get("type", ""),
+                        "domain": r.get("domain", ""),
+                    }
+                    if r.get("merge_target_id"):
+                        entry["merge_target"] = r["merge_target_id"]
+                    entries.append(entry)
+
+                return idx, doc.title, c, m, s, None, entries
             except Exception as exc:
-                return idx, doc.title, 0, 0, 0, str(exc)
+                return idx, doc.title, 0, 0, 0, str(exc), []
             finally:
                 if tmp_path:
                     tmp_path.unlink(missing_ok=True)
@@ -203,7 +222,7 @@ def pull_rss(req: RSSPullRequest) -> StreamingResponse:
                 for i, doc in enumerate(all_documents, 1)
             }
             for future in as_completed(futures_map):
-                idx, title, c, m, s, err = future.result()
+                idx, title, c, m, s, err, entries = future.result()
                 if err is None:
                     total_created += c
                     total_merged += m
@@ -212,6 +231,7 @@ def pull_rss(req: RSSPullRequest) -> StreamingResponse:
                         "index": idx, "total": total,
                         "title": title,
                         "created": c, "merged": m, "skipped": s,
+                        "entries": entries,
                     })
                 else:
                     total_failed += 1

@@ -206,11 +206,15 @@ def query(
 @click.option("--top-k", type=int, default=5, help="检索条目数量 (默认: 5)")
 @click.option("--domain", type=str, default=None, help="限定知识域")
 @click.option("--no-graph", is_flag=True, help="禁用图上下文增强")
-def ask(question: str, top_k: int, domain: str | None, no_graph: bool) -> None:
+@click.option("--no-fallback", is_flag=True, help="禁用知识库 miss 时的 Fallback 直接回答")
+def ask(question: str, top_k: int, domain: str | None, no_graph: bool, no_fallback: bool) -> None:
     """RAG 知识问答 — 检索相关条目并生成综合回答。
 
     输入自然语言问题，检索知识库中最相关的条目，结合图关系上下文，
     通过 Claude 生成综合性回答并标注来源。
+
+    当知识库无结果时，自动 Fallback 到直接 LLM 回答并写入知识库。
+    使用 --no-fallback 禁用此行为。
 
     QUESTION: 你的问题
     """
@@ -222,6 +226,7 @@ def ask(question: str, top_k: int, domain: str | None, no_graph: bool) -> None:
             top_k=top_k,
             domain=domain,
             use_graph=not no_graph,
+            enable_fallback=not no_fallback,
         )
     except RuntimeError as exc:
         console.print(f"[red]问答错误: {exc}[/]")

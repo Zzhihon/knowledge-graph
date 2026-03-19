@@ -205,6 +205,30 @@ def _get_manager() -> APIClientManager:
     return _manager
 
 
+def get_fallback_client(key_index: int = 0) -> tuple[anthropic.Anthropic, str]:
+    """获取指定索引的 Anthropic 客户端，绕过 weight 过滤。
+
+    用于 fallback 场景（知识库 miss 时直接调用 Key1）。
+
+    Args:
+        key_index: api_keys 列表中的索引，默认 0 (Key1)。
+
+    Returns:
+        (client, model_name)
+    """
+    from agents.config import load_config
+
+    config = load_config().agent
+    if not config.api_keys or key_index >= len(config.api_keys):
+        raise RuntimeError(f"api_keys[{key_index}] not configured")
+
+    key_config = config.api_keys[key_index]
+    uc = UnifiedClient(key_config, config.base_url)
+    if uc._anthropic is None:
+        raise RuntimeError(f"api_keys[{key_index}] is not an Anthropic client")
+    return uc._anthropic, key_config.model
+
+
 def get_anthropic_client() -> tuple[anthropic.Anthropic, str]:
     """获取受权重控制的 Anthropic 客户端。
 
