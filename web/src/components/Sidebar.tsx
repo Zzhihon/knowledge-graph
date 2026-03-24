@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Search, Play, AlertTriangle, GitMerge, BrainCircuit,
-  Plus, Trash2, MessageSquare, Library, Rss, Share2, Boxes,
+  Plus, Trash2, MessageSquare, Library, Rss, Share2, Boxes, Briefcase,
 } from 'lucide-react'
 import type { ConversationListItem } from '../types'
 
@@ -8,7 +8,8 @@ const navItems = [
   { id: 'dashboard', icon: LayoutDashboard, label: '概览仪表盘' },
   { id: 'ask', icon: Search, label: '探索与问答' },
   { id: 'quiz', icon: Play, label: '间隔测验' },
-  { id: 'problems', icon: Library, label: '面试题库' },
+  { id: 'problems', icon: Library, label: '算法题库' },
+  { id: 'interview', icon: Briefcase, label: '面试题库' },
   { id: 'health', icon: AlertTriangle, label: '健康巡检' },
   { id: 'graph', icon: GitMerge, label: '图谱演进' },
   { id: 'network', icon: Share2, label: '知识网络' },

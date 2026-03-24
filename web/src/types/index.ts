@@ -370,3 +370,57 @@ export interface DomainsOverviewResponse {
   domains: DomainOverview[]
 }
 
+// --- Recent Feed types ---
+
+// --- Interview Question Bank types ---
+
+export interface InterviewQuestion {
+  id: string
+  title: string
+  category: string
+  project: string | null
+  difficulty: string
+  answer_framework: string
+  domain: string | string[]
+  tags: string[]
+  confidence: number | null
+  review_date: string
+  file_path: string
+}
+
+export interface InterviewListResponse {
+  items: InterviewQuestion[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
+}
+
+export interface InterviewStats {
+  total_questions: number
+  category_distribution: Record<string, number>
+  project_distribution: Record<string, number>
+  difficulty_distribution: Record<string, number>
+  tag_distribution: Record<string, number>
+  needs_review: number
+  avg_confidence: number | null
+}
+
+export interface InterviewCategoryInfo {
+  key: string
+  label: string
+  description: string
+  question_count: number
+}
+
+// --- Recent Feed types ---
+
+export interface RecentFeedItem {
+  id: string
+  title: string
+  domain: string | string[]
+  created: string
+  feed_name: string
+  type: string
+}
+

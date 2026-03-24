@@ -9,6 +9,70 @@ from fastapi import APIRouter, Query
 router = APIRouter(tags=["stats"])
 
 
+@router.get("/recent-feed")
+def get_recent_feed(limit: int = Query(30, ge=1, le=100)) -> dict[str, Any]:
+    """Return recently created entries for the dashboard carousel.
+
+    Prefers RSS-sourced entries (tagged source:rss), but falls back to
+    all recent entries so the carousel is never empty.
+    """
+    from agents.config import load_config
+    from agents.utils import load_entries
+
+    config = load_config()
+    entries = load_entries(config.vault_path)
+
+    rss_items: list[dict[str, Any]] = []
+    all_items: list[dict[str, Any]] = []
+
+    for entry in entries:
+        meta = entry["metadata"]
+        tags = meta.get("tags", [])
+        if not isinstance(tags, list):
+            tags = [tags]
+
+        # Extract feed name from feed:xxx tag
+        feed_name = ""
+        for t in tags:
+            if isinstance(t, str) and t.startswith("feed:"):
+                feed_name = t[5:]
+                break
+
+        # Derive source label from source.type metadata
+        source_meta = meta.get("source", {})
+        source_label = ""
+        if isinstance(source_meta, dict):
+            source_label = source_meta.get("type", "")
+        elif isinstance(source_meta, str):
+            source_label = source_meta
+
+        domain = meta.get("domain", "unknown")
+        if isinstance(domain, list):
+            domain = domain[:3]
+
+        item = {
+            "id": meta.get("id", ""),
+            "title": meta.get("title", ""),
+            "domain": domain,
+            "created": meta.get("created", ""),
+            "feed_name": feed_name or source_label,
+            "type": meta.get("type", ""),
+        }
+
+        if "source:rss" in tags:
+            rss_items.append(item)
+        all_items.append(item)
+
+    # Prefer RSS entries; fall back to all entries when none exist
+    result = rss_items if rss_items else all_items
+
+    # Sort by created date descending
+    result.sort(key=lambda x: x["created"], reverse=True)
+    result = result[:limit]
+
+    return {"items": result, "total": len(result)}
+
+
 @router.get("/stats")
 def get_stats() -> dict[str, Any]:
     """Aggregate vault statistics for the dashboard."""

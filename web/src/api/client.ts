@@ -2,11 +2,11 @@ import type { Source } from '../types'
 
 const BASE = '/api'
 
-export async function get<T>(path: string, params?: Record<string, string>): Promise<T> {
+export async function get<T>(path: string, params?: Record<string, string | number | boolean | null | undefined>): Promise<T> {
   const url = new URL(`${BASE}${path}`, window.location.origin)
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v)
+      if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v))
     })
   }
   const res = await fetch(url.toString())

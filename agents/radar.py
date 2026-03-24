@@ -132,7 +132,11 @@ def compute_domain_strength(
     # Average confidence
     confidence_sum = 0.0
     for entry in domain_entries:
-        confidence_sum += float(entry["metadata"].get("confidence", 0.5))
+        confidence = entry["metadata"].get("confidence", 0.5)
+        try:
+            confidence_sum += float(confidence if confidence is not None else 0.5)
+        except (TypeError, ValueError):
+            confidence_sum += 0.5
     avg_confidence = confidence_sum / total
 
     return {

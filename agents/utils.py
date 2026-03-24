@@ -24,6 +24,7 @@ _TYPE_DIR_MAP: dict[str, str] = {
     "research": "05-Research",
     "team": "06-Team",
     "problem": "08-Problems",
+    "interview": "09-Interview",
 }
 
 
@@ -135,6 +136,7 @@ def load_entries(
         "05-Research",
         "06-Team",
         "08-Problems",
+        "09-Interview",
     ]
 
     for dir_name in target_dirs:

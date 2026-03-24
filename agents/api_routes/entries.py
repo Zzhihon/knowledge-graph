@@ -16,6 +16,7 @@ def _find_entry(vault_path: Path, entry_id: str) -> dict[str, Any] | None:
     dirs = [
         "01-Principles", "02-Patterns", "03-Debug",
         "04-Architecture", "05-Research", "06-Team", "08-Problems",
+        "09-Interview",
     ]
     for d in dirs:
         folder = vault_path / d

@@ -1,0 +1,201 @@
+{
+  "json_parsing": {
+    "sonic_unmarshal": {
+      "mean_us": 4.69,
+      "p50_us": 3.13,
+      "p99_us": 15.67,
+      "throughput_parses_per_sec": 213236
+    },
+    "sonic_unmarshal_string": {
+      "mean_us": 2.82,
+      "p50_us": 2.54,
+      "p99_us": 4.58,
+      "throughput_parses_per_sec": 354197
+    },
+    "sonic_get_lazy": {
+      "mean_us": 13.97,
+      "p50_us": 6.29,
+      "p99_us": 26.5,
+      "throughput_parses_per_sec": 71565
+    },
+    "encoding_json": {
+      "mean_us": 41.75,
+      "p50_us": 39.33,
+      "p99_us": 54.29,
+      "throughput_parses_per_sec": 23951
+    },
+    "iterations": 1000,
+    "json_size_bytes": 11044
+  },
+  "concurrent_http": {
+    "8": {
+      "throughput_rps": 14.26,
+      "mean_latency_ms": 558.83,
+      "p99_latency_ms": 573.89,
+      "failures": 0,
+      "total_requests": 32,
+      "concurrency": 8,
+      "total_time_ms": 2244.15
+    },
+    "16": {
+      "concurrency": 16,
+      "total_time_ms": 1106.5,
+      "throughput_rps": 28.92,
+      "mean_latency_ms": 553.17,
+      "p99_latency_ms": 554.94,
+      "failures": 0,
+      "total_requests": 32
+    },
+    "32": {
+      "p99_latency_ms": 557.78,
+      "failures": 0,
+      "total_requests": 32,
+      "concurrency": 32,
+      "total_time_ms": 557.88,
+      "throughput_rps": 57.36,
+      "mean_latency_ms": 557.57
+    },
+    "1": {
+      "throughput_rps": 1.8,
+      "mean_latency_ms": 556.73,
+      "p99_latency_ms": 561.12,
+      "failures": 0,
+      "total_requests": 32,
+      "concurrency": 1,
+      "total_time_ms": 17816.48
+    },
+    "4": {
+      "total_requests": 32,
+      "concurrency": 4,
+      "total_time_ms": 4437.26,
+      "throughput_rps": 7.21,
+      "mean_latency_ms": 554.06,
+      "p99_latency_ms": 557.27,
+      "failures": 0
+    }
+  },
+  "memory_per_worker": {
+    "1000": {
+      "per_worker_kb": 0.43,
+      "workers": 1000,
+      "total_memory_kb": 434.75
+    },
+    "10000": {
+      "total_memory_kb": 5852.63,
+      "per_worker_kb": 0.59,
+      "workers": 10000
+    },
+    "100000": {
+      "total_memory_kb": 90179.94,
+      "per_worker_kb": 0.9,
+      "workers": 100000
+    },
+    "10": {
+      "workers": 10,
+      "total_memory_kb": 3.97,
+      "per_worker_kb": 0.4
+    },
+    "50": {
+      "per_worker_kb": 0.38,
+      "workers": 50,
+      "total_memory_kb": 18.88
+    },
+    "100": {
+      "per_worker_kb": 0.4,
+      "workers": 100,
+      "total_memory_kb": 39.97
+    },
+    "500": {
+      "workers": 500,
+      "total_memory_kb": 208.91,
+      "per_worker_kb": 0.42
+    }
+  },
+  "pipeline_e2e": {
+    "8": {
+      "articles": 16,
+      "workers": 8,
+      "total_time_ms": 1111.27,
+      "throughput_articles_per_sec": 14.4,
+      "mean_latency_ms": 555.61,
+      "p99_latency_ms": 556.08
+    },
+    "16": {
+      "workers": 16,
+      "total_time_ms": 561.7,
+      "throughput_articles_per_sec": 28.49,
+      "mean_latency_ms": 561.61,
+      "p99_latency_ms": 561.64,
+      "articles": 16
+    },
+    "1": {
+      "workers": 1,
+      "total_time_ms": 8960.69,
+      "throughput_articles_per_sec": 1.79,
+      "mean_latency_ms": 560.03,
+      "p99_latency_ms": 573.29,
+      "articles": 16
+    },
+    "4": {
+      "p99_latency_ms": 560.45,
+      "articles": 16,
+      "workers": 4,
+      "total_time_ms": 2238.15,
+      "throughput_articles_per_sec": 7.15,
+      "mean_latency_ms": 559.52
+    }
+  },
+  "concurrency_overhead": {
+    "100": {
+      "wall_time_ms": 1.2,
+      "memory_delta_kb": 57.02,
+      "per_worker_us": 11.96
+    },
+    "500": {
+      "wall_time_ms": 1.27,
+      "memory_delta_kb": 247.19,
+      "per_worker_us": 2.55
+    },
+    "1000": {
+      "wall_time_ms": 1.56,
+      "memory_delta_kb": 425.84,
+      "per_worker_us": 1.56
+    },
+    "10000": {
+      "memory_delta_kb": 2684.91,
+      "per_worker_us": 0.82,
+      "wall_time_ms": 8.19
+    },
+    "100000": {
+      "wall_time_ms": 41.71,
+      "memory_delta_kb": 13470.83,
+      "per_worker_us": 0.42
+    },
+    "10": {
+      "wall_time_ms": 1.19,
+      "memory_delta_kb": 5.77,
+      "per_worker_us": 118.9
+    },
+    "50": {
+      "wall_time_ms": 1.16,
+      "memory_delta_kb": 29.95,
+      "per_worker_us": 23.22
+    }
+  },
+  "sse_parsing": {
+    "iterations": 100,
+    "lines_per_iter": 1600,
+    "sonic": {
+      "p99_ms": 0.779,
+      "throughput_lines_per_sec": 4789558,
+      "mean_ms": 0.334,
+      "p50_ms": 0.301
+    },
+    "encoding_json": {
+      "throughput_lines_per_sec": 1844635,
+      "mean_ms": 0.867,
+      "p50_ms": 0.799,
+      "p99_ms": 1.3
+    }
+  }
+}

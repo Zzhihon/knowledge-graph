@@ -13,8 +13,10 @@ import ExamView from './views/ExamView'
 import RSSView from './views/RSSView'
 import NetworkGraphView from './views/NetworkGraphView'
 import TopicExplorerView from './views/TopicExplorerView'
+import InterviewView from './views/InterviewView'
 import EntryPreview from './components/EntryPreview'
 import { useRSSPull } from './hooks/useRSSPull'
+import { useInterviewGenerate } from './hooks/useInterviewGenerate'
 import { get, post, del } from './api/client'
 import type { SyncResult, ConversationListItem, ExamPaper } from './types'
 
@@ -31,6 +33,9 @@ export default function App() {
 
   // RSS pull state — lives at App level so it persists across tab switches
   const [rssPullState, rssPullActions] = useRSSPull()
+
+  // Interview generate state — lives at App level so it persists across tab switches
+  const [interviewGenState, interviewGenActions] = useInterviewGenerate()
 
   const refreshConversations = useCallback(async () => {
     try {
@@ -151,7 +156,7 @@ export default function App() {
         ) : (
           <div className="flex-1 overflow-y-auto p-8 scroll-smooth">
             <div className="max-w-5xl mx-auto h-full">
-              {activeTab === 'dashboard' && <DashboardView setActiveTab={setActiveTab} />}
+              {activeTab === 'dashboard' && <DashboardView setActiveTab={setActiveTab} onPreviewEntry={setPreviewEntryId} />}
               {activeTab === 'ask' && (
                 <AskView
                   conversationId={currentConversationId}
@@ -176,6 +181,13 @@ export default function App() {
               )}
               {activeTab === 'health' && <HealthView onPreviewEntry={setPreviewEntryId} />}
               {activeTab === 'graph' && <GraphView onPreviewEntry={setPreviewEntryId} />}
+              {activeTab === 'interview' && (
+                <InterviewView
+                  onPreviewEntry={setPreviewEntryId}
+                  genState={interviewGenState}
+                  genActions={interviewGenActions}
+                />
+              )}
               {activeTab === 'topics' && <TopicExplorerView />}
               {activeTab === 'rss' && <RSSView pullState={rssPullState} pullActions={rssPullActions} />}
             </div>

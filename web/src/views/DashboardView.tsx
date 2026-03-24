@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react'
 import { FileText, Clock, Activity, LayoutDashboard, BookOpen, Brain, Code2, Search, Play } from 'lucide-react'
 import StatCard from '../components/StatCard'
 import ArchitectureCard from '../components/ArchitectureCard'
+import RecentFeedCarousel from '../components/RecentFeedCarousel'
 import { get } from '../api/client'
 import type { Stats } from '../types'
 
 interface Props {
   setActiveTab: (tab: string) => void
+  onPreviewEntry: (id: string) => void
 }
 
-export default function DashboardView({ setActiveTab }: Props) {
+export default function DashboardView({ setActiveTab, onPreviewEntry }: Props) {
   const [stats, setStats] = useState<Stats | null>(null)
 
   useEffect(() => {
@@ -31,6 +33,8 @@ export default function DashboardView({ setActiveTab }: Props) {
         <StatCard title="全局置信度" value={s ? `${(s.avg_confidence * 100).toFixed(0)}%` : '...'} subValue="SM-2 算法评估" icon={<Activity className="w-5 h-5" />} />
         <StatCard title="覆盖知识域" value={s?.domains.length ?? '...'} subValue={s?.domains.slice(0, 3).join('、') ?? ''} icon={<LayoutDashboard className="w-5 h-5" />} />
       </div>
+
+      <RecentFeedCarousel onPreviewEntry={onPreviewEntry} setActiveTab={setActiveTab} />
 
       <div className="space-y-4">
         <h2 className="text-sm font-medium text-zinc-400">三层知识架构概览</h2>
