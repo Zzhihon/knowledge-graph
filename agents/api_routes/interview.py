@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import queue
+import threading
 from typing import Any
 
 from fastapi import APIRouter, Query
@@ -16,6 +18,7 @@ class GenerateRequest(BaseModel):
     category: str | None = None
     project: str | None = None
     skill_domain: str | None = None
+    focus_topic: str | None = None
     count: int = 5
 
 
@@ -160,14 +163,44 @@ def generate_questions(req: GenerateRequest) -> StreamingResponse:
     """Generate interview questions via LLM with SSE streaming progress."""
 
     def event_stream():
-        from agents.interview import generate_interview_questions
+        event_queue: queue.Queue[dict[str, Any] | Exception | object] = queue.Queue()
+        done = object()
 
-        for event_data in generate_interview_questions(
-            category=req.category,
-            project=req.project,
-            skill_domain=req.skill_domain,
-            count=req.count,
-        ):
+        def producer() -> None:
+            try:
+                from agents.interview import generate_interview_questions
+
+                for event_data in generate_interview_questions(
+                    category=req.category,
+                    project=req.project,
+                    skill_domain=req.skill_domain,
+                    focus_topic=req.focus_topic,
+                    count=req.count,
+                ):
+                    event_queue.put(event_data)
+            except Exception as exc:
+                event_queue.put(exc)
+            finally:
+                event_queue.put(done)
+
+        thread = threading.Thread(target=producer, daemon=True)
+        thread.start()
+
+        while True:
+            try:
+                item = event_queue.get(timeout=10)
+            except queue.Empty:
+                yield ": keepalive\n\n"
+                continue
+
+            if item is done:
+                break
+
+            if isinstance(item, Exception):
+                yield _sse("error", {"message": f"生成流程异常中断: {item}"})
+                break
+
+            event_data = dict(item)
             event_type = event_data.pop("event", "info")
             yield _sse(event_type, event_data)
 

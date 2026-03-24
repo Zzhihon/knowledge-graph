@@ -61,6 +61,7 @@ export default function InterviewView({ onPreviewEntry, genState, genActions }: 
   const [genCategory, setGenCategory] = useState('')
   const [genProject, setGenProject] = useState('')
   const [genSkillDomain, setGenSkillDomain] = useState('')
+  const [genFocusTopic, setGenFocusTopic] = useState('')
   const [genCount, setGenCount] = useState(5)
 
   // Practice state
@@ -120,6 +121,7 @@ export default function InterviewView({ onPreviewEntry, genState, genActions }: 
       category: genCategory || null,
       project: genProject || null,
       skill_domain: genSkillDomain || null,
+      focus_topic: genFocusTopic.trim() || null,
       count: genCount,
     })
     setShowGenerate(false) // close modal immediately — runs in background
@@ -681,6 +683,17 @@ export default function InterviewView({ onPreviewEntry, genState, genActions }: 
                     ))}
                   </div>
                 )}
+              </div>
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">聚焦关键词/主题（可选）</label>
+                <input
+                  type="text"
+                  value={genFocusTopic}
+                  onChange={e => setGenFocusTopic(e.target.value)}
+                  placeholder="例如：Redis 缓存一致性、Kubernetes 调度、限流降级"
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-300 outline-none focus:border-indigo-500 placeholder:text-zinc-600"
+                />
+                <p className="mt-1 text-xs text-zinc-500">支持短主题或多个关键词（逗号分隔），当前版本按单个字符串透传。</p>
               </div>
               <div>
                 <label className="block text-sm text-zinc-400 mb-1">每类生成题数</label>

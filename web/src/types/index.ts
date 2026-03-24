@@ -424,3 +424,101 @@ export interface RecentFeedItem {
   type: string
 }
 
+// --- Course Knowledge types ---
+
+export interface CourseFileInfo {
+  file_name: string
+  file_stem: string
+  file_path: string
+  course_file: string
+  size_bytes: number
+  modified_at: number
+  last_status: 'success' | 'failed' | 'never_run'
+  last_error?: string | null
+  last_retry_count?: number
+  last_processed_at?: string | null
+}
+
+export interface CourseFilesResponse {
+  source_dir: string
+  exists: boolean
+  total_files: number
+  files: CourseFileInfo[]
+}
+
+export interface CourseEntryItem {
+  id: string
+  title: string
+  domain: string
+  type: string
+  depth: string
+  status: string
+  confidence: number | null
+  tags: string[]
+  created: string
+  updated: string
+  course_file: string
+  file_path: string
+}
+
+export interface CourseEntryListResponse {
+  items: CourseEntryItem[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
+}
+
+export interface CourseStats {
+  source_dir: string
+  total_files: number
+  total_entries: number
+  avg_confidence: number | null
+  type_counts: Record<string, number>
+  domain_counts: Record<string, number>
+  course_file_counts: Record<string, number>
+  failed_course_files: string[]
+}
+
+export interface CourseRetryAttempt {
+  attempt: number
+  strategy: string
+  quality_check: boolean
+  error?: string | null
+  success: boolean
+}
+
+export interface CourseFileResult {
+  index: number
+  total: number
+  file_name: string
+  file_path: string
+  course_file: string
+  created: number
+  merged: number
+  skipped: number
+  entries: Array<{
+    id: string
+    title: string
+    action: string
+    type: string
+    domain: string
+    course_file: string
+    merge_target?: string
+  }>
+  retry_count?: number
+  attempts?: CourseRetryAttempt[]
+  error?: string
+}
+
+export interface CourseProcessSummary {
+  source_dir: string
+  total_files: number
+  processed: number
+  created: number
+  merged: number
+  skipped: number
+  failed: number
+  dry_run: boolean
+}
+

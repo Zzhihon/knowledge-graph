@@ -30,6 +30,7 @@ export interface InterviewGenActions {
     category: string | null
     project: string | null
     skill_domain: string | null
+    focus_topic: string | null
     count: number
   }) => void
   stop: () => void
@@ -49,6 +50,7 @@ export function useInterviewGenerate(): [InterviewGenState, InterviewGenActions]
     category: string | null
     project: string | null
     skill_domain: string | null
+    focus_topic: string | null
     count: number
   }) => {
     // Reset state

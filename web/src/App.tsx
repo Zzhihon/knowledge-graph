@@ -14,9 +14,11 @@ import RSSView from './views/RSSView'
 import NetworkGraphView from './views/NetworkGraphView'
 import TopicExplorerView from './views/TopicExplorerView'
 import InterviewView from './views/InterviewView'
+import CourseKnowledgeView from './views/CourseKnowledgeView'
 import EntryPreview from './components/EntryPreview'
 import { useRSSPull } from './hooks/useRSSPull'
 import { useInterviewGenerate } from './hooks/useInterviewGenerate'
+import { useCourseProcess } from './hooks/useCourseProcess'
 import { get, post, del } from './api/client'
 import type { SyncResult, ConversationListItem, ExamPaper } from './types'
 
@@ -36,6 +38,9 @@ export default function App() {
 
   // Interview generate state — lives at App level so it persists across tab switches
   const [interviewGenState, interviewGenActions] = useInterviewGenerate()
+
+  // Course process state — lives at App level so it persists across tab switches
+  const [courseProcessState, courseProcessActions] = useCourseProcess()
 
   const refreshConversations = useCallback(async () => {
     try {
@@ -186,6 +191,13 @@ export default function App() {
                   onPreviewEntry={setPreviewEntryId}
                   genState={interviewGenState}
                   genActions={interviewGenActions}
+                />
+              )}
+              {activeTab === 'course' && (
+                <CourseKnowledgeView
+                  onPreviewEntry={setPreviewEntryId}
+                  processState={courseProcessState}
+                  processActions={courseProcessActions}
                 />
               )}
               {activeTab === 'topics' && <TopicExplorerView />}

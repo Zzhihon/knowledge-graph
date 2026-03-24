@@ -1,18 +1,30 @@
 import { useState, useRef } from 'react'
-import { Upload, FileText, X, Trash2, CheckCircle, GitMerge, Ban } from 'lucide-react'
-import { postForm } from '../api/client'
+import { Upload, FileText, X, Trash2, CheckCircle, GitMerge, Ban, Link, Loader2 } from 'lucide-react'
+import { post, postForm } from '../api/client'
 import type { BatchIngestResult, IngestResult } from '../types'
+
+type Tab = 'file' | 'url'
+
+interface URLIngestResult extends IngestResult {
+  url: string
+  title: string
+  content_length: number
+}
 
 interface Props {
   onClose: () => void
 }
 
 export default function IngestModal({ onClose }: Props) {
+  const [activeTab, setActiveTab] = useState<Tab>('file')
   const [files, setFiles] = useState<File[]>([])
+  const [urlInput, setUrlInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState('')
   const [singleResult, setSingleResult] = useState<IngestResult | null>(null)
   const [batchResult, setBatchResult] = useState<BatchIngestResult | null>(null)
+  const [urlMeta, setUrlMeta] = useState<{ title: string; content_length: number } | null>(null)
+  const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleDrop = (e: React.DragEvent) => {
@@ -25,9 +37,10 @@ export default function IngestModal({ onClose }: Props) {
     setFiles(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handleIngest = async () => {
+  const handleFileIngest = async () => {
     if (files.length === 0) return
     setLoading(true)
+    setError('')
 
     try {
       if (files.length === 1) {
@@ -44,7 +57,28 @@ export default function IngestModal({ onClose }: Props) {
         setBatchResult(res)
       }
     } catch {
-      setProgress('处理失败，请重试。')
+      setError('处理失败，请重试。')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleURLIngest = async () => {
+    if (!urlInput.trim()) return
+    setLoading(true)
+    setError('')
+    setProgress('正在抓取页面内容...')
+
+    try {
+      const res = await post<URLIngestResult>('/ingest/url', {
+        url: urlInput.trim(),
+        quality_check: true,
+      })
+      setUrlMeta({ title: res.title, content_length: res.content_length })
+      setSingleResult(res)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '抓取失败'
+      setError(msg.includes('422') ? '无法提取该链接的内容，请检查 URL 是否正确。' : msg)
     } finally {
       setLoading(false)
     }
@@ -70,6 +104,19 @@ export default function IngestModal({ onClose }: Props) {
     }
   }
 
+  const resetState = () => {
+    setSingleResult(null)
+    setBatchResult(null)
+    setUrlMeta(null)
+    setError('')
+    setProgress('')
+  }
+
+  const switchTab = (tab: Tab) => {
+    if (hasResult) resetState()
+    setActiveTab(tab)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-2xl shadow-2xl max-h-[85vh] flex flex-col">
@@ -80,9 +127,43 @@ export default function IngestModal({ onClose }: Props) {
           <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300"><X className="w-5 h-5" /></button>
         </div>
 
+        {/* Tab switcher */}
+        {!hasResult && (
+          <div className="flex border-b border-zinc-800/80">
+            <button
+              onClick={() => switchTab('file')}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                activeTab === 'file'
+                  ? 'text-emerald-400 border-b-2 border-emerald-400'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              <FileText className="w-4 h-4" /> 上传文件
+            </button>
+            <button
+              onClick={() => switchTab('url')}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                activeTab === 'url'
+                  ? 'text-emerald-400 border-b-2 border-emerald-400'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              <Link className="w-4 h-4" /> 链接导入
+            </button>
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto">
           {hasResult ? (
             <div className="p-6 space-y-4">
+              {/* URL meta info */}
+              {urlMeta && (
+                <div className="text-xs text-zinc-500 space-y-0.5">
+                  <p className="truncate">标题: <span className="text-zinc-300">{urlMeta.title}</span></p>
+                  <p>内容长度: <span className="text-zinc-300">{urlMeta.content_length.toLocaleString()} 字符</span></p>
+                </div>
+              )}
+
               {/* Summary counts */}
               {singleResult && (
                 <div className="flex gap-3 text-sm">
@@ -129,52 +210,79 @@ export default function IngestModal({ onClose }: Props) {
             </div>
           ) : (
             <div className="p-6 space-y-4">
-              {/* Drop zone */}
-              <div
-                onClick={() => inputRef.current?.click()}
-                onDrop={handleDrop}
-                onDragOver={(e) => e.preventDefault()}
-                className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-800 rounded-xl p-8 bg-zinc-900/30 hover:bg-zinc-900/50 hover:border-zinc-700 transition-colors cursor-pointer"
-              >
-                <input
-                  ref={inputRef}
-                  type="file"
-                  accept=".md,.txt,.pdf"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files) setFiles(prev => [...prev, ...Array.from(e.target.files!)])
-                  }}
-                />
-                <FileText className="w-10 h-10 text-zinc-600 mb-3" />
-                <p className="text-sm font-medium text-zinc-300">拖拽文件到此处，或点击上传</p>
-                <p className="text-xs text-zinc-500 mt-1">支持 .md / .txt / .pdf，可同时选择多个文件</p>
-              </div>
+              {activeTab === 'file' ? (
+                <>
+                  {/* Drop zone */}
+                  <div
+                    onClick={() => inputRef.current?.click()}
+                    onDrop={handleDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                    className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-800 rounded-xl p-8 bg-zinc-900/30 hover:bg-zinc-900/50 hover:border-zinc-700 transition-colors cursor-pointer"
+                  >
+                    <input
+                      ref={inputRef}
+                      type="file"
+                      accept=".md,.txt,.pdf"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files) setFiles(prev => [...prev, ...Array.from(e.target.files!)])
+                      }}
+                    />
+                    <FileText className="w-10 h-10 text-zinc-600 mb-3" />
+                    <p className="text-sm font-medium text-zinc-300">拖拽文件到此处，或点击上传</p>
+                    <p className="text-xs text-zinc-500 mt-1">支持 .md / .txt / .pdf，可同时选择多个文件</p>
+                  </div>
 
-              {/* File list */}
-              {files.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-zinc-500 font-medium">待处理文件 ({files.length})</p>
-                  {files.map((f, i) => (
-                    <div key={i} className="flex items-center gap-3 p-2.5 bg-zinc-900/50 border border-zinc-800/50 rounded-lg text-sm">
-                      <FileText className="w-4 h-4 text-zinc-500 shrink-0" />
-                      <span className="text-zinc-300 truncate">{f.name}</span>
-                      <span className="text-zinc-600 text-xs ml-auto shrink-0">
-                        {(f.size / 1024).toFixed(1)} KB
-                      </span>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); removeFile(i) }}
-                        className="text-zinc-600 hover:text-rose-400 shrink-0"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                  {/* File list */}
+                  {files.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs text-zinc-500 font-medium">待处理文件 ({files.length})</p>
+                      {files.map((f, i) => (
+                        <div key={i} className="flex items-center gap-3 p-2.5 bg-zinc-900/50 border border-zinc-800/50 rounded-lg text-sm">
+                          <FileText className="w-4 h-4 text-zinc-500 shrink-0" />
+                          <span className="text-zinc-300 truncate">{f.name}</span>
+                          <span className="text-zinc-600 text-xs ml-auto shrink-0">
+                            {(f.size / 1024).toFixed(1)} KB
+                          </span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removeFile(i) }}
+                            className="text-zinc-600 hover:text-rose-400 shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* URL input */}
+                  <div className="space-y-3">
+                    <p className="text-sm text-zinc-400">粘贴任意网页链接，自动抓取内容并提取知识条目。</p>
+                    <input
+                      type="url"
+                      value={urlInput}
+                      onChange={(e) => setUrlInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && urlInput.trim()) handleURLIngest() }}
+                      placeholder="https://mp.weixin.qq.com/s/..."
+                      className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-xl text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
+                    />
+                    <p className="text-xs text-zinc-600">支持微信公众号、博客文章、技术文档等任意公开网页</p>
+                  </div>
+                </>
               )}
 
               {loading && (
-                <p className="text-sm text-zinc-400 text-center">{progress}</p>
+                <div className="flex items-center justify-center gap-2 text-sm text-zinc-400">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {progress}
+                </div>
+              )}
+
+              {error && (
+                <p className="text-sm text-rose-400 text-center">{error}</p>
               )}
             </div>
           )}
@@ -182,7 +290,10 @@ export default function IngestModal({ onClose }: Props) {
 
         <div className="p-5 border-t border-zinc-800/80 flex justify-between items-center bg-zinc-900/30 rounded-b-2xl">
           <span className="text-xs font-mono text-zinc-500">
-            kg ingest {files.length > 1 ? `[${files.length} files]` : files[0]?.name ?? '[filename]'}
+            {activeTab === 'file'
+              ? `kg ingest ${files.length > 1 ? `[${files.length} files]` : files[0]?.name ?? '[filename]'}`
+              : `kg ingest --url ${urlInput || '<url>'}`
+            }
           </span>
           <div className="flex gap-3">
             <button onClick={onClose} className="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200">
@@ -190,8 +301,8 @@ export default function IngestModal({ onClose }: Props) {
             </button>
             {!hasResult && (
               <button
-                onClick={handleIngest}
-                disabled={files.length === 0 || loading}
+                onClick={activeTab === 'file' ? handleFileIngest : handleURLIngest}
+                disabled={(activeTab === 'file' ? files.length === 0 : !urlInput.trim()) || loading}
                 className="px-4 py-2 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors"
               >
                 {loading ? '解析中...' : '开始解析'}

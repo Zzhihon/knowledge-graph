@@ -7,6 +7,7 @@ const TAB_LABELS: Record<string, string> = {
   quiz: '间隔重复测验',
   problems: '面试题库',
   exam: '模拟面试',
+  course: '课程知识',
   health: '知识健康巡检',
   graph: '图谱与演进链路',
   network: '知识网络图谱',

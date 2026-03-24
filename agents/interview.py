@@ -155,9 +155,11 @@ def _build_prompt(
     category: str,
     project: str | None,
     skill_domain: str | None,
+    focus_topic: str | None,
     resume_text: str,
     existing_titles: list[str],
     count: int,
+    difficulty_distribution: dict[str, int],
     iv_config: dict[str, Any],
     domain_definitions: str,
 ) -> str:
@@ -179,6 +181,14 @@ def _build_prompt(
             f"\n重点聚焦技能域：「{skill_domain}」。"
             f"所有题目必须围绕该技能域展开，深入考察底层原理、实战经验和边界场景。"
             f"可以结合简历中涉及该领域的项目经历来出题，但核心考点是该技能域本身。\n"
+        )
+    if focus_topic:
+        focus_context += (
+            f"\n重点聚焦关键词/主题：「{focus_topic}」。"
+            f"这是比项目或技能域更细粒度的追问方向，优先围绕这个主题出题。"
+            f"如果同时提供了项目或技能域，请在对应上下文中围绕该主题深挖，"
+            f"但所有题目仍必须严格基于候选人简历中的真实经历、项目和技术栈，"
+            f"不要生成与候选人背景无关的泛化题目。\n"
         )
 
     existing_str = "\n".join(f"- {t}" for t in existing_titles) if existing_titles else "（暂无）"
@@ -212,6 +222,14 @@ def _build_prompt(
         )
         framework = "STAR"
 
+    distribution_parts = []
+    for difficulty in ("easy", "medium", "hard"):
+        qty = difficulty_distribution.get(difficulty, 0)
+        if qty > 0:
+            label = {"easy": "简单", "medium": "中等", "hard": "困难"}[difficulty]
+            distribution_parts.append(f"{label} {qty} 道")
+    difficulty_distribution_text = "、".join(distribution_parts)
+
     return f"""\
 你是一位资深技术面试官，正在针对候选人进行「{cat_label}」类别的面试。
 {cat_desc}
@@ -230,7 +248,7 @@ def _build_prompt(
 2. 面试官口语化风格，像真实面试中的提问
 3. 每道题包含 2-3 个递进追问
 4. 答案使用 {framework} 框架组织
-5. 难度分布：简单 1 道、中等 {max(1, count - 2)} 道、困难 1 道
+5. 难度分布：{difficulty_distribution_text}
 6. 为每道题标注相关技术域（从上方可用技术域中选择）
 
 已有题目（避免重复）：
@@ -254,10 +272,20 @@ def _build_prompt(
 只返回 JSON 数组，不要有其他文字。"""
 
 
+def _calculate_difficulty_distribution(count: int) -> dict[str, int]:
+    """Return a difficulty split that sums exactly to count."""
+    if count <= 1:
+        return {"easy": 1, "medium": 0, "hard": 0}
+    if count == 2:
+        return {"easy": 1, "medium": 1, "hard": 0}
+    return {"easy": 1, "medium": count - 2, "hard": 1}
+
+
 def _write_interview_entry(
     question_data: dict[str, Any],
     category: str,
     project: str | None,
+    focus_topic: str | None,
     framework: str,
     config: ProjectConfig,
 ) -> str:
@@ -278,6 +306,7 @@ def _write_interview_entry(
         "type": "interview",
         "category": category,
         "project": project,
+        "focus_topic": focus_topic,
         "difficulty": question_data.get("difficulty", "medium"),
         "answer_framework": framework,
         "domain": question_data.get("domain", []),
@@ -330,6 +359,7 @@ def generate_interview_questions(
     project: str | None,
     count: int,
     skill_domain: str | None = None,
+    focus_topic: str | None = None,
     config: ProjectConfig | None = None,
 ) -> Generator[dict[str, Any], None, None]:
     """Generate interview questions via LLM, yielding progress events.
@@ -348,6 +378,10 @@ def generate_interview_questions(
         subs = ", ".join(dv.sub_domains) if dv.sub_domains else ""
         domain_lines.append(f"- {dk} ({dv.label}): {subs}")
     domain_definitions = "\n".join(domain_lines)
+
+    normalized_focus_topic = focus_topic.strip() if focus_topic else None
+    if normalized_focus_topic:
+        normalized_focus_topic = normalized_focus_topic[:120]
 
     # Determine which categories to generate for
     if category:
@@ -383,14 +417,17 @@ def generate_interview_questions(
     for cat in cats_to_generate:
         # Determine answer framework by category
         framework = "STAR" if cat in ("project-deep-dive", "real-scenarios") else "PREP"
+        difficulty_distribution = _calculate_difficulty_distribution(count)
 
         prompt = _build_prompt(
             category=cat,
             project=project,
             skill_domain=skill_domain,
+            focus_topic=normalized_focus_topic,
             resume_text=resume_text,
             existing_titles=existing_titles,
             count=count,
+            difficulty_distribution=difficulty_distribution,
             iv_config=iv_config,
             domain_definitions=domain_definitions,
         )
@@ -410,6 +447,7 @@ def generate_interview_questions(
                         question_data=q,
                         category=cat,
                         project=project,
+                        focus_topic=normalized_focus_topic,
                         framework=framework,
                         config=config,
                     )

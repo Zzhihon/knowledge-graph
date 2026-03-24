@@ -29,19 +29,23 @@ def cli() -> None:
 
 
 @cli.command()
-@click.argument("path", type=click.Path(exists=True, path_type=Path))
+@click.argument("path", type=click.Path(exists=True, path_type=Path), required=False)
+@click.option("--url", type=str, help="从网页链接导入内容")
 @click.option("--dry-run", is_flag=True, help="预览模式，不实际写入文件")
 @click.option(
     "--quality-check/--no-quality-check",
     default=True,
     help="启用质量评估与去重 (默认启用)",
 )
+@click.option("--timeout", type=int, default=30, help="HTTP 超时秒数 (默认: 30，仅 --url 使用)")
 @click.option("-r", "--recursive", is_flag=True, help="递归扫描子目录")
 @click.option("--workers", type=int, default=3, help="并行线程数 (默认: 3)")
 def ingest(
-    path: Path,
+    path: Path | None,
+    url: str | None,
     dry_run: bool,
     quality_check: bool,
+    timeout: int,
     recursive: bool,
     workers: int,
 ) -> None:
@@ -52,6 +56,73 @@ def ingest(
 
     PATH: 待处理的文件或目录路径
     """
+    if bool(path) == bool(url):
+        console.print("[red]请提供 PATH 或 --url，且只能二选一。[/]")
+        sys.exit(1)
+
+    if url:
+        import tempfile
+
+        from agents.sources.web import WebAdapter
+
+        adapter = WebAdapter()
+        try:
+            console.print(f"[dim]正在抓取: {url}[/]")
+            doc = adapter.fetch_url(url=url, timeout=timeout, extra_tags=[])
+        except ValueError as exc:
+            console.print(f"[red]抓取失败: {exc}[/]")
+            sys.exit(1)
+
+        console.print(f"[dim]标题: {doc.title}[/]")
+        console.print(f"[dim]内容: {len(doc.content):,} 字符[/]")
+
+        tmp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".md", delete=False, encoding="utf-8",
+            ) as tmp:
+                tmp.write(doc.to_markdown())
+                tmp_path = Path(tmp.name)
+
+            if quality_check:
+                from agents.ingest import ingest_file_with_quality
+
+                results = ingest_file_with_quality(file_path=tmp_path, dry_run=dry_run)
+                if results:
+                    created = sum(1 for r in results if r.get("action") == "create")
+                    merged = sum(1 for r in results if r.get("action") == "merge")
+                    skipped = sum(1 for r in results if r.get("action") == "skip")
+                    action = "预览" if dry_run else "处理"
+                    console.print(
+                        f"\n[bold green]完成: {action}了 {len(results)} 个知识条目[/] "
+                        f"([green]创建 {created}[/] | [yellow]合并 {merged}[/] | "
+                        f"[dim]跳过 {skipped}[/])"
+                    )
+                else:
+                    console.print("[yellow]未提取到任何知识条目。[/]")
+            else:
+                from agents.ingest import ingest_file
+
+                results = ingest_file(file_path=tmp_path, dry_run=dry_run)
+                if results:
+                    action = "预览" if dry_run else "创建"
+                    console.print(
+                        f"\n[bold green]完成: {action}了 {len(results)} 个知识条目[/]"
+                    )
+                else:
+                    console.print("[yellow]未提取到任何知识条目。[/]")
+        except RuntimeError as exc:
+            console.print(f"[red]处理错误: {exc}[/]")
+            sys.exit(1)
+        finally:
+            if tmp_path:
+                tmp_path.unlink(missing_ok=True)
+        return
+
+    if path is None:
+        console.print("[red]缺少 PATH 参数。[/]")
+        sys.exit(1)
+
     if path.is_dir():
         from agents.batch_ingest import ingest_directory
 
