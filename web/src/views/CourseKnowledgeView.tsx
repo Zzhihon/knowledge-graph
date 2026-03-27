@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   GraduationCap, Play, Pause, CheckCircle, XCircle, Loader2, FileText,
   ChevronDown, ChevronRight, Plus, GitMerge, SkipForward, Search,
-  ChevronLeft, ChevronRight as ChevronRightIcon, FolderOpen,
+  ChevronLeft, ChevronRight as ChevronRightIcon, FolderOpen, RotateCcw,
 } from 'lucide-react'
 import { get } from '../api/client'
 import type { CourseProcessState, CourseProcessActions } from '../hooks/useCourseProcess'
@@ -22,6 +22,7 @@ export default function CourseKnowledgeView({ onPreviewEntry, processState, proc
   const [dryRun, setDryRun] = useState(false)
   const [qualityCheck, setQualityCheck] = useState(true)
   const [expandedFiles, setExpandedFiles] = useState<Set<number>>(new Set())
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set())
 
   // Entry browsing state
   const [entries, setEntries] = useState<CourseEntryItem[]>([])
@@ -86,6 +87,40 @@ export default function CourseKnowledgeView({ onPreviewEntry, processState, proc
     .map(f => f.course_file)
   const failedCourseFiles = Array.from(new Set([...failedFromResults, ...failedFromPersisted]))
   const progressPct = totalFiles > 0 ? Math.round((processedCount / totalFiles) * 100) : 0
+  const isProcessing = phase === 'process'
+  const isIdle = phase === 'idle' || phase === 'complete'
+
+  const toggleFileSelection = (courseFile: string) => {
+    setSelectedFiles(prev => {
+      const next = new Set(prev)
+      if (next.has(courseFile)) next.delete(courseFile)
+      else next.add(courseFile)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedFiles.size === files.length) {
+      setSelectedFiles(new Set())
+    } else {
+      setSelectedFiles(new Set(files.map(f => f.course_file)))
+    }
+  }
+
+  const handleStartSelected = () => {
+    if (isProcessing || selectedFiles.size === 0) return
+    startProcess(workers, dryRun, qualityCheck, Array.from(selectedFiles))
+  }
+
+  const handleStartAll = () => {
+    if (isProcessing) return
+    startProcess(workers, dryRun, qualityCheck)
+  }
+
+  const handleRetryFailed = () => {
+    if (isProcessing || failedCourseFiles.length === 0) return
+    startProcess(workers, dryRun, qualityCheck, failedCourseFiles)
+  }
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`
@@ -132,11 +167,21 @@ export default function CourseKnowledgeView({ onPreviewEntry, processState, proc
         </div>
       )}
 
-      {/* Source Directory + Files */}
+      {/* Source Directory + Files with checkboxes */}
       <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-xl p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <FolderOpen className="w-4 h-4 text-cyan-400" />
-          <span className="text-sm font-medium text-zinc-300">课件源目录</span>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <FolderOpen className="w-4 h-4 text-cyan-400" />
+            <span className="text-sm font-medium text-zinc-300">课件源目录</span>
+          </div>
+          {files.length > 0 && isIdle && (
+            <button
+              onClick={toggleSelectAll}
+              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              {selectedFiles.size === files.length ? '取消全选' : '全选'}
+            </button>
+          )}
         </div>
         <div className="text-xs text-zinc-500 font-mono mb-3 bg-zinc-950/60 px-3 py-1.5 rounded-lg">
           {stats?.source_dir || files[0]?.file_path?.replace(/\/[^/]+$/, '') || '—'}
@@ -145,6 +190,14 @@ export default function CourseKnowledgeView({ onPreviewEntry, processState, proc
           {files.map(f => (
             <div key={f.file_name} className="flex items-center justify-between py-1.5 px-2 rounded text-xs hover:bg-zinc-800/30">
               <div className="flex items-center gap-2">
+                {isIdle && (
+                  <input
+                    type="checkbox"
+                    checked={selectedFiles.has(f.course_file)}
+                    onChange={() => toggleFileSelection(f.course_file)}
+                    className="rounded border-zinc-600 bg-zinc-800 text-cyan-500 focus:ring-cyan-500 w-3.5 h-3.5"
+                  />
+                )}
                 <FileText className="w-3 h-3 text-cyan-400 shrink-0" />
                 <span className="text-zinc-300">{f.file_name}</span>
                 {f.last_status === 'failed' && (
@@ -181,7 +234,7 @@ export default function CourseKnowledgeView({ onPreviewEntry, processState, proc
             <select
               value={workers}
               onChange={e => setWorkers(Number(e.target.value))}
-              disabled={phase !== 'idle' && phase !== 'complete'}
+              disabled={isProcessing}
               className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-cyan-500"
             >
               <option value={1}>1 线程</option>
@@ -196,7 +249,7 @@ export default function CourseKnowledgeView({ onPreviewEntry, processState, proc
               type="checkbox"
               checked={dryRun}
               onChange={e => setDryRun(e.target.checked)}
-              disabled={phase !== 'idle' && phase !== 'complete'}
+              disabled={isProcessing}
               className="rounded border-zinc-600 bg-zinc-800 text-cyan-500 focus:ring-cyan-500"
             />
             预览模式
@@ -206,29 +259,38 @@ export default function CourseKnowledgeView({ onPreviewEntry, processState, proc
               type="checkbox"
               checked={qualityCheck}
               onChange={e => setQualityCheck(e.target.checked)}
-              disabled={phase !== 'idle' && phase !== 'complete'}
+              disabled={isProcessing}
               className="rounded border-zinc-600 bg-zinc-800 text-cyan-500 focus:ring-cyan-500"
             />
             质量评估
           </label>
           <div className="ml-auto flex items-center gap-2">
-            {(phase === 'idle' || phase === 'complete') ? (
+            {isIdle ? (
               <>
+                {failedCourseFiles.length > 0 && (
+                  <button
+                    onClick={handleRetryFailed}
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-600/90 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    重试失败 ({failedCourseFiles.length})
+                  </button>
+                )}
                 <button
-                  onClick={() => startProcess(workers, dryRun, qualityCheck, failedCourseFiles)}
-                  disabled={failedCourseFiles.length === 0}
-                  className="flex items-center gap-2 px-4 py-2 bg-amber-600/90 hover:bg-amber-600 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+                  onClick={handleStartSelected}
+                  disabled={selectedFiles.size === 0}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600/90 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
                 >
                   <Play className="w-4 h-4" />
-                  重试失败文件 {failedCourseFiles.length > 0 && `(${failedCourseFiles.length})`}
+                  处理选中 ({selectedFiles.size})
                 </button>
                 <button
-                  onClick={() => startProcess(workers, dryRun, qualityCheck)}
+                  onClick={handleStartAll}
                   disabled={files.length === 0}
                   className="flex items-center gap-2 px-4 py-2 bg-cyan-600/90 hover:bg-cyan-600 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
                 >
                   <Play className="w-4 h-4" />
-                  {dryRun ? '预览提取' : '开始提取'}
+                  {dryRun ? '预览全部' : '提取全部'}
                 </button>
               </>
             ) : (

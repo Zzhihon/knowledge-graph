@@ -49,12 +49,24 @@ export async function postForm<T>(path: string, formData: FormData): Promise<T> 
   return res.json()
 }
 
+export interface StreamSSEOptions {
+  onToken: (text: string) => void
+  onDone: (sources: Source[]) => void
+  onStatus?: (message: string, phase?: string) => void
+  onIngested?: (entryId: string) => void
+  onError?: (message: string) => void
+}
+
 export function streamSSE(
   path: string,
   body: unknown,
-  onToken: (text: string) => void,
-  onDone: (sources: Source[]) => void,
+  onTokenOrOpts: ((text: string) => void) | StreamSSEOptions,
+  onDone?: (sources: Source[]) => void,
 ): AbortController {
+  const opts: StreamSSEOptions = typeof onTokenOrOpts === 'function'
+    ? { onToken: onTokenOrOpts, onDone: onDone! }
+    : onTokenOrOpts
+
   const controller = new AbortController()
 
   fetch(`${BASE}${path}`, {
@@ -63,7 +75,10 @@ export function streamSSE(
     body: JSON.stringify(body),
     signal: controller.signal,
   }).then(async (res) => {
-    if (!res.ok || !res.body) return
+    if (!res.ok || !res.body) {
+      opts.onError?.(`请求失败: ${res.status}`)
+      return
+    }
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
@@ -81,17 +96,30 @@ export function streamSSE(
         if (line.startsWith('event: ')) {
           currentEvent = line.slice(7).trim()
         } else if (line.startsWith('data: ')) {
-          const data = JSON.parse(line.slice(6))
-          if (currentEvent === 'token') {
-            onToken(data.text)
-          } else if (currentEvent === 'sources') {
-            onDone(data.sources)
-          }
+          try {
+            const data = JSON.parse(line.slice(6))
+            switch (currentEvent) {
+              case 'token':
+                opts.onToken(data.text)
+                break
+              case 'sources':
+                opts.onDone(data.sources)
+                break
+              case 'status':
+                opts.onStatus?.(data.message, data.phase)
+                break
+              case 'ingested':
+                opts.onIngested?.(data.entry_id)
+                break
+            }
+          } catch { /* ignore parse errors */ }
         }
       }
     }
-  }).catch(() => {
-    // Aborted or network error
+  }).catch((err: unknown) => {
+    if (err instanceof Error && err.name !== 'AbortError') {
+      opts.onError?.(`连接错误: ${err.message}`)
+    }
   })
 
   return controller

@@ -493,7 +493,7 @@ export default function InterviewView({ onPreviewEntry, genState, genActions }: 
       {stats && (
         <div className="grid grid-cols-4 gap-4">
           <StatCard label="总题数" value={stats.total_questions} />
-          <StatCard label="分类覆盖" value={`${Object.keys(stats.category_distribution).length}/4`} />
+          <StatCard label="分类覆盖" value={`${Object.keys(stats.category_distribution).length}/${categories.length}`} />
           <StatCard
             label="难度分布"
             value={`E${stats.difficulty_distribution.easy || 0} M${stats.difficulty_distribution.medium || 0} H${stats.difficulty_distribution.hard || 0}`}

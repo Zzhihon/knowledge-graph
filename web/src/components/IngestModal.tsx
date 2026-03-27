@@ -1,14 +1,31 @@
-import { useState, useRef } from 'react'
-import { Upload, FileText, X, Trash2, CheckCircle, GitMerge, Ban, Link, Loader2 } from 'lucide-react'
-import { post, postForm } from '../api/client'
+import { useState, useRef, useCallback } from 'react'
+import { Upload, FileText, X, Trash2, CheckCircle, GitMerge, Ban, Link, Loader2, RotateCcw } from 'lucide-react'
+import { postForm } from '../api/client'
 import type { BatchIngestResult, IngestResult } from '../types'
 
 type Tab = 'file' | 'url'
+type StreamPhase = 'idle' | 'fetch' | 'extract' | 'quality' | 'complete'
 
-interface URLIngestResult extends IngestResult {
+interface StreamEntry {
+  index: number
+  total: number
+  id: string
+  title: string
+  action: string
+  directory: string
+  novelty_score: number | null
+  quality_score: number | null
+  reason: string
+}
+
+interface URLStreamResult {
   url: string
   title: string
   content_length: number
+  created: number
+  merged: number
+  skipped: number
+  entries: StreamEntry[]
 }
 
 interface Props {
@@ -23,9 +40,16 @@ export default function IngestModal({ onClose }: Props) {
   const [progress, setProgress] = useState('')
   const [singleResult, setSingleResult] = useState<IngestResult | null>(null)
   const [batchResult, setBatchResult] = useState<BatchIngestResult | null>(null)
-  const [urlMeta, setUrlMeta] = useState<{ title: string; content_length: number } | null>(null)
   const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // SSE streaming state for URL ingest
+  const [streamPhase, setStreamPhase] = useState<StreamPhase>('idle')
+  const [streamEntries, setStreamEntries] = useState<StreamEntry[]>([])
+  const [streamTotal, setStreamTotal] = useState(0)
+  const [streamMeta, setStreamMeta] = useState<{ title: string; content_length: number } | null>(null)
+  const [streamResult, setStreamResult] = useState<URLStreamResult | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
@@ -63,28 +87,112 @@ export default function IngestModal({ onClose }: Props) {
     }
   }
 
+  const handleSSEEvent = useCallback((event: string, data: Record<string, unknown>) => {
+    switch (event) {
+      case 'phase':
+        setStreamPhase(data.phase as StreamPhase)
+        setProgress(data.message as string)
+        break
+      case 'fetched':
+        setStreamMeta({
+          title: data.title as string,
+          content_length: data.content_length as number,
+        })
+        break
+      case 'extracted':
+        setStreamTotal(data.total_entries as number)
+        break
+      case 'entry':
+        setStreamEntries(prev => [...prev, data as unknown as StreamEntry])
+        break
+      case 'complete':
+        setStreamResult(data as unknown as URLStreamResult)
+        setStreamPhase('complete')
+        setLoading(false)
+        break
+      case 'error':
+        setError(data.message as string)
+        setStreamPhase('idle')
+        setLoading(false)
+        break
+    }
+  }, [])
+
   const handleURLIngest = async () => {
     if (!urlInput.trim()) return
     setLoading(true)
     setError('')
-    setProgress('正在抓取页面内容...')
+    setStreamPhase('idle')
+    setStreamEntries([])
+    setStreamTotal(0)
+    setStreamMeta(null)
+    setStreamResult(null)
+    setProgress('正在连接...')
+
+    const controller = new AbortController()
+    abortRef.current = controller
 
     try {
-      const res = await post<URLIngestResult>('/ingest/url', {
-        url: urlInput.trim(),
-        quality_check: true,
+      const res = await fetch('/api/ingest/url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: urlInput.trim(),
+          quality_check: true,
+        }),
+        signal: controller.signal,
       })
-      setUrlMeta({ title: res.title, content_length: res.content_length })
-      setSingleResult(res)
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : '抓取失败'
-      setError(msg.includes('422') ? '无法提取该链接的内容，请检查 URL 是否正确。' : msg)
-    } finally {
+
+      if (!res.ok || !res.body) {
+        setError(`请求失败: ${res.status}`)
+        setLoading(false)
+        return
+      }
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        let currentEvent = ''
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            currentEvent = line.slice(7).trim()
+          } else if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6))
+              handleSSEEvent(currentEvent, data)
+            } catch { /* ignore parse errors */ }
+          }
+        }
+      }
+
+      // Stream ended without 'complete' event — could be a clean close
+      if (streamPhase !== 'complete') {
+        setLoading(false)
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name !== 'AbortError') {
+        setError(`连接错误: ${err.message}`)
+      }
       setLoading(false)
     }
   }
 
-  const hasResult = singleResult || batchResult
+  const handleCancel = () => {
+    abortRef.current?.abort()
+    setStreamPhase('idle')
+    setLoading(false)
+  }
+
+  const hasResult = singleResult || batchResult || streamResult
 
   const actionIcon = (action: string) => {
     switch (action) {
@@ -107,7 +215,11 @@ export default function IngestModal({ onClose }: Props) {
   const resetState = () => {
     setSingleResult(null)
     setBatchResult(null)
-    setUrlMeta(null)
+    setStreamResult(null)
+    setStreamEntries([])
+    setStreamTotal(0)
+    setStreamMeta(null)
+    setStreamPhase('idle')
     setError('')
     setProgress('')
   }
@@ -116,6 +228,11 @@ export default function IngestModal({ onClose }: Props) {
     if (hasResult) resetState()
     setActiveTab(tab)
   }
+
+  // Determine entries to display in result view
+  const resultEntries = streamResult
+    ? streamResult.entries
+    : singleResult?.entries ?? batchResult?.file_results?.flatMap(fr => fr.entries) ?? []
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -128,7 +245,7 @@ export default function IngestModal({ onClose }: Props) {
         </div>
 
         {/* Tab switcher */}
-        {!hasResult && (
+        {!hasResult && streamPhase === 'idle' && (
           <div className="flex border-b border-zinc-800/80">
             <button
               onClick={() => switchTab('file')}
@@ -157,15 +274,22 @@ export default function IngestModal({ onClose }: Props) {
           {hasResult ? (
             <div className="p-6 space-y-4">
               {/* URL meta info */}
-              {urlMeta && (
+              {(streamResult || streamMeta) && (
                 <div className="text-xs text-zinc-500 space-y-0.5">
-                  <p className="truncate">标题: <span className="text-zinc-300">{urlMeta.title}</span></p>
-                  <p>内容长度: <span className="text-zinc-300">{urlMeta.content_length.toLocaleString()} 字符</span></p>
+                  <p className="truncate">标题: <span className="text-zinc-300">{streamResult?.title ?? streamMeta?.title}</span></p>
+                  <p>内容长度: <span className="text-zinc-300">{(streamResult?.content_length ?? streamMeta?.content_length ?? 0).toLocaleString()} 字符</span></p>
                 </div>
               )}
 
               {/* Summary counts */}
-              {singleResult && (
+              {streamResult && (
+                <div className="flex gap-3 text-sm">
+                  <span className="text-emerald-400">创建 {streamResult.created}</span>
+                  <span className="text-amber-400">合并 {streamResult.merged}</span>
+                  <span className="text-zinc-500">跳过 {streamResult.skipped}</span>
+                </div>
+              )}
+              {singleResult && !streamResult && (
                 <div className="flex gap-3 text-sm">
                   <span className="text-emerald-400">创建 {singleResult.created}</span>
                   <span className="text-amber-400">合并 {singleResult.merged}</span>
@@ -192,7 +316,7 @@ export default function IngestModal({ onClose }: Props) {
 
               {/* Entry list */}
               <div className="space-y-2">
-                {(singleResult?.entries ?? batchResult?.file_results?.flatMap(fr => fr.entries) ?? []).map((e, i) => (
+                {resultEntries.map((e, i) => (
                   <div
                     key={i}
                     className={`flex items-center gap-3 p-3 border rounded-lg text-sm ${actionColor(e.action)}`}
@@ -207,6 +331,72 @@ export default function IngestModal({ onClose }: Props) {
                   </div>
                 ))}
               </div>
+            </div>
+          ) : streamPhase !== 'idle' ? (
+            /* SSE streaming progress view */
+            <div className="p-6 space-y-4">
+              {/* Meta info once fetched */}
+              {streamMeta && (
+                <div className="text-xs text-zinc-500 space-y-0.5">
+                  <p className="truncate">标题: <span className="text-zinc-300">{streamMeta.title}</span></p>
+                  <p>内容长度: <span className="text-zinc-300">{streamMeta.content_length.toLocaleString()} 字符</span></p>
+                </div>
+              )}
+
+              {/* Phase indicator */}
+              <div className="flex items-center gap-2 text-sm text-zinc-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {progress}
+              </div>
+
+              {/* Progress bar during quality phase */}
+              {streamPhase === 'quality' && streamTotal > 0 && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs text-zinc-500">
+                    <span>条目处理进度</span>
+                    <span>{streamEntries.length}/{streamTotal}</span>
+                  </div>
+                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500/60 rounded-full transition-all duration-300"
+                      style={{ width: `${(streamEntries.length / streamTotal) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Entries streaming in */}
+              {streamEntries.length > 0 && (
+                <div className="space-y-2">
+                  {streamEntries.map((e, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-3 p-3 border rounded-lg text-sm ${actionColor(e.action)} animate-in fade-in duration-300`}
+                    >
+                      {actionIcon(e.action)}
+                      <span className="text-zinc-300 font-medium truncate">{e.title}</span>
+                      {e.quality_score != null && (
+                        <span className="text-[10px] font-mono text-zinc-500 ml-auto shrink-0">
+                          Q:{e.quality_score.toFixed(2)} N:{e.novelty_score?.toFixed(2) ?? '-'}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {error && (
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-sm text-rose-400">{error}</p>
+                  <button
+                    onClick={handleURLIngest}
+                    className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    重试
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="p-6 space-y-4">
@@ -274,7 +464,7 @@ export default function IngestModal({ onClose }: Props) {
                 </>
               )}
 
-              {loading && (
+              {loading && activeTab === 'file' && (
                 <div className="flex items-center justify-center gap-2 text-sm text-zinc-400">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   {progress}
@@ -282,7 +472,19 @@ export default function IngestModal({ onClose }: Props) {
               )}
 
               {error && (
-                <p className="text-sm text-rose-400 text-center">{error}</p>
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-sm text-rose-400">{error}</p>
+                  {activeTab === 'url' && (
+                    <button
+                      onClick={handleURLIngest}
+                      disabled={!urlInput.trim()}
+                      className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 disabled:opacity-40 transition-colors"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      重试
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -296,10 +498,16 @@ export default function IngestModal({ onClose }: Props) {
             }
           </span>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200">
-              {hasResult ? '关闭' : '取消'}
-            </button>
-            {!hasResult && (
+            {streamPhase !== 'idle' && streamPhase !== 'complete' ? (
+              <button onClick={handleCancel} className="px-4 py-2 text-sm text-rose-400 hover:text-rose-300">
+                取消
+              </button>
+            ) : (
+              <button onClick={onClose} className="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200">
+                {hasResult ? '关闭' : '取消'}
+              </button>
+            )}
+            {!hasResult && streamPhase === 'idle' && (
               <button
                 onClick={activeTab === 'file' ? handleFileIngest : handleURLIngest}
                 disabled={(activeTab === 'file' ? files.length === 0 : !urlInput.trim()) || loading}

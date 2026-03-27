@@ -210,7 +210,7 @@ class VectorStore:
                 "type": str(meta.get("type", "")),
                 "depth": str(meta.get("depth", "")),
                 "status": str(meta.get("status", "")),
-                "confidence": float(meta.get("confidence", 0.0)),
+                "confidence": float(meta.get("confidence") or 0.0),
                 "file_path": str(meta.get("file_path", "")),
                 "content_hash": str(meta.get("content_hash", "")),
             }

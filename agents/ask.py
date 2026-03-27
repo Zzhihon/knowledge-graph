@@ -452,6 +452,8 @@ def ask_stream(
     if domain:
         filters["domain"] = domain
 
+    yield {"type": "status", "data": {"message": "正在检索相关条目...", "phase": "search"}}
+
     results = search(
         query=question,
         filters=filters if filters else None,
@@ -462,7 +464,7 @@ def ask_stream(
     if not results:
         fb = config.fallback
         if enable_fallback and fb.enabled:
-            yield {"type": "status", "data": {"message": "知识库无结果，Fallback 直接回答..."}}
+            yield {"type": "status", "data": {"message": "知识库无结果，Fallback 直接回答...", "phase": "fallback"}}
 
             from agents.api_client import get_fallback_client
             client, model = get_fallback_client(fb.key_index)
@@ -503,6 +505,12 @@ def ask_stream(
         yield {"type": "sources", "data": {"sources": []}}
         yield {"type": "done", "data": {}}
         return
+
+    yield {"type": "status", "data": {
+        "message": f"已检索到 {len(results)} 个条目，正在生成回答...",
+        "phase": "generate",
+        "result_count": len(results),
+    }}
 
     context = _build_context(results, config, use_graph=use_graph)
 

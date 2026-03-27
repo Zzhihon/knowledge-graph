@@ -56,77 +56,168 @@ class UnifiedClient:
                     os.environ[env_key] = env_value
             self._openai = None
 
+    _CONT_MSG = "请继续输出，从上次中断处严格续写，不要重复已输出的内容。"
+
     def stream_extract(
         self,
         prompt: str,
         max_tokens: int = 16384,
+        max_continuations: int = 0,
+        max_retries: int = 3,
     ) -> tuple[str, str]:
         """Send extraction prompt and return (response_text, stop_reason).
 
-        Uses streaming for both Anthropic and OpenAI to avoid proxy timeouts.
+        Uses streaming to avoid proxy timeouts. When *max_continuations* > 0,
+        automatically continues on ``max_tokens`` hit or mid-stream connection
+        drop (if partial text was already received).
         """
         if self.is_openai:
-            return self._stream_openai(prompt, max_tokens)
+            return self._stream_openai(prompt, max_tokens, max_continuations, max_retries)
         else:
-            return self._stream_anthropic(prompt, max_tokens)
+            return self._stream_anthropic(prompt, max_tokens, max_continuations, max_retries)
 
-    def _stream_anthropic(self, prompt: str, max_tokens: int) -> tuple[str, str]:
-        """Stream via Anthropic SDK."""
-        response_text = ""
-        with self._anthropic.messages.stream(
-            model=self.model,
-            max_tokens=max_tokens,
-            messages=[{"role": "user", "content": prompt}],
-        ) as stream:
-            for text in stream.text_stream:
-                response_text += text
-            message = stream.get_final_message()
+    # -- Anthropic ---------------------------------------------------------
 
-        return response_text, message.stop_reason or "end_turn"
+    def _stream_anthropic(
+        self, prompt: str, max_tokens: int, max_continuations: int = 0, max_retries: int = 3,
+    ) -> tuple[str, str]:
+        """Stream via Anthropic SDK with optional auto-continuation and zero-byte retry."""
+        import time
+        messages: list[dict[str, Any]] = [{"role": "user", "content": prompt}]
+        full_text = ""
+        continuations = 0
 
-    def _stream_openai(self, prompt: str, max_tokens: int) -> tuple[str, str]:
-        """Stream via OpenAI Responses API (/v1/responses)."""
-        import json
+        while True:
+            chunk = ""
+            stop_reason = "end_turn"
+            need_continue = False
+            last_exc: Exception | None = None
 
-        response_text = ""
-        stop_reason = "end_turn"
-
-        with self._http.stream(
-            "POST",
-            f"{self._base_url}/v1/responses",
-            headers={
-                "Authorization": f"Bearer {self._api_key}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": self.model,
-                "input": prompt,
-                "max_output_tokens": max_tokens,
-                "stream": True,
-            },
-        ) as resp:
-            resp.raise_for_status()
-            for line in resp.iter_lines():
-                if not line or line.startswith(":"):
-                    continue
-                if line.startswith("data: "):
-                    data_str = line[6:]
-                    if data_str == "[DONE]":
+            for attempt in range(max_retries):
+                chunk = ""
+                try:
+                    with self._anthropic.messages.stream(
+                        model=self.model,
+                        max_tokens=max_tokens,
+                        messages=messages,
+                    ) as stream:
+                        for text in stream.text_stream:
+                            chunk += text
+                        msg = stream.get_final_message()
+                        stop_reason = msg.stop_reason or "end_turn"
+                        need_continue = stop_reason == "max_tokens"
+                    last_exc = None
+                    break  # success
+                except Exception as exc:
+                    last_exc = exc
+                    if chunk:
+                        # Got partial data — don't retry, go to continuation logic
+                        need_continue = continuations < max_continuations
                         break
-                    try:
-                        data = json.loads(data_str)
-                    except json.JSONDecodeError:
-                        continue
-                    # Extract text delta from response.output_text.delta events
-                    event_type = data.get("type", "")
-                    if event_type == "response.output_text.delta":
-                        response_text += data.get("delta", "")
-                    elif event_type == "response.completed":
-                        usage = data.get("response", {}).get("usage", {})
-                        if usage.get("output_tokens") and usage["output_tokens"] >= max_tokens:
-                            stop_reason = "max_tokens"
+                    # Zero-byte drop — wait and retry
+                    if attempt < max_retries - 1:
+                        time.sleep(2 ** attempt)  # 1s, 2s, 4s
+                    continue
 
-        return response_text, stop_reason
+            if last_exc and not chunk:
+                raise last_exc
+
+            full_text += chunk
+
+            if not need_continue or continuations >= max_continuations:
+                return full_text, stop_reason
+
+            continuations += 1
+            messages = [
+                {"role": "user", "content": prompt},
+                {"role": "assistant", "content": full_text},
+                {"role": "user", "content": self._CONT_MSG},
+            ]
+
+    # -- OpenAI Responses API ----------------------------------------------
+
+    def _stream_openai(
+        self, prompt: str, max_tokens: int, max_continuations: int = 0, max_retries: int = 3,
+    ) -> tuple[str, str]:
+        """Stream via OpenAI Responses API with optional auto-continuation and zero-byte retry."""
+        import json as _json
+        import time
+
+        input_data: str | list = prompt
+        full_text = ""
+        continuations = 0
+
+        while True:
+            chunk = ""
+            stop_reason = "end_turn"
+            need_continue = False
+            last_exc: Exception | None = None
+
+            for attempt in range(max_retries):
+                chunk = ""
+                try:
+                    with self._http.stream(
+                        "POST",
+                        f"{self._base_url}/v1/responses",
+                        headers={
+                            "Authorization": f"Bearer {self._api_key}",
+                            "Content-Type": "application/json",
+                        },
+                        json={
+                            "model": self.model,
+                            "input": input_data,
+                            "max_output_tokens": max_tokens,
+                            "stream": True,
+                        },
+                    ) as resp:
+                        resp.raise_for_status()
+                        for line in resp.iter_lines():
+                            if not line or line.startswith(":"):
+                                continue
+                            if line.startswith("data: "):
+                                data_str = line[6:]
+                                if data_str == "[DONE]":
+                                    break
+                                try:
+                                    data = _json.loads(data_str)
+                                except _json.JSONDecodeError:
+                                    continue
+                                event_type = data.get("type", "")
+                                if event_type == "response.output_text.delta":
+                                    chunk += data.get("delta", "")
+                                elif event_type == "response.completed":
+                                    usage = data.get("response", {}).get("usage", {})
+                                    if (
+                                        usage.get("output_tokens")
+                                        and usage["output_tokens"] >= max_tokens
+                                    ):
+                                        need_continue = True
+                                        stop_reason = "max_tokens"
+                    last_exc = None
+                    break  # success
+                except Exception as exc:
+                    last_exc = exc
+                    if chunk:
+                        need_continue = continuations < max_continuations
+                        break
+                    if attempt < max_retries - 1:
+                        time.sleep(2 ** attempt)
+                    continue
+
+            if last_exc and not chunk:
+                raise last_exc
+
+            full_text += chunk
+
+            if not need_continue or continuations >= max_continuations:
+                return full_text, stop_reason
+
+            continuations += 1
+            input_data = [
+                {"role": "user", "content": prompt},
+                {"role": "assistant", "content": full_text},
+                {"role": "user", "content": self._CONT_MSG},
+            ]
 
 
 class APIClientManager:

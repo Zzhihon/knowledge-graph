@@ -1,14 +1,16 @@
-"""Interview question bank endpoints with SSE streaming for generation."""
+"""Interview question bank endpoints with job-based SSE streaming for generation."""
 
 from __future__ import annotations
 
 import json
-import queue
 import threading
-from typing import Any
+import time
+import uuid
+from dataclasses import dataclass, field
+from typing import Any, Literal
 
 from fastapi import APIRouter, Query
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
 router = APIRouter(tags=["interview"])
@@ -22,8 +24,74 @@ class GenerateRequest(BaseModel):
     count: int = 5
 
 
-def _sse(event: str, data: dict) -> str:
-    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+# ---------------------------------------------------------------------------
+# Job store for background generation
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class GenerateJob:
+    job_id: str
+    status: Literal["running", "complete", "error", "cancelled"] = "running"
+    params: dict = field(default_factory=dict)
+    events: list[dict] = field(default_factory=list)  # append-only, each has seq
+    created_at: float = field(default_factory=time.time)
+    cancel_event: threading.Event = field(default_factory=threading.Event)
+    lock: threading.Lock = field(default_factory=threading.Lock)
+
+
+_jobs: dict[str, GenerateJob] = {}
+_jobs_lock = threading.Lock()
+_JOB_TTL = 3600  # 1 hour
+
+
+def _cleanup_expired_jobs() -> None:
+    """Remove jobs older than _JOB_TTL."""
+    now = time.time()
+    with _jobs_lock:
+        expired = [jid for jid, j in _jobs.items() if now - j.created_at > _JOB_TTL]
+        for jid in expired:
+            del _jobs[jid]
+
+
+def _run_job(job: GenerateJob) -> None:
+    """Background worker: consume generator, append events to job store."""
+    try:
+        from agents.interview import generate_interview_questions
+
+        for event_data in generate_interview_questions(**job.params):
+            if job.cancel_event.is_set():
+                with job.lock:
+                    job.status = "cancelled"
+                    seq = len(job.events)
+                    job.events.append({
+                        "seq": seq,
+                        "event": "cancelled",
+                        "data": {"message": "已取消"},
+                    })
+                return
+
+            ed = dict(event_data)
+            event_type = ed.pop("event", "info")
+            with job.lock:
+                seq = len(job.events)
+                job.events.append({"seq": seq, "event": event_type, "data": ed})
+                if event_type == "complete":
+                    job.status = "complete"
+
+    except Exception as exc:
+        with job.lock:
+            seq = len(job.events)
+            job.events.append({
+                "seq": seq,
+                "event": "error",
+                "data": {"message": f"生成流程异常中断: {exc}"},
+            })
+            job.status = "error"
+    else:
+        with job.lock:
+            if job.status == "running":
+                job.status = "complete"
 
 
 # ---------------------------------------------------------------------------
@@ -155,57 +223,92 @@ def list_domains() -> list[dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
-# POST /interview/generate — LLM generation with SSE progress
+# POST /interview/generate — create generation job
 # ---------------------------------------------------------------------------
 
 @router.post("/interview/generate")
-def generate_questions(req: GenerateRequest) -> StreamingResponse:
-    """Generate interview questions via LLM with SSE streaming progress."""
+def generate_questions(req: GenerateRequest) -> JSONResponse:
+    """Create a background generation job and return its ID."""
+    _cleanup_expired_jobs()
+
+    job = GenerateJob(
+        job_id=uuid.uuid4().hex[:12],
+        params={
+            "category": req.category,
+            "project": req.project,
+            "skill_domain": req.skill_domain,
+            "focus_topic": req.focus_topic,
+            "count": req.count,
+        },
+    )
+    with _jobs_lock:
+        _jobs[job.job_id] = job
+
+    threading.Thread(target=_run_job, args=(job,), daemon=True).start()
+
+    return JSONResponse({"job_id": job.job_id})
+
+
+# ---------------------------------------------------------------------------
+# GET /interview/generate/{job_id}/stream — reconnectable SSE stream
+# ---------------------------------------------------------------------------
+
+@router.get("/interview/generate/{job_id}/stream")
+def stream_job(
+    job_id: str,
+    last_event_id: int = Query(-1),
+) -> Response:
+    """Stream generation events with reconnection support via last_event_id."""
+    job = _jobs.get(job_id)
+    if job is None:
+        return JSONResponse(status_code=404, content={"error": "job not found"})
 
     def event_stream():
-        event_queue: queue.Queue[dict[str, Any] | Exception | object] = queue.Queue()
-        done = object()
-
-        def producer() -> None:
-            try:
-                from agents.interview import generate_interview_questions
-
-                for event_data in generate_interview_questions(
-                    category=req.category,
-                    project=req.project,
-                    skill_domain=req.skill_domain,
-                    focus_topic=req.focus_topic,
-                    count=req.count,
-                ):
-                    event_queue.put(event_data)
-            except Exception as exc:
-                event_queue.put(exc)
-            finally:
-                event_queue.put(done)
-
-        thread = threading.Thread(target=producer, daemon=True)
-        thread.start()
+        cursor = last_event_id + 1
+        last_ka = time.time()
 
         while True:
-            try:
-                item = event_queue.get(timeout=10)
-            except queue.Empty:
-                yield ": keepalive\n\n"
-                continue
+            with job.lock:
+                new_events = job.events[cursor:]
+                status = job.status
 
-            if item is done:
-                break
+            for ev in new_events:
+                data = {**ev["data"], "seq": ev["seq"]}
+                yield (
+                    f"id: {ev['seq']}\n"
+                    f"event: {ev['event']}\n"
+                    f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+                )
+                cursor = ev["seq"] + 1
 
-            if isinstance(item, Exception):
-                yield _sse("error", {"message": f"生成流程异常中断: {item}"})
-                break
+            # Terminal state + all events delivered -> close stream
+            if status in ("complete", "error", "cancelled") and not new_events:
+                return
 
-            event_data = dict(item)
-            event_type = event_data.pop("event", "info")
-            yield _sse(event_type, event_data)
+            if not new_events:
+                now = time.time()
+                if now - last_ka >= 10:
+                    yield ": keepalive\n\n"
+                    last_ka = now
+                time.sleep(0.5)
 
     return StreamingResponse(
         event_stream(),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+# ---------------------------------------------------------------------------
+# POST /interview/generate/{job_id}/cancel — cancel running job
+# ---------------------------------------------------------------------------
+
+@router.post("/interview/generate/{job_id}/cancel")
+def cancel_job(job_id: str) -> JSONResponse:
+    """Cancel a running generation job."""
+    job = _jobs.get(job_id)
+    if job is None:
+        return JSONResponse(status_code=404, content={"error": "job not found"})
+
+    job.cancel_event.set()
+    return JSONResponse({"job_id": job_id, "status": "cancelled"})

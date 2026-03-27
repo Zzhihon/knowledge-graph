@@ -168,28 +168,41 @@ def _build_prompt(
     cat_info = categories.get(category, {})
     cat_label = cat_info.get("label", category)
     cat_desc = cat_info.get("description", "")
+    is_code_practice = category == "industry-practice"
 
     # Build focus context
     focus_context = ""
-    if project:
+    if project and not is_code_practice:
         projects = iv_config.get("projects", [])
         proj_info = next((p for p in projects if p.get("slug") == project), None)
         proj_name = proj_info["name"] if proj_info else project
         focus_context += f"\n重点聚焦项目：「{proj_name}」，所有题目必须围绕该项目展开。\n"
     if skill_domain:
-        focus_context += (
-            f"\n重点聚焦技能域：「{skill_domain}」。"
-            f"所有题目必须围绕该技能域展开，深入考察底层原理、实战经验和边界场景。"
-            f"可以结合简历中涉及该领域的项目经历来出题，但核心考点是该技能域本身。\n"
-        )
+        if is_code_practice:
+            focus_context += (
+                f"\n重点聚焦技能域：「{skill_domain}」。"
+                f"所有题目必须围绕该技能域的实际工程场景展开。\n"
+            )
+        else:
+            focus_context += (
+                f"\n重点聚焦技能域：「{skill_domain}」。"
+                f"所有题目必须围绕该技能域展开，深入考察底层原理、实战经验和边界场景。"
+                f"可以结合简历中涉及该领域的项目经历来出题，但核心考点是该技能域本身。\n"
+            )
     if focus_topic:
-        focus_context += (
-            f"\n重点聚焦关键词/主题：「{focus_topic}」。"
-            f"这是比项目或技能域更细粒度的追问方向，优先围绕这个主题出题。"
-            f"如果同时提供了项目或技能域，请在对应上下文中围绕该主题深挖，"
-            f"但所有题目仍必须严格基于候选人简历中的真实经历、项目和技术栈，"
-            f"不要生成与候选人背景无关的泛化题目。\n"
-        )
+        if is_code_practice:
+            focus_context += (
+                f"\n重点聚焦关键词/主题：「{focus_topic}」。"
+                f"优先围绕这个主题生成具体的工程场景编码题。\n"
+            )
+        else:
+            focus_context += (
+                f"\n重点聚焦关键词/主题：「{focus_topic}」。"
+                f"这是比项目或技能域更细粒度的追问方向，优先围绕这个主题出题。"
+                f"如果同时提供了项目或技能域，请在对应上下文中围绕该主题深挖，"
+                f"但所有题目仍必须严格基于候选人简历中的真实经历、项目和技术栈，"
+                f"不要生成与候选人背景无关的泛化题目。\n"
+            )
 
     existing_str = "\n".join(f"- {t}" for t in existing_titles) if existing_titles else "（暂无）"
 
@@ -214,6 +227,16 @@ def _build_prompt(
             "追问要从场景分析 → 方案对比 → 权衡取舍。"
         )
         framework = "PREP"
+    elif category == "industry-practice":
+        angle = (
+            "参考大厂（字节、阿里、腾讯、美团等）高频面试题和真实工程场景，"
+            "考察候选人的工程编码实战能力。\n"
+            "每道题必须描述一个具体的工程场景，答案中包含完整的 Go 代码实现。\n"
+            "代码要求生产级质量：错误处理、并发安全、超时控制、关键注释。\n"
+            "典型场景如：channel+select+wg 批量并发请求、限流器/熔断器实现、连接池设计、"
+            "优雅停机、分布式锁、消息幂等处理、Worker Pool、Pipeline 模式等。"
+        )
+        framework = "PREP"
     else:  # real-scenarios
         angle = (
             "考察候选人解决实际工程问题的能力。"
@@ -230,6 +253,53 @@ def _build_prompt(
             distribution_parts.append(f"{label} {qty} 道")
     difficulty_distribution_text = "、".join(distribution_parts)
 
+    # --- industry-practice: code-focused prompt, resume optional ---
+    if is_code_practice:
+        resume_section = ""
+        if resume_text:
+            resume_section = (
+                f"\n候选人技术栈参考（可结合出题方向，但不必局限于简历经历）：\n"
+                f"---\n{resume_text}\n---\n"
+            )
+
+        return f"""\
+你是一位资深技术面试官，正在进行「{cat_label}」类别的面试。
+{cat_desc}
+{angle}
+{focus_context}{resume_section}
+可用的技术域参考（用于标注 domain 字段）：
+{domain_definitions}
+
+要求：
+1. 生成 {count} 道场景编码题，参考大厂高频面试场景，题目描述具体工程问题
+2. 面试官口语化风格，像真实面试中的提问
+3. 每道题包含 2-3 个递进追问，追问关注边界条件、性能优化、故障场景
+4. 答案必须包含完整、可运行的 Go 代码实现，体现生产级质量（错误处理、并发安全、超时控制）
+5. 代码附带关键设计点的注释说明
+6. 难度分布：{difficulty_distribution_text}
+7. 为每道题标注相关技术域（从上方可用技术域中选择）
+
+已有题目（避免重复）：
+{existing_str}
+
+请以 JSON 数组返回，每个元素格式：
+{{
+  "title": "面试题标题（简短概括）",
+  "question": "面试官提出的场景描述（口语化，描述具体工程问题和约束条件）",
+  "difficulty": "easy|medium|hard",
+  "domain": ["相关技术域"],
+  "tags": ["标签1", "标签2"],
+  "key_points": ["设计要点1", "设计要点2", "设计要点3"],
+  "answer": "场景分析 + 完整 Go 代码实现 + 关键设计说明（markdown 格式，代码用 ```go 包裹）",
+  "follow_ups": [
+    {{"question": "追问1（边界/优化/故障方向）", "answer": "参考回答（含代码片段）"}},
+    {{"question": "追问2", "answer": "参考回答"}}
+  ]
+}}
+
+只返回 JSON 数组，不要有其他文字。"""
+
+    # --- resume-based categories ---
     return f"""\
 你是一位资深技术面试官，正在针对候选人进行「{cat_label}」类别的面试。
 {cat_desc}
@@ -389,12 +459,16 @@ def generate_interview_questions(
     else:
         cats_to_generate = list(categories.keys())
 
-    # Load resume
+    # Load resume (required for resume-based categories, optional for code-practice)
+    _resume_optional = {"industry-practice"}
+    resume_required = not all(c in _resume_optional for c in cats_to_generate)
     try:
         resume_text = load_resume(config)
     except Exception as exc:
-        yield {"event": "error", "message": f"无法加载简历: {exc}"}
-        return
+        if resume_required:
+            yield {"event": "error", "message": f"无法加载简历: {exc}"}
+            return
+        resume_text = ""
 
     # Get existing titles to avoid duplicates
     existing_entries = load_entries(config.vault_path, filters={"type": "interview"})
@@ -417,64 +491,113 @@ def generate_interview_questions(
     for cat in cats_to_generate:
         # Determine answer framework by category
         framework = "STAR" if cat in ("project-deep-dive", "real-scenarios") else "PREP"
-        difficulty_distribution = _calculate_difficulty_distribution(count)
+        full_dist = _calculate_difficulty_distribution(count)
+        is_code_heavy = cat == "industry-practice"
 
-        prompt = _build_prompt(
-            category=cat,
-            project=project,
-            skill_domain=skill_domain,
-            focus_topic=normalized_focus_topic,
-            resume_text=resume_text,
-            existing_titles=existing_titles,
-            count=count,
-            difficulty_distribution=difficulty_distribution,
-            iv_config=iv_config,
-            domain_definitions=domain_definitions,
-        )
+        # --- 1. Build batch prompts ---
+        batch_size = 2 if is_code_heavy else count
+        batches: list[tuple[int, str]] = []  # (batch_count, prompt)
+        remaining_dist = dict(full_dist)
+        rem = count
+        while rem > 0:
+            bc = min(batch_size, rem)
+            batch_dist: dict[str, int] = {}
+            slots = bc
+            for d in ("easy", "hard", "medium"):
+                take = min(remaining_dist.get(d, 0), slots)
+                if take:
+                    batch_dist[d] = take
+                    remaining_dist[d] -= take
+                    slots -= take
+            prompt = _build_prompt(
+                category=cat,
+                project=project,
+                skill_domain=skill_domain,
+                focus_topic=normalized_focus_topic,
+                resume_text=resume_text,
+                existing_titles=existing_titles,
+                count=bc,
+                difficulty_distribution=batch_dist,
+                iv_config=iv_config,
+                domain_definitions=domain_definitions,
+            )
+            batches.append((bc, prompt))
+            rem -= bc
 
-        try:
-            response_text, stop_reason = client.stream_extract(prompt, max_tokens=16384)
-            cleaned = strip_code_fence(response_text)
-            questions = parse_json_robust(cleaned)
+        # --- 2. Execute LLM calls (parallel for code-heavy) ---
+        llm_results: list[tuple[str, str] | Exception] = []
+        if is_code_heavy and len(batches) > 1:
+            from concurrent.futures import ThreadPoolExecutor
 
-            if not isinstance(questions, list):
-                questions = [questions]
+            def _call(p: str) -> tuple[str, str]:
+                c, _ = manager.get_client()
+                return c.stream_extract(p, max_tokens=16384, max_continuations=2)
 
-            for q in questions:
-                global_index += 1
+            with ThreadPoolExecutor(max_workers=min(3, len(batches))) as pool:
+                futures = [pool.submit(_call, p) for _, p in batches]
+                for f in futures:
+                    try:
+                        llm_results.append(f.result())
+                    except Exception as e:
+                        llm_results.append(e)
+        else:
+            for _, prompt in batches:
                 try:
-                    file_path = _write_interview_entry(
-                        question_data=q,
-                        category=cat,
-                        project=project,
-                        focus_topic=normalized_focus_topic,
-                        framework=framework,
-                        config=config,
-                    )
-                    existing_titles.append(q.get("title", ""))
-                    total_created += 1
-                    yield {
-                        "event": "question_done",
-                        "index": global_index,
-                        "total": total_expected,
-                        "title": q.get("title", ""),
-                        "category": cat,
-                        "difficulty": q.get("difficulty", "medium"),
-                        "file_path": file_path,
-                    }
-                except Exception as exc:
-                    total_failed += 1
-                    yield {
-                        "event": "error",
-                        "message": f"写入失败 [{q.get('title', '?')}]: {exc}",
-                    }
+                    llm_results.append(client.stream_extract(prompt, max_tokens=16384))
+                except Exception as e:
+                    llm_results.append(e)
 
-        except Exception as exc:
-            total_failed += count
-            yield {
-                "event": "error",
-                "message": f"LLM 生成失败 [category={cat}]: {exc}",
-            }
+        # --- 3. Process results, yield events ---
+        for (bc, _), result in zip(batches, llm_results):
+            if isinstance(result, Exception):
+                total_failed += bc
+                yield {
+                    "event": "error",
+                    "message": f"LLM 生成失败 [category={cat}]: {result}",
+                }
+                continue
+
+            response_text, stop_reason = result
+            try:
+                cleaned = strip_code_fence(response_text)
+                questions = parse_json_robust(cleaned)
+                if not isinstance(questions, list):
+                    questions = [questions]
+
+                for q in questions:
+                    global_index += 1
+                    try:
+                        file_path = _write_interview_entry(
+                            question_data=q,
+                            category=cat,
+                            project=project,
+                            focus_topic=normalized_focus_topic,
+                            framework=framework,
+                            config=config,
+                        )
+                        existing_titles.append(q.get("title", ""))
+                        total_created += 1
+                        yield {
+                            "event": "question_done",
+                            "index": global_index,
+                            "total": total_expected,
+                            "title": q.get("title", ""),
+                            "category": cat,
+                            "difficulty": q.get("difficulty", "medium"),
+                            "file_path": file_path,
+                        }
+                    except Exception as exc:
+                        total_failed += 1
+                        yield {
+                            "event": "error",
+                            "message": f"写入失败 [{q.get('title', '?')}]: {exc}",
+                        }
+            except Exception as exc:
+                total_failed += bc
+                yield {
+                    "event": "error",
+                    "message": f"LLM 生成失败 [category={cat}]: {exc}",
+                }
 
     yield {
         "event": "complete",

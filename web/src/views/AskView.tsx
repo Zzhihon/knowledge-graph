@@ -1,14 +1,18 @@
-import { useState, useRef, useEffect } from 'react'
-import { Search, Sparkles, BrainCircuit, Send } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { Search, Sparkles, BrainCircuit, Send, Loader2, BookPlus, RotateCcw } from 'lucide-react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { get, post, streamSSE } from '../api/client'
 import type { SearchResult, Source, Conversation } from '../types'
 
+type AskPhase = 'idle' | 'search' | 'generate' | 'fallback'
+
 interface Message {
   role: 'user' | 'assistant'
   content: string
   sources?: Source[]
+  ingestedId?: string
+  isError?: boolean
 }
 
 const WELCOME_MSG: Message = {
@@ -27,9 +31,12 @@ export default function AskView({ conversationId, onConversationCreated, onPrevi
   const [input, setInput] = useState('')
   const [mode, setMode] = useState<'ask' | 'query'>('ask')
   const [loading, setLoading] = useState(false)
+  const [, setAskPhase] = useState<AskPhase>('idle')
+  const [statusMsg, setStatusMsg] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const abortRef = useRef<AbortController | null>(null)
   const activeConvId = useRef<string | null>(conversationId)
+  const lastQuestionRef = useRef('')
 
   // Keep ref in sync with prop
   activeConvId.current = conversationId
@@ -82,13 +89,20 @@ export default function AskView({ conversationId, onConversationCreated, onPrevi
     }
   }
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const q = input.trim()
+  const executeQuestion = useCallback(async (q: string, isRetry = false) => {
     if (!q || loading) return
 
-    setMessages((prev) => [...prev, { role: 'user', content: q }])
-    setInput('')
+    lastQuestionRef.current = q
+
+    if (isRetry) {
+      // Remove the last error message before retrying
+      setMessages((prev) => {
+        const last = prev[prev.length - 1]
+        return last?.isError ? prev.slice(0, -1) : prev
+      })
+    } else {
+      setMessages((prev) => [...prev, { role: 'user', content: q }])
+    }
     setLoading(true)
 
     // Ensure we have a conversation id
@@ -109,8 +123,10 @@ export default function AskView({ conversationId, onConversationCreated, onPrevi
       }
     }
 
-    // Persist user message
-    await persistMessage(convId, 'user', q)
+    // Persist user message (skip on retry — already persisted)
+    if (!isRetry) {
+      await persistMessage(convId, 'user', q)
+    }
 
     if (mode === 'query') {
       try {
@@ -121,9 +137,7 @@ export default function AskView({ conversationId, onConversationCreated, onPrevi
         setMessages((prev) => [...prev, { role: 'assistant', content: text }])
         await persistMessage(convId, 'assistant', text)
       } catch {
-        const errMsg = '检索失败，请检查后端是否运行。'
-        setMessages((prev) => [...prev, { role: 'assistant', content: errMsg }])
-        await persistMessage(convId, 'assistant', errMsg)
+        setMessages((prev) => [...prev, { role: 'assistant', content: '检索失败，请检查后端是否运行。', isError: true }])
       } finally {
         setLoading(false)
       }
@@ -132,13 +146,14 @@ export default function AskView({ conversationId, onConversationCreated, onPrevi
 
     // Ask mode: SSE streaming
     setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
+    setAskPhase('search')
+    setStatusMsg('正在检索相关条目...')
     const capturedConvId = convId
     let fullContent = ''
+    let ingestedEntryId: string | undefined
 
-    abortRef.current = streamSSE(
-      '/ask',
-      { question: q },
-      (text) => {
+    abortRef.current = streamSSE('/ask', { question: q }, {
+      onToken: (text) => {
         fullContent += text
         setMessages((prev) => {
           const updated = [...prev]
@@ -147,17 +162,53 @@ export default function AskView({ conversationId, onConversationCreated, onPrevi
           return updated
         })
       },
-      (sources) => {
+      onDone: (sources) => {
         setMessages((prev) => {
           const updated = [...prev]
           const last = updated[updated.length - 1]
-          updated[updated.length - 1] = { ...last, sources }
+          updated[updated.length - 1] = { ...last, sources, ingestedId: ingestedEntryId }
           return updated
         })
         setLoading(false)
+        setAskPhase('idle')
+        setStatusMsg('')
         persistMessage(capturedConvId, 'assistant', fullContent, sources)
       },
-    )
+      onStatus: (message, phase) => {
+        setStatusMsg(message)
+        if (phase === 'generate' || phase === 'fallback') {
+          setAskPhase(phase as AskPhase)
+        }
+      },
+      onIngested: (entryId) => {
+        ingestedEntryId = entryId
+      },
+      onError: (message) => {
+        setMessages((prev) => {
+          const updated = [...prev]
+          const last = updated[updated.length - 1]
+          // Replace the empty streaming message with an error message
+          updated[updated.length - 1] = { ...last, content: message, isError: true }
+          return updated
+        })
+        setLoading(false)
+        setAskPhase('idle')
+        setStatusMsg('')
+      },
+    })
+  }, [loading, mode, onConversationCreated])
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault()
+    const q = input.trim()
+    if (!q) return
+    setInput('')
+    executeQuestion(q)
+  }
+
+  const handleRetry = () => {
+    const q = lastQuestionRef.current
+    if (q) executeQuestion(q, true)
   }
 
   return (
@@ -178,14 +229,39 @@ export default function AskView({ conversationId, onConversationCreated, onPrevi
                 ? 'bg-indigo-500/10 text-indigo-100 ring-1 ring-indigo-500/15'
                 : 'bg-zinc-800/30 ring-1 ring-zinc-700/40 text-zinc-300'
             }`}>
+              {/* Status indicator for streaming assistant message */}
+              {msg.role === 'assistant' && !msg.content && loading && i === messages.length - 1 && (
+                <div className="flex items-center gap-2 text-zinc-500 text-xs py-1">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>{statusMsg || '思考中...'}</span>
+                </div>
+              )}
               {msg.role === 'assistant' && msg.content ? (
                 <div className="prose-chat">
                   <Markdown remarkPlugins={[remarkGfm]}>
                     {msg.content}
                   </Markdown>
                 </div>
-              ) : (
-                <div className="whitespace-pre-wrap">{msg.content || (loading && i === messages.length - 1 ? '思考中...' : '')}</div>
+              ) : msg.role !== 'assistant' ? (
+                <div className="whitespace-pre-wrap">{msg.content}</div>
+              ) : null}
+              {/* Auto-ingest notification */}
+              {msg.ingestedId && (
+                <div className="mt-2 flex items-center gap-1.5 text-[11px] text-emerald-400/80">
+                  <BookPlus className="w-3 h-3" />
+                  <span>已自动写入知识库: {msg.ingestedId}</span>
+                </div>
+              )}
+              {/* Retry button on error messages */}
+              {msg.isError && (
+                <button
+                  onClick={handleRetry}
+                  disabled={loading}
+                  className="mt-2 flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 disabled:opacity-40 transition-colors"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  重试
+                </button>
               )}
               {msg.sources && msg.sources.length > 0 && (
                 <div className="mt-2.5 pt-2.5 border-t border-zinc-700/40 space-y-0.5">
