@@ -304,11 +304,20 @@ def _search_single(
         if has_vector:
             try:
                 query_embedding = embed_single(query)
-                vec_results = store.search(
-                    query_embedding=query_embedding,
-                    top_k=top_k * 3,
-                    filters=filters,
-                )
+                # Check dimension matches collection before querying
+                expected_dim = config.agent.embedding_dim
+                if len(query_embedding) != expected_dim:
+                    console.print(
+                        f"[yellow]向量维度不匹配 ({len(query_embedding)} vs {expected_dim})，"
+                        f"跳过向量搜索，仅使用 BM25[/]"
+                    )
+                    has_vector = False
+                else:
+                    vec_results = store.search(
+                        query_embedding=query_embedding,
+                        top_k=top_k * 3,
+                        filters=filters,
+                    )
             except Exception as exc:
                 console.print(f"[yellow]向量搜索失败，仅使用 BM25: {exc}[/]")
             finally:
@@ -325,6 +334,14 @@ def _search_single(
     else:
         try:
             query_embedding = embed_single(query)
+            expected_dim = config.agent.embedding_dim
+            if len(query_embedding) != expected_dim:
+                console.print(
+                    f"[yellow]向量维度不匹配 ({len(query_embedding)} vs {expected_dim})，"
+                    f"Embedding 服务可能不可用[/]"
+                )
+                store.close()
+                return []
             results = store.search(
                 query_embedding=query_embedding,
                 top_k=top_k,

@@ -30,9 +30,10 @@ interface URLStreamResult {
 
 interface Props {
   onClose: () => void
+  onIngestComplete?: (entryIds: string[]) => void
 }
 
-export default function IngestModal({ onClose }: Props) {
+export default function IngestModal({ onClose, onIngestComplete }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('file')
   const [files, setFiles] = useState<File[]>([])
   const [urlInput, setUrlInput] = useState('')
@@ -73,12 +74,16 @@ export default function IngestModal({ onClose }: Props) {
         form.append('file', files[0])
         const res = await postForm<IngestResult>('/ingest', form)
         setSingleResult(res)
+        const ids = (res.entries || []).filter(e => e.action === 'create' && e.id).map(e => e.id)
+        if (ids.length > 0) onIngestComplete?.(ids)
       } else {
         setProgress(`正在处理 ${files.length} 个文件...`)
         const form = new FormData()
         files.forEach(f => form.append('files', f))
         const res = await postForm<BatchIngestResult>('/ingest/batch', form)
         setBatchResult(res)
+        const ids = (res.file_results || []).flatMap(fr => fr.entries).filter(e => e.action === 'create' && e.id).map(e => e.id)
+        if (ids.length > 0) onIngestComplete?.(ids)
       }
     } catch {
       setError('处理失败，请重试。')
@@ -105,11 +110,18 @@ export default function IngestModal({ onClose }: Props) {
       case 'entry':
         setStreamEntries(prev => [...prev, data as unknown as StreamEntry])
         break
-      case 'complete':
-        setStreamResult(data as unknown as URLStreamResult)
+      case 'complete': {
+        const result = data as unknown as URLStreamResult
+        setStreamResult(result)
         setStreamPhase('complete')
         setLoading(false)
+        // Trigger integration gateway for newly created entries
+        const createdIds = (result.entries || [])
+          .filter((e: StreamEntry) => e.action === 'create' && e.id)
+          .map((e: StreamEntry) => e.id)
+        if (createdIds.length > 0) onIngestComplete?.(createdIds)
         break
+      }
       case 'error':
         setError(data.message as string)
         setStreamPhase('idle')

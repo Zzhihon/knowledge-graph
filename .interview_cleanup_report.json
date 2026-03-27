@@ -1,0 +1,3819 @@
+{
+  "selector": {
+    "entry_id_prefix": "iq-20260326-"
+  },
+  "dry_run": false,
+  "apply_risky": false,
+  "run_started_at": "2026-03-27T03:38:08Z",
+  "summary": {
+    "matched": 475,
+    "pending": 475,
+    "safe_changes": 0,
+    "risky_suggestions": 407,
+    "parse_failures": 0,
+    "changed_files": 0,
+    "failed_entries": 0
+  },
+  "entries": [
+    {
+      "id": "iq-20260326-ai-codemod-和传统正则-ast-based-codemod-在大规模安",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-ai-codemod-和传统正则-ast-based-codemod-在大规模安.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-ai-大规模生成代码后传统-pr-人工审查为什么会加速失效你会如何设计分层评",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-ai-大规模生成代码后传统-pr-人工审查为什么会加速失效你会如何设计分层评.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-aof-的-appendfsync-alwayseverysecno-三种策",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-aof-的-appendfsync-alwayseverysecno-三种策.md",
+      "applied_changes": [],
+      "suggested_title": "AOF 的 appendfsync always、everysec、no 三种策略分别适用于什么场景？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-b-tree-和-lsm-tree-在写路径读路径以及读放大-写放大-空间放",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-b-tree-和-lsm-tree-在写路径读路径以及读放大-写放大-空间放.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-bpf-map-update-elem-配合-rcu-到底保证了什么不保证",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-bpf-map-update-elem-配合-rcu-到底保证了什么不保证.md",
+      "applied_changes": [],
+      "suggested_title": "`bpf_map_update_elem` 配合 RCU 到底保证了什么、不保证什么？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-channel-作为信号量与-syncmutex-在协调-goroutine",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-channel-作为信号量与-syncmutex-在协调-goroutine.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-cilium-为什么能替代-kube-proxy请从-ebpf-hook-点",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-cilium-为什么能替代-kube-proxy请从-ebpf-hook-点.md",
+      "applied_changes": [],
+      "suggested_title": "Cilium 为什么能替代 kube-proxy？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-cilium-替换-kube-proxy-的原理是什么ebpf-数据面相比-i",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-cilium-替换-kube-proxy-的原理是什么ebpf-数据面相比-i.md",
+      "applied_changes": [],
+      "suggested_title": "Cilium 替换 kube-proxy 的原理是什么？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-cilium-相比-kube-proxy-iptables为什么在-servi",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-cilium-相比-kube-proxy-iptables为什么在-servi.md",
+      "applied_changes": [],
+      "suggested_title": "Cilium 相比 kube-proxy/iptables，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-cloudnativepg-的-rw-ro-r-service",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-cloudnativepg-的-rw-ro-r-service.md",
+      "applied_changes": [],
+      "suggested_title": "CloudNativePG 的 `-rw`、`-ro`、`-r` Service 分别解决什么问题？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-containerd-17x-为什么能作为-cri-版本升级的桥接方案它与",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-containerd-17x-为什么能作为-cri-版本升级的桥接方案它与.md",
+      "applied_changes": [],
+      "suggested_title": "containerd 1.7.x 为什么能作为 CRI 版本升级的桥接方案？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-cot-是如何提升大模型推理能力的其底层机制是什么",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-cot-是如何提升大模型推理能力的其底层机制是什么.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-etcd-diagnosis-的设计理念是什么它相比人工查看日志指标和成员状",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-etcd-diagnosis-的设计理念是什么它相比人工查看日志指标和成员状.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-few-shot-cot-和-zero-shot-cot-有什么区别各自适用什",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-few-shot-cot-和-zero-shot-cot-有什么区别各自适用什.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-fmtprintffmtsprintffmtfprintf",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-fmtprintffmtsprintffmtfprintf.md",
+      "applied_changes": [],
+      "suggested_title": "`fmt.Printf`、`fmt.Sprintf`、`fmt.Fprintf` 的区别是什么？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-gc-的两个-stw-阶段具体在做什么safe-point协作式抢占和异步抢",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-gc-的两个-stw-阶段具体在做什么safe-point协作式抢占和异步抢.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-中-defer-调用的参数是在什么时机求值普通调用与闭包写法有什么区别",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-中-defer-调用的参数是在什么时机求值普通调用与闭包写法有什么区别.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-中-和-分别是什么运算符适用于哪些类型",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-中-和-分别是什么运算符适用于哪些类型.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-中-和-的区别是什么-的使用限制有哪些",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-中-和-的区别是什么-的使用限制有哪些.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-中一次-connread-在数据未就绪时goroutinemp",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-中一次-connread-在数据未就绪时goroutinemp.md",
+      "applied_changes": [],
+      "suggested_title": "Go 中一次 `conn.Read` 在数据未就绪时，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-中两个字段内容完全相同的结构体值为什么可以用-得到-true而两个",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-中两个字段内容完全相同的结构体值为什么可以用-得到-true而两个.md",
+      "applied_changes": [],
+      "suggested_title": "Go 中两个字段内容完全相同的结构体值为什么可以用 == 得到 true，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-中字符串转-byte-为什么会发生内存拷贝底层数据结构有何区别",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-中字符串转-byte-为什么会发生内存拷贝底层数据结构有何区别.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-中自定义类型与类型别名有什么区别为什么-type-myint-int",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-中自定义类型与类型别名有什么区别为什么-type-myint-int.md",
+      "applied_changes": [],
+      "suggested_title": "Go 中自定义类型与类型别名有什么区别？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-为什么设计了-chan-和-chan它们分别解决了什么问",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-为什么设计了-chan-和-chan它们分别解决了什么问.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-模块的版本号和-git-tag-之间是什么关系v2-版本升级需要注意什",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-模块的版本号和-git-tag-之间是什么关系v2-版本升级需要注意什.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-没有传统继承里氏替换原则在-go-中如何体现请结合-interface",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-没有传统继承里氏替换原则在-go-中如何体现请结合-interface.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-的-m-在什么情况下会被创建复用和休眠它与-gp-的协作关系是什么",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-的-m-在什么情况下会被创建复用和休眠它与-gp-的协作关系是什么.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-的类型转换和类型断言分别适用于什么场景请说明-tv-与-v",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-的类型转换和类型断言分别适用于什么场景请说明-tv-与-v.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-调度器中本地运行队列为什么要设计成-runnext-runq-的双",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-调度器中本地运行队列为什么要设计成-runnext-runq-的双.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-调度器为什么同时需要全局运行队列和-p-的本地运行队列globrunq",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-调度器为什么同时需要全局运行队列和-p-的本地运行队列globrunq.md",
+      "applied_changes": [],
+      "suggested_title": "Go 调度器为什么同时需要全局运行队列和 P 的本地运行队列？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-调度器的本地队列和全局队列分别是什么为什么这样设计可以减少锁竞争",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-调度器的本地队列和全局队列分别是什么为什么这样设计可以减少锁竞争.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-go-调度器里-gmp-分别承担什么职责为什么不能只有-g-和-m而必须",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-go-调度器里-gmp-分别承担什么职责为什么不能只有-g-和-m而必须.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-gofix-inline-指令与编译器内联优化有何本质区别它在源码层面是",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-gofix-inline-指令与编译器内联优化有何本质区别它在源码层面是.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-gorm-的-dbresolver-在读写分离中是如何决定请求走-sources",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-gorm-的-dbresolver-在读写分离中是如何决定请求走-sources.md",
+      "applied_changes": [],
+      "suggested_title": "GORM 的 DBResolver 在读写分离中是如何决定请求走 Sources 还是 Replicas 的？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-goroutine-为什么比操作系统线程更轻量请从栈创建成本切换成本几个角",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-goroutine-为什么比操作系统线程更轻量请从栈创建成本切换成本几个角.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-goroutine-发生切换时gobuf-需要保存哪些上下文信息stack",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-goroutine-发生切换时gobuf-需要保存哪些上下文信息stack.md",
+      "applied_changes": [],
+      "suggested_title": "goroutine 发生切换时，gobuf 需要保存哪些上下文信息？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-grpo-与-ppo-based-rlhf-在训练流程上有何本质区别各自的工程",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-grpo-与-ppo-based-rlhf-在训练流程上有何本质区别各自的工程.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-grpodporlhf-三者在偏好对齐上的核心思路有何不同在实际大模型训练",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-grpodporlhf-三者在偏好对齐上的核心思路有何不同在实际大模型训练.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-hashed-user-id-应该如何生成与隔离如按域名加盐-hmac密钥轮",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-hashed-user-id-应该如何生成与隔离如按域名加盐-hmac密钥轮.md",
+      "applied_changes": [],
+      "suggested_title": "Hashed User ID 应该如何生成与隔离（如按域名加盐/HMAC、密钥轮换、碰撞与可逆性控制），",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-histogram-和-summary-有什么区别为什么-summary-通常",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-histogram-和-summary-有什么区别为什么-summary-通常.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-http-内容协商的优先级算法是如何工作的为什么-通配符不触发结构化响",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-http-内容协商的优先级算法是如何工作的为什么-通配符不触发结构化响.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-intset-的编码升级过程是怎样的为什么升级不可逆这会带来哪些性能和内存上",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-intset-的编码升级过程是怎样的为什么升级不可逆这会带来哪些性能和内存上.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-k8s-126-要求-cri-v1但现有-containerd-16x",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-k8s-126-要求-cri-v1但现有-containerd-16x.md",
+      "applied_changes": [],
+      "suggested_title": "K8s 1.26+ 要求 CRI v1，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-kubectl-apply-l-过滤的到底是哪一层-labelmetadat",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-kubectl-apply-l-过滤的到底是哪一层-labelmetadat.md",
+      "applied_changes": [],
+      "suggested_title": "kubectl apply -l 过滤的到底是哪一层 label？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-kubernetes-ai-gateway-和普通-api-gateway-有什",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-kubernetes-ai-gateway-和普通-api-gateway-有什.md",
+      "applied_changes": [],
+      "suggested_title": "Kubernetes AI Gateway 和普通 API Gateway 有什么本质区别？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-kubernetes-节点挂载-nfs-pvc-失败报-need-sbin",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-kubernetes-节点挂载-nfs-pvc-失败报-need-sbin.md",
+      "applied_changes": [],
+      "suggested_title": "Kubernetes 节点挂载 NFS PVC 失败，报 'need /sbin/mount.nfs'，根本原因是什么？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-langgraph-的-stategraphcompile-之后st",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-langgraph-的-stategraphcompile-之后st.md",
+      "applied_changes": [],
+      "suggested_title": "LangGraph 的 `StateGraph.compile()` 之后，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-metrics-server-在-kubernetes-监控体系中负责采集和提供",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-metrics-server-在-kubernetes-监控体系中负责采集和提供.md",
+      "applied_changes": [],
+      "suggested_title": "Metrics Server 在 Kubernetes 监控体系中负责采集和提供哪些指标？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-metrics-server-的数据来源是什么它如何将指标暴露给-kubern",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-metrics-server-的数据来源是什么它如何将指标暴露给-kubern.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-moe-中-router-top-k-gating-是如何工作的为什么需要",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-moe-中-router-top-k-gating-是如何工作的为什么需要.md",
+      "applied_changes": [],
+      "suggested_title": "MoE 中 Router / Top-k Gating 是如何工作的？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-moe-为什么能做到参数规模很大但单次计算量相对较低核心机制是什么",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-moe-为什么能做到参数规模很大但单次计算量相对较低核心机制是什么.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-nextjs-全栈应用在-k8s-中如何处理数据库迁移init-contai",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-nextjs-全栈应用在-k8s-中如何处理数据库迁移init-contai.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-postgresql-从-2-节点扩到-4-节点且出现-pvc-termin",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-postgresql-从-2-节点扩到-4-节点且出现-pvc-termin.md",
+      "applied_changes": [],
+      "suggested_title": "PostgreSQL 从 2 节点扩到 4 节点，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-postgresql-物理复制中-wal-记录的到底是什么primary-到",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-postgresql-物理复制中-wal-记录的到底是什么primary-到.md",
+      "applied_changes": [],
+      "suggested_title": "PostgreSQL 物理复制中 WAL 记录的到底是什么？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-quicklist-的-fill-和-compress-参数分别影响什么如果线",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-quicklist-的-fill-和-compress-参数分别影响什么如果线.md",
+      "applied_changes": [],
+      "suggested_title": "quicklist 的 fill 和 compress 参数分别影响什么？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-qwikjs-的-ssr-优先和按需恢复具体解决了哪些性能问题你们如何设计路",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-qwikjs-的-ssr-优先和按需恢复具体解决了哪些性能问题你们如何设计路.md",
+      "applied_changes": [],
+      "suggested_title": "Qwik.js 的 SSR 优先和按需恢复具体解决了哪些性能问题？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-rabbitmq-集群将-pod-调度到控制面节点需要哪些配置这样做的风险和收",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-rabbitmq-集群将-pod-调度到控制面节点需要哪些配置这样做的风险和收.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-rag-在知识库未命中时是否应该把-llm-fallback-结果自动写回知识库",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-rag-在知识库未命中时是否应该把-llm-fallback-结果自动写回知识库.md",
+      "applied_changes": [],
+      "suggested_title": "RAG 在知识库未命中时是否应该把 LLM fallback 结果自动写回知识库？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-rdbaof混合持久化各自的优缺点是什么在缓存场景关键数据场景下如何选型",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-rdbaof混合持久化各自的优缺点是什么在缓存场景关键数据场景下如何选型.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-40-的-lfu-相比-lru-主要解决了哪些问题redis-为",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-40-的-lfu-相比-lru-主要解决了哪些问题redis-为.md",
+      "applied_changes": [],
+      "suggested_title": "Redis 4.0 的 LFU 相比 LRU 主要解决了哪些问题？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-6-为什么要引入-threaded-i-o它到底把哪些阶段并行化了",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-6-为什么要引入-threaded-i-o它到底把哪些阶段并行化了.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-aof-的-appendfsync-alwayseverys",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-aof-的-appendfsync-alwayseverys.md",
+      "applied_changes": [],
+      "suggested_title": "Redis AOF 的 `appendfsync always`、`everysec`、`no` 有什么区别？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-为什么不直接使用-c-字符串而要设计-sds它解决了哪些核心问题",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-为什么不直接使用-c-字符串而要设计-sds它解决了哪些核心问题.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-为什么要为小规模键值对设计-zipmap相比普通-dict-节省了",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-为什么要为小规模键值对设计-zipmap相比普通-dict-节省了.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-字典在-rehash-过程中读写请求分别会访问哪些哈希表这样设计",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-字典在-rehash-过程中读写请求分别会访问哪些哈希表这样设计.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-扣库存成功但订单落库失败如何保证数据一致性有哪些补偿方案",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-扣库存成功但订单落库失败如何保证数据一致性有哪些补偿方案.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-是单线程的为什么-get-decr-组合仍然不是原子操",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-是单线程的为什么-get-decr-组合仍然不是原子操.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-生产环境为什么通常选择-aof-everysec而不是-al",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-生产环境为什么通常选择-aof-everysec而不是-al.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-的-dict-为什么要用双哈希表做渐进式-rehash而不是一次性",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-的-dict-为什么要用双哈希表做渐进式-rehash而不是一次性.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-的-intset-为什么采用有序数组-按范围升级编码的设计",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-的-intset-为什么采用有序数组-按范围升级编码的设计.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-的-list-为什么从传统双向链表-ziplist-演进到-quic",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-的-list-为什么从传统双向链表-ziplist-演进到-quic.md",
+      "applied_changes": [],
+      "suggested_title": "Redis 的 List 为什么从传统双向链表/ziplist 演进到 quicklist？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-的-rdb-和-aof-分别是怎么工作的它们在数据安全性恢复速度",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-的-rdb-和-aof-分别是怎么工作的它们在数据安全性恢复速度.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-的-rdb-和-aof-持久化机制分别是什么它们在数据安全性能开",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-的-rdb-和-aof-持久化机制分别是什么它们在数据安全性能开.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis-的-stringhashlistsetzset-分别适合什么",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis-的-stringhashlistsetzset-分别适合什么.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis为什么没有采用精确lru链表而是使用近似lru随机采样淘汰池",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis为什么没有采用精确lru链表而是使用近似lru随机采样淘汰池.md",
+      "applied_changes": [],
+      "suggested_title": "Redis为什么没有采用精确LRU链表，而是使用近似LRU？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis主从复制中部分复制psync的三个核心要素是什么复制积压缓冲区",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis主从复制中部分复制psync的三个核心要素是什么复制积压缓冲区.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-redis配置了maxmemory后内存打满时不同淘汰策略分别会如何工作",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-redis配置了maxmemory后内存打满时不同淘汰策略分别会如何工作.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-sds-的-len-alloc-flags-与-sdshdr8-16-32-64",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-sds-的-len-alloc-flags-与-sdshdr8-16-32-64.md",
+      "applied_changes": [],
+      "suggested_title": "SDS 的 len/alloc/flags 与 sdshdr8/16/32/64 设计分别带来了什么收益？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-seaweedfs-的-identity-中-credentialsactio",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-seaweedfs-的-identity-中-credentialsactio.md",
+      "applied_changes": [],
+      "suggested_title": "SeaweedFS 的 identity 中 credentials、actions、buckets 分别负责什么？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-sft在大模型训练流程中处于什么位置它与预训练rlhf分别解决什么问题",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-sft在大模型训练流程中处于什么位置它与预训练rlhf分别解决什么问题.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-sft通常使用什么样的数据形式和训练目标为什么高质量的prompt-respo",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-sft通常使用什么样的数据形式和训练目标为什么高质量的prompt-respo.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-snowflake-方案在机器-id-分配时钟回拨单机序列号打满时分别怎么处",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-snowflake-方案在机器-id-分配时钟回拨单机序列号打满时分别怎么处.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-sprint-时长应该如何确定如果团队经常在-sprint-中途发生需求变更",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-sprint-时长应该如何确定如果团队经常在-sprint-中途发生需求变更.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-sql-和-nosql-在数据模型事务能力查询方式扩展方式上分别有什么核心",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-sql-和-nosql-在数据模型事务能力查询方式扩展方式上分别有什么核心.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-stringsbuilder-和-bytesbuffer-都能高效拼接字符串",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-stringsbuilder-和-bytesbuffer-都能高效拼接字符串.md",
+      "applied_changes": [],
+      "suggested_title": "strings.Builder 和 bytes.Buffer 都能高效拼接字符串，两者有何区别？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-syncmap-为什么适合读多写少场景请结合-read-dirty-双-ma",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-syncmap-为什么适合读多写少场景请结合-read-dirty-双-ma.md",
+      "applied_changes": [],
+      "suggested_title": "sync.Map 为什么适合读多写少场景？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-syncmap-的-cas-更新为什么不是直接修改-read-map而是修改",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-syncmap-的-cas-更新为什么不是直接修改-read-map而是修改.md",
+      "applied_changes": [],
+      "suggested_title": "sync.Map 的 CAS 更新为什么不是直接修改 read map，而是修改 entry.p？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-velero-做文件系统级备份时postgresqlrediselasti",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-velero-做文件系统级备份时postgresqlrediselasti.md",
+      "applied_changes": [],
+      "suggested_title": "Velero 做文件系统级备份时，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-xdptcnetfiltersocket-buffer-分别位于收包路径的",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-xdptcnetfiltersocket-buffer-分别位于收包路径的.md",
+      "applied_changes": [],
+      "suggested_title": "XDP、TC、Netfilter、socket buffer 分别位于收包路径的什么位置？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-zipmap-的内存布局是怎样的lenfree-和结束标记分别解决了",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-zipmap-的内存布局是怎样的lenfree-和结束标记分别解决了.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-一个-tcp-http-请求从网卡进入-linux-主机直到被用户态进程-rea",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-一个-tcp-http-请求从网卡进入-linux-主机直到被用户态进程-rea.md",
+      "applied_changes": [],
+      "suggested_title": "一个 TCP/HTTP 请求从网卡进入 Linux 主机直到被用户态进程 read/recv 到，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-一个服务监听-8080-并接收大量-http-tcp-连接时是否会因为入站连接",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-一个服务监听-8080-并接收大量-http-tcp-连接时是否会因为入站连接.md",
+      "applied_changes": [],
+      "suggested_title": "一个服务监听 8080 并接收大量 HTTP/TCP 连接时，是否会因为入站连接很多而消耗本机临时端口？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-ato-检测通常需要按业务或客户建立异常基线你会选择哪些特征来做判断",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-ato-检测通常需要按业务或客户建立异常基线你会选择哪些特征来做判断.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-cjk-bigram-在-bm25-检索里能作为中文分词的可行替代它相",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-cjk-bigram-在-bm25-检索里能作为中文分词的可行替代它相.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 CJK bigram 在 BM25 检索里能作为中文分词的可行替代？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-for-right-0-会让外层-right-触",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-for-right-0-会让外层-right-触.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 `for right := 0; ...` 会让外层 `right` 触发 `declared and n...",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-globrunqget-会限制单次搬运数量不超过本地队列容量的一半",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-globrunqget-会限制单次搬运数量不超过本地队列容量的一半.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 `globrunqget` 会限制单次搬运数量不超过本地队列容量的一半？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-gmp-需要本地队列全局队列和-work-stealing在-10",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-gmp-需要本地队列全局队列和-work-stealing在-10.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 GMP 需要本地队列、全局队列和 work stealing？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-go-runtime-通常不会主动销毁-m这种设计在性能与资源管理上做",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-go-runtime-通常不会主动销毁-m这种设计在性能与资源管理上做.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-go-的协作式调度会让纯计算型-goroutine-长时间独占-cpu",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-go-的协作式调度会让纯计算型-goroutine-长时间独占-cpu.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 Go 的协作式调度会让纯计算型 goroutine 长时间独占 CPU？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-innodb-更适合-b-tree而-rocksdb-leveldb",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-innodb-更适合-b-tree而-rocksdb-leveldb.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 InnoDB 更适合 B+ Tree，而 RocksDB/LevelDB 更常用 LSM-Tree？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-kaniko-在-pod-内构建镜像时不会复用宿主机-container",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-kaniko-在-pod-内构建镜像时不会复用宿主机-container.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 Kaniko 在 Pod 内构建镜像时不会复用宿主机 containerd 的镜像源配置？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-kaniko-容器在执行一次镜像构建后不适合继续复用执行后续-sh",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-kaniko-容器在执行一次镜像构建后不适合继续复用执行后续-sh.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 Kaniko 容器在执行一次镜像构建后不适合继续复用执行后续 `sh` 步骤？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-kubernetes-pod-内的-sidecar-监听端口会与应用容器",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-kubernetes-pod-内的-sidecar-监听端口会与应用容器.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 Kubernetes Pod 内的 sidecar 监听端口会与应用容器的出站连接临时端口发生冲突？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-kubernetes-升级不能只看版本兼容性还必须同时评估-api-s",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-kubernetes-升级不能只看版本兼容性还必须同时评估-api-s.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 Kubernetes 升级不能只看版本兼容性，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-l3-l4-ddos-防护可以在全球任意边缘节点执行而-tls-终止",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-l3-l4-ddos-防护可以在全球任意边缘节点执行而-tls-终止.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 L3/L4 DDoS 防护可以在全球任意边缘节点执行，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-langgraph-选择-pregel-bsp-而不是传统-dag这种",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-langgraph-选择-pregel-bsp-而不是传统-dag这种.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 LangGraph 选择 Pregel/BSP 而不是传统 DAG？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-local-path-readwriteonce-nodeaff",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-local-path-readwriteonce-nodeaff.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 local-path + ReadWriteOnce + nodeAffinity 会把 Jenkins...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-metrics-采用-metric-labels-sample",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-metrics-采用-metric-labels-sample.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 Metrics 采用 Metric + Labels + Sample 的数据模型？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-pipeline-应通过-callbacksoptions-和领域对象",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-pipeline-应通过-callbacksoptions-和领域对象.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 pipeline 应通过 callbacks、options 和领域对象与 spinner/chalk/s...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-postgresql-on-kubernetes-要采用先单主热备",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-postgresql-on-kubernetes-要采用先单主热备.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 PostgreSQL on Kubernetes 要采用“先单主+热备，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-redis-没有把命令执行也改成多线程这样做会带来哪些一致性和锁竞争问",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-redis-没有把命令执行也改成多线程这样做会带来哪些一致性和锁竞争问.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-runnext-中的-goroutine-会被优先调度这种设计和局",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-runnext-中的-goroutine-会被优先调度这种设计和局.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-scrum-强调在一个-sprint-内完成需求设计编码测试的端到",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-scrum-强调在一个-sprint-内完成需求设计编码测试的端到.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 Scrum 强调在一个 Sprint 内完成需求、设计、编码、测试的端到端闭环？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-standby-上可能看到-pg-stat-database-的统计",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-standby-上可能看到-pg-stat-database-的统计.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 Standby 上可能看到 `pg_stat_database` 的统计值？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-threadinglock-在-gunicorn-多-work",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-threadinglock-在-gunicorn-多-work.md",
+      "applied_changes": [],
+      "suggested_title": "为什么 `threading.Lock()` 在 gunicorn 多 worker / `fork()` 场景下...",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么-ziplist-在插入较大节点时会发生连锁更新它的性能代价是什么",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么-ziplist-在插入较大节点时会发生连锁更新它的性能代价是什么.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么sgddropout这类训练噪声有时会提升泛化能力它们和正则化的关系是",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么sgddropout这类训练噪声有时会提升泛化能力它们和正则化的关系是.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么一个高-qps-的微服务可能并不是因为被大量请求打进来而端口耗尽而是",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么一个高-qps-的微服务可能并不是因为被大量请求打进来而端口耗尽而是.md",
+      "applied_changes": [],
+      "suggested_title": "为什么一个高 QPS 的微服务可能并不是因为“被大量请求打进来”而端口耗尽，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么不建议在现有-postgresql-pod-内临时安装扩展在镜像持久化",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么不建议在现有-postgresql-pod-内临时安装扩展在镜像持久化.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么不能只依赖-cmdb内部扫描或定期审计来管理互联网资产持续自动化发现相",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么不能只依赖-cmdb内部扫描或定期审计来管理互联网资产持续自动化发现相.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么仅给-auto-ingest-条目标记-sourcefallbacks",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么仅给-auto-ingest-条目标记-sourcefallbacks.md",
+      "applied_changes": [],
+      "suggested_title": "为什么仅给 auto-ingest 条目标记 source:fallback、status:draft 还不够？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么仅靠-ipua请求频率等网络信号已经不足以防御现代账户滥用请你设计",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么仅靠-ipua请求频率等网络信号已经不足以防御现代账户滥用请你设计.md",
+      "applied_changes": [],
+      "suggested_title": "为什么仅靠 IP、UA、请求频率等网络信号，已经不足以防御现代账户滥用？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么仅靠-velero-不足以支撑完整灾备请结合-etcdpvc数据库",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么仅靠-velero-不足以支撑完整灾备请结合-etcdpvc数据库.md",
+      "applied_changes": [],
+      "suggested_title": "为什么仅靠 Velero 不足以支撑完整灾备？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么会话内触发的-skill-slash-command-模式比导出-ma",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么会话内触发的-skill-slash-command-模式比导出-ma.md",
+      "applied_changes": [],
+      "suggested_title": "为什么会话内触发的 Skill/Slash Command 模式，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么内部平台要采用-shared-first而不是按团队各自建设独立-kub",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么内部平台要采用-shared-first而不是按团队各自建设独立-kub.md",
+      "applied_changes": [],
+      "suggested_title": "为什么内部平台要采用 shared-first，而不是按团队各自建设独立 Kubernetes 集群或环境？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么分析-kubernetes-贡献时要区分-kubernetes-kube",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么分析-kubernetes-贡献时要区分-kubernetes-kube.md",
+      "applied_changes": [],
+      "suggested_title": "为什么分析 Kubernetes 贡献时要区分 `kubernetes/kubernetes` 仓库和整个 `ku...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么区域内目标选择不能只按地理距离最近来做在延迟丢包容量健康度等信号冲",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么区域内目标选择不能只按地理距离最近来做在延迟丢包容量健康度等信号冲.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么同域相似度会淹没跨域关联除了用-qdrant-的-must-not",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么同域相似度会淹没跨域关联除了用-qdrant-的-must-not.md",
+      "applied_changes": [],
+      "suggested_title": "为什么同域相似度会淹没跨域关联？除了用 Qdrant 的 `must_not` 排除域，",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么在-agentic-ai-场景下共享-api-key-或静态凭证通常不够",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么在-agentic-ai-场景下共享-api-key-或静态凭证通常不够.md",
+      "applied_changes": [],
+      "suggested_title": "为什么在 Agentic AI 场景下，共享 API Key 或静态凭证通常不够？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么在-go-中-5-的结果是-6请结合二进制补码说明",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么在-go-中-5-的结果是-6请结合二进制补码说明.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么在-k8s-集群内选择-kaniko-而不是-docker-in-dock",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么在-k8s-集群内选择-kaniko-而不是-docker-in-dock.md",
+      "applied_changes": [],
+      "suggested_title": "为什么在 K8s 集群内选择 Kaniko 而不是 Docker-in-Docker 构建镜像？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么在-m-站核心页面重构中选择-qwikjs而不是-nextjsnu",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么在-m-站核心页面重构中选择-qwikjs而不是-nextjsnu.md",
+      "applied_changes": [],
+      "suggested_title": "为什么在 M 站核心页面重构中选择 Qwik.js，而不是 Next.js、Nuxt 或传统 React SSR？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么在-postgresql-中执行了-grant-all-on-all-t",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么在-postgresql-中执行了-grant-all-on-all-t.md",
+      "applied_changes": [],
+      "suggested_title": "为什么在 PostgreSQL 中执行了 `GRANT ALL ON ALL TABLES` 后，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么在-redis-与-mysql-一致性方案中通常推荐更新数据库后删除缓存",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么在-redis-与-mysql-一致性方案中通常推荐更新数据库后删除缓存.md",
+      "applied_changes": [],
+      "suggested_title": "为什么在 Redis 与 MySQL 一致性方案中通常推荐“更新数据库后删除缓存”，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么在只修改一个组件镜像-tag-的情况下执行-kubectl-apply",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么在只修改一个组件镜像-tag-的情况下执行-kubectl-apply.md",
+      "applied_changes": [],
+      "suggested_title": "为什么在只修改一个组件镜像 tag 的情况下，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么在实现之前先定义接口这对并行开发联调和测试有什么帮助",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么在实现之前先定义接口这对并行开发联调和测试有什么帮助.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么在循环中用-或-拼接字符串性能差从-go-字符串不可变性和内存",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么在循环中用-或-拼接字符串性能差从-go-字符串不可变性和内存.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么大规模互联网系统通常更倾向于水平扩展而不是持续垂直扩展",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么大规模互联网系统通常更倾向于水平扩展而不是持续垂直扩展.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么敏捷开发欢迎后期需求变化在实际迭代中你会如何处理高优先级临时变更",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么敏捷开发欢迎后期需求变化在实际迭代中你会如何处理高优先级临时变更.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么服务端只需要一个监听端口一次-listen就能同时处理大量-t",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么服务端只需要一个监听端口一次-listen就能同时处理大量-t.md",
+      "applied_changes": [],
+      "suggested_title": "为什么服务端只需要一个监听端口、一次 `listen()`，就能同时处理大量 TCP 连接？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么生产调试更推荐通过-pods-logpods-execpods-por",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么生产调试更推荐通过-pods-logpods-execpods-por.md",
+      "applied_changes": [],
+      "suggested_title": "为什么生产调试更推荐通过 pods/log、pods/exec、pods/portforward 等 Kubern...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么社交关系特征需要同时接入早排和精排如果只在精排阶段注入-friend-b",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么社交关系特征需要同时接入早排和精排如果只在精排阶段注入-friend-b.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么线上-redis-大多选择-appendfsync-everysec",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么线上-redis-大多选择-appendfsync-everysec.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么英文向量模型在中文短查询上容易出现语义漂移如果不能更换模型或引入重分词依",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么英文向量模型在中文短查询上容易出现语义漂移如果不能更换模型或引入重分词依.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么要把好友亲密度拆成长期关系模型和场景上下文模型而不是直接训练一个统一模型",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么要把好友亲密度拆成长期关系模型和场景上下文模型而不是直接训练一个统一模型.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么要把磁盘作为-source-of-truth而把-qdrant-surr",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么要把磁盘作为-source-of-truth而把-qdrant-surr.md",
+      "applied_changes": [],
+      "suggested_title": "为什么要把磁盘作为 source of truth，而把 Qdrant/SurrealDB 视为可重建的衍生存储？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么要把算法知识库拆成原理层模式层题目层三层而不是直接按题型或公司维度组",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么要把算法知识库拆成原理层模式层题目层三层而不是直接按题型或公司维度组.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么该方案选择用存储式-prompt-pr-流程来迭代-ai-行为而不是",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么该方案选择用存储式-prompt-pr-流程来迭代-ai-行为而不是.md",
+      "applied_changes": [],
+      "suggested_title": "为什么该方案选择用存储式 Prompt + PR 流程来迭代 AI 行为，而不是模型微调？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么说-go-中-goroutine-的调度延迟很多时候不在调度器本身而在",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么说-go-中-goroutine-的调度延迟很多时候不在调度器本身而在.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么说仅替换成-qwik-还不够哪些链路问题会抵消它的性能优势你会如何验证",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么说仅替换成-qwik-还不够哪些链路问题会抵消它的性能优势你会如何验证.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么说在-ai-时代软件工程的核心约束从生产代码转向安全替换代码请",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么说在-ai-时代软件工程的核心约束从生产代码转向安全替换代码请.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么这里选择-obsidian-markdown-git-向量检索",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么这里选择-obsidian-markdown-git-向量检索.md",
+      "applied_changes": [],
+      "suggested_title": "为什么这里选择 Obsidian + Markdown + Git + 向量检索的组合，",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么这里选择-prometheus-fluent-bit-elasti",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么这里选择-prometheus-fluent-bit-elasti.md",
+      "applied_changes": [],
+      "suggested_title": "为什么这里选择 Prometheus + Fluent Bit + Elasticsearch + Blackbo...",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么选择右侧预览面板-obsidian-uri这种混合方案而不是直接",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么选择右侧预览面板-obsidian-uri这种混合方案而不是直接.md",
+      "applied_changes": [],
+      "suggested_title": "为什么选择“右侧预览面板 + Obsidian URI”这种混合方案，而不是直接打开新页面或强制跳出到 Obsidian？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么选择用-issue-comment-作为-action-间的通信机制而不",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么选择用-issue-comment-作为-action-间的通信机制而不.md",
+      "applied_changes": [],
+      "suggested_title": "为什么选择用 issue comment 作为 Action 间的通信机制，",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-为什么通常由发送方关闭-channelfor-range-遍历-chann",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-为什么通常由发送方关闭-channelfor-range-遍历-chann.md",
+      "applied_changes": [],
+      "suggested_title": "为什么通常由发送方关闭 channel？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-主节点重启后从节点会触发全量复制还是部分复制如何优化避免不必要的全量同步",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-主节点重启后从节点会触发全量复制还是部分复制如何优化避免不必要的全量同步.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-什么场景下更适合用-dfs-而不是-bfs在树图回溯问题中-dfs-模板分",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-什么场景下更适合用-dfs-而不是-bfs在树图回溯问题中-dfs-模板分.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-什么情况下可以把问题抽象成二分查找如何识别题目中的有序性或单调性前提",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-什么情况下可以把问题抽象成二分查找如何识别题目中的有序性或单调性前提.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-什么时候应该优先使用-bfs-而不是-dfs为什么-bfs-在无权图中能保证最",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-什么时候应该优先使用-bfs-而不是-dfs为什么-bfs-在无权图中能保证最.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-什么时候应该优先使用双指针而不是哈希表前缀和或暴力枚举请分别说明对撞指针同",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-什么时候应该优先使用双指针而不是哈希表前缀和或暴力枚举请分别说明对撞指针同.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-什么时候适合使用滑动窗口它与普通双指针前缀和暴力枚举的适用边界分别是什么",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-什么时候适合使用滑动窗口它与普通双指针前缀和暴力枚举的适用边界分别是什么.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-什么是可观测性它与传统监控的核心区别是什么为什么说可观测性更适合定位未知问",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-什么是可观测性它与传统监控的核心区别是什么为什么说可观测性更适合定位未知问.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-什么是工作窃取work-stealinggo-是如何利用它实现负载均衡的",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-什么是工作窃取work-stealinggo-是如何利用它实现负载均衡的.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-什么是悬挂dns记录它如何被用于子域名接管攻击你会如何设计一个大规模检测系统",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-什么是悬挂dns记录它如何被用于子域名接管攻击你会如何设计一个大规模检测系统.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-什么是类对象父类和子类它们之间的关系是什么",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-什么是类对象父类和子类它们之间的关系是什么.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-什么样的结构体可以直接使用-比较如果结构体包含-slicemapfu",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-什么样的结构体可以直接使用-比较如果结构体包含-slicemapfu.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-什么类型的问题适合用回溯解决它和普通-dfs动态规划的区别是什么",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-什么类型的问题适合用回溯解决它和普通-dfs动态规划的区别是什么.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-从-os-内核视角看容器和进程的本质区别是什么linux-namespace",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-从-os-内核视角看容器和进程的本质区别是什么linux-namespace.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-从状态机视角解释什么是进程程序运行时究竟要保存哪些状态为什么保存这些状态后就",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-从状态机视角解释什么是进程程序运行时究竟要保存哪些状态为什么保存这些状态后就.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-传统-vpn-和-zero-trust-在安全模型上的本质区别是什么攻击者突破",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-传统-vpn-和-zero-trust-在安全模型上的本质区别是什么攻击者突破.md",
+      "applied_changes": [],
+      "suggested_title": "传统 VPN 和 Zero Trust 在安全模型上的本质区别是什么？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你为什么选择-sm-2-作为复习调度算法如果学习目标从记忆变成面试冲刺",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你为什么选择-sm-2-作为复习调度算法如果学习目标从记忆变成面试冲刺.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你们产品在大促或补贴活动期间如何通过注册阶段的邮箱特征识别并拦截批量薅羊毛账号",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你们产品在大促或补贴活动期间如何通过注册阶段的邮箱特征识别并拦截批量薅羊毛账号.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你们公共库的版本管理是怎么做的为什么选择-changelog-驱动而不是-re",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你们公共库的版本管理是怎么做的为什么选择-changelog-驱动而不是-re.md",
+      "applied_changes": [],
+      "suggested_title": "你们公共库的版本管理是怎么做的？为什么选择 CHANGELOG 驱动而不是 release-please 这类全自...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你们团队落地-devops-时遇到的最大阻力是什么是技术问题还是组织问题如何",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你们团队落地-devops-时遇到的最大阻力是什么是技术问题还是组织问题如何.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你们在做前端框架迁移时除了框架本身还做了哪些工程化配套如何保证性能收益可观",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你们在做前端框架迁移时除了框架本身还做了哪些工程化配套如何保证性能收益可观.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你们的-deps-镜像更新策略是什么如何判断是否需要重建-deps-镜像而不是",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你们的-deps-镜像更新策略是什么如何判断是否需要重建-deps-镜像而不是.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你会如何对应用做分层分级saas内部-web厚客户端遗留应用每一层的",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你会如何对应用做分层分级saas内部-web厚客户端遗留应用每一层的.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你会如何设计从-security-overview-到-analytics-的深",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你会如何设计从-security-overview-到-analytics-的深.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你在生产环境中遇到过无法获取真实客户端-ip-的问题吗请描述排查思路和最终解决",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你在生产环境中遇到过无法获取真实客户端-ip-的问题吗请描述排查思路和最终解决.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你在项目中如何为一个没有-mfa-的遗留应用快速提升安全等级同时不修改应用代码",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你在项目中如何为一个没有-mfa-的遗留应用快速提升安全等级同时不修改应用代码.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "project-deep-dive",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你在项目中是否遇到过基础设施变更如换数据库导致业务层大量修改的问题如何用",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你在项目中是否遇到过基础设施变更如换数据库导致业务层大量修改的问题如何用.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "project-deep-dive",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你在项目中遇到过因违反-ocp-导致修改核心逻辑引发回归问题的情况吗是如何解决",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你在项目中遇到过因违反-ocp-导致修改核心逻辑引发回归问题的情况吗是如何解决.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "project-deep-dive",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你如何区分系统上下文模型用例模型和时序模型分别解决什么问题它们在需求分析中各",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你如何区分系统上下文模型用例模型和时序模型分别解决什么问题它们在需求分析中各.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你如何在实际项目中落实代码评审安全左移和文档维护请结合一次具体经历说明效果",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你如何在实际项目中落实代码评审安全左移和文档维护请结合一次具体经历说明效果.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "project-deep-dive",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你如何在项目中推进重构如何说服团队在不改变外部行为的前提下持续改善设计",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你如何在项目中推进重构如何说服团队在不改变外部行为的前提下持续改善设计.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你如何定义系统的可扩展性评估一个系统是否可扩展你会关注哪些指标",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你如何定义系统的可扩展性评估一个系统是否可扩展你会关注哪些指标.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你如何排查一个-postgresql-集群有多个-standby但业务读流量始",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你如何排查一个-postgresql-集群有多个-standby但业务读流量始.md",
+      "applied_changes": [],
+      "suggested_title": "你如何排查一个 PostgreSQL 集群有多个 Standby，但业务读流量始终只打到 Primary 的问题？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你如何理解-srp-中一个变化原因的含义在-go-里它更应该落实在-str",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你如何理解-srp-中一个变化原因的含义在-go-里它更应该落实在-str.md",
+      "applied_changes": [],
+      "suggested_title": "你如何理解 SRP 中“一个变化原因”的含义？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你如何理解关注点分离在实际项目中是如何落地的",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你如何理解关注点分离在实际项目中是如何落地的.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你如何看待自然语言-bdd-规范与代码-测试作为系统行为精确表达手段的差异在实",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你如何看待自然语言-bdd-规范与代码-测试作为系统行为精确表达手段的差异在实.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你怎么看待-observability-day-这类活动在-cncf-可观测性生",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你怎么看待-observability-day-这类活动在-cncf-可观测性生.md",
+      "applied_changes": [],
+      "suggested_title": "你怎么看待 Observability Day 这类活动在 CNCF 可观测性生态中的作用？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你接手一个已运行数月文档分散的-k8s-集群时会如何设计分层运维文档体系请",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你接手一个已运行数月文档分散的-k8s-集群时会如何设计分层运维文档体系请.md",
+      "applied_changes": [],
+      "suggested_title": "你接手一个已运行数月、文档分散的 K8s 集群时，会如何设计分层运维文档体系？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你的服务需要水平扩展什么情况下选择单进程多线程多进程还是多-pod-rep",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你的服务需要水平扩展什么情况下选择单进程多线程多进程还是多-pod-rep.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-你遇到过凭证盗用或内网横向移动的安全事件吗如何通过日志关联将多个弱信号聚合成高",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-你遇到过凭证盗用或内网横向移动的安全事件吗如何通过日志关联将多个弱信号聚合成高.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-使用源码级内联器进行-api-迁移时如何正确处理参数副作用与执行顺序问题",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-使用源码级内联器进行-api-迁移时如何正确处理参数副作用与执行顺序问题.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-关注关系表为什么通常设计为-primary-key-follower-id",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-关注关系表为什么通常设计为-primary-key-follower-id.md",
+      "applied_changes": [],
+      "suggested_title": "关注关系表为什么通常设计为 PRIMARY KEY (follower_id,",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-分布式定时任务中如何平衡数据库轮询频率与任务触发精度预读策略如何解决这个矛盾",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-分布式定时任务中如何平衡数据库轮询频率与任务触发精度预读策略如何解决这个矛盾.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-分布式定时调度系统如何同时做到尽量准时尽量不重复故障可恢复如果发生机器宕机",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-分布式定时调度系统如何同时做到尽量准时尽量不重复故障可恢复如果发生机器宕机.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-分析类和设计类的区别是什么在实际项目中你是如何从领域建模过渡到落地实现的",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-分析类和设计类的区别是什么在实际项目中你是如何从领域建模过渡到落地实现的.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-前序中序后序遍历分别适用于哪些实际场景能举例说明吗",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-前序中序后序遍历分别适用于哪些实际场景能举例说明吗.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-动态规划的空间优化滚动数组适用于哪些场景有什么前提条件",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-动态规划的空间优化滚动数组适用于哪些场景有什么前提条件.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-历史事故中的根因证据链和缓解动作如何转化为-runbook告警规则和变更防",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-历史事故中的根因证据链和缓解动作如何转化为-runbook告警规则和变更防.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-双向-channel-和单向-channel-的类型转换规则是什么为什么只能从",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-双向-channel-和单向-channel-的类型转换规则是什么为什么只能从.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-向量相似度检索只返回成对结果时如何把这些-pair-高效聚合成候选组为什么这",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-向量相似度检索只返回成对结果时如何把这些-pair-高效聚合成候选组为什么这.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-固定长度窗口和可变长度窗口各自适合解决什么问题结果应该在扩张后更新还是在收缩过",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-固定长度窗口和可变长度窗口各自适合解决什么问题结果应该在扩张后更新还是在收缩过.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-a-b-相似b-c-相似但-a-c-不相似的情况下直接用并查集合并会带来",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-a-b-相似b-c-相似但-a-c-不相似的情况下直接用并查集合并会带来.md",
+      "applied_changes": [],
+      "suggested_title": "在 A-B 相似、B-C 相似但 A-C 不相似的情况下，直接用并查集合并会带来什么收益和风险？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-ai-agent-与-web-服务交互的场景中如何通过-accept-头实",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-ai-agent-与-web-服务交互的场景中如何通过-accept-头实.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-ai-gateway-场景下为什么需要在网关层做-payload-级别的处",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-ai-gateway-场景下为什么需要在网关层做-payload-级别的处.md",
+      "applied_changes": [],
+      "suggested_title": "在 AI Gateway 场景下，为什么需要在网关层做 Payload 级别的处理，而不是在应用层实现？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-ai-辅助工作流中你会选择-prompt-工程还是模型微调来控制-ai-行",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-ai-辅助工作流中你会选择-prompt-工程还是模型微调来控制-ai-行.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-cilium-l2-announcement-已经提供-vip-漂移的前提下",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-cilium-l2-announcement-已经提供-vip-漂移的前提下.md",
+      "applied_changes": [],
+      "suggested_title": "在 Cilium L2 Announcement 已经提供 VIP 漂移的前提下，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-cnpg-中开启-enablepodmonitor-后prometheus",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-cnpg-中开启-enablepodmonitor-后prometheus.md",
+      "applied_changes": [],
+      "suggested_title": "在 CNPG 中开启 enablePodMonitor 后，Prometheus 为什么有时仍然采集不到指标？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-deployment-使用-rollingupdatereplicas3",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-deployment-使用-rollingupdatereplicas3.md",
+      "applied_changes": [],
+      "suggested_title": "在 Deployment 使用 RollingUpdate、replicas=3、maxSurge=25%、max...",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-eks-kubernetes-微服务环境中为什么仅靠-metrics-和",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-eks-kubernetes-微服务环境中为什么仅靠-metrics-和.md",
+      "applied_changes": [],
+      "suggested_title": "在 EKS/Kubernetes 微服务环境中，为什么仅靠 metrics 和 logs 往往不足以判断故障的爆炸半径？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-gateway-api-中allowedroutesnamespace",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-gateway-api-中allowedroutesnamespace.md",
+      "applied_changes": [],
+      "suggested_title": "在 Gateway API 中，`allowedRoutes.namespaces` 的 `Same`、`All`...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-go-中为什么-recover-只能捕获当前-goroutine-内的-p",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-go-中为什么-recover-只能捕获当前-goroutine-内的-p.md",
+      "applied_changes": [],
+      "suggested_title": "在 Go 中，为什么 recover 只能捕获当前 goroutine 内的 panic？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-go-中为什么推荐小接口而不是大而全接口接口隔离原则和-go-的隐",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-go-中为什么推荐小接口而不是大而全接口接口隔离原则和-go-的隐.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-go-中为什么通常强调小接口如果一个对象同时面向读管理扩展三类调用",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-go-中为什么通常强调小接口如果一个对象同时面向读管理扩展三类调用.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-go-中如何实现一个支持阻塞读取超时控制且并发安全的-map请说明核心数",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-go-中如何实现一个支持阻塞读取超时控制且并发安全的-map请说明核心数.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-go-中如何通过-package-边界导出-未导出标识符和-interf",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-go-中如何通过-package-边界导出-未导出标识符和-interf.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-go-中如何通过接口和组合实现开闭原则能结合实际项目举例说明吗",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-go-中如何通过接口和组合实现开闭原则能结合实际项目举例说明吗.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-go-中如何通过接口实现依赖倒置请结合实际项目说明如何将业务层与数据库层解",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-go-中如何通过接口实现依赖倒置请结合实际项目说明如何将业务层与数据库层解.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "project-deep-dive",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-go-中用-pg-dump-psql-管道实现生产到测试库同步时如何处理",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-go-中用-pg-dump-psql-管道实现生产到测试库同步时如何处理.md",
+      "applied_changes": [],
+      "suggested_title": "在 Go 中用 pg_dump/psql 管道实现生产到测试库同步时，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-go-项目里模块化设计分层架构ddd事件驱动设计分别适合什么类型的系",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-go-项目里模块化设计分层架构ddd事件驱动设计分别适合什么类型的系.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-jenkins-kubernetes-plugin-中把-gcrio-k",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-jenkins-kubernetes-plugin-中把-gcrio-k.md",
+      "applied_changes": [],
+      "suggested_title": "在 Jenkins Kubernetes Plugin 中把 `gcr.io/kaniko-project/exe...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-jenkins-kubernetes-私有-registry-场景下",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-jenkins-kubernetes-私有-registry-场景下.md",
+      "applied_changes": [],
+      "suggested_title": "在 Jenkins + Kubernetes + 私有 Registry 场景下，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-k8s-中部署-rabbitmq-ha-集群时为什么-headless-s",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-k8s-中部署-rabbitmq-ha-集群时为什么-headless-s.md",
+      "applied_changes": [],
+      "suggested_title": "在 K8s 中部署 RabbitMQ HA 集群时，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-kaniko-jenkins-环境下为什么对-monorepo-做-p",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-kaniko-jenkins-环境下为什么对-monorepo-做-p.md",
+      "applied_changes": [],
+      "suggested_title": "在 Kaniko + Jenkins 环境下，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-kubernetes-云原生环境里为什么运行时安全正在从边界防护转向按工作",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-kubernetes-云原生环境里为什么运行时安全正在从边界防护转向按工作.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-kubernetes-多租户集群中节点级全局镜像仓库凭证会带来哪些安全风险",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-kubernetes-多租户集群中节点级全局镜像仓库凭证会带来哪些安全风险.md",
+      "applied_changes": [],
+      "suggested_title": "在 Kubernetes 多租户集群中，节点级全局镜像仓库凭证会带来哪些安全风险？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-kubernetes-故障排查中为什么不能只看-pod-指标请结合-cl",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-kubernetes-故障排查中为什么不能只看-pod-指标请结合-cl.md",
+      "applied_changes": [],
+      "suggested_title": "在 Kubernetes 故障排查中，为什么不能只看 Pod 指标？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-kubernetes-监控体系中cadvisor-和-kube-state",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-kubernetes-监控体系中cadvisor-和-kube-state.md",
+      "applied_changes": [],
+      "suggested_title": "在 Kubernetes 监控体系中，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-kustomize-多组件-overlay-场景下如何实现只发布某一个组件",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-kustomize-多组件-overlay-场景下如何实现只发布某一个组件.md",
+      "applied_changes": [],
+      "suggested_title": "在 Kustomize 多组件 overlay 场景下，如何实现只发布某一个组件而不误更新其他组件？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-local-path-storageclass-不支持快照的前提下你会如何",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-local-path-storageclass-不支持快照的前提下你会如何.md",
+      "applied_changes": [],
+      "suggested_title": "在 local-path StorageClass 不支持快照的前提下，你会如何设计 K8s 集群的分级备份与恢复方案？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-mysql-redis-的关注系统中热门用户粉丝量极大时会出现哪些热点",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-mysql-redis-的关注系统中热门用户粉丝量极大时会出现哪些热点.md",
+      "applied_changes": [],
+      "suggested_title": "在 MySQL + Redis 的关注系统中，热门用户粉丝量极大时会出现哪些热点和一致性问题？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-novelty-用向量相似度quality-用启发式规则的方案里阈值和权",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-novelty-用向量相似度quality-用启发式规则的方案里阈值和权.md",
+      "applied_changes": [],
+      "suggested_title": "在 novelty 用向量相似度、quality 用启发式规则的方案里，阈值和权重应如何确定与迭代？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-prometheus-中-histogram-和-summary-的核心区别",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-prometheus-中-histogram-和-summary-的核心区别.md",
+      "applied_changes": [],
+      "suggested_title": "在 Prometheus 中 Histogram 和 Summary 的核心区别是什么？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在-typescript-中interface-和-abstract-clas",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在-typescript-中interface-和-abstract-clas.md",
+      "applied_changes": [],
+      "suggested_title": "在 TypeScript 中，interface 和 abstract class 各适合什么场景？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在一个中等规模-kubernetes-集群中什么情况下值得从-kube-pro",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在一个中等规模-kubernetes-集群中什么情况下值得从-kube-pro.md",
+      "applied_changes": [],
+      "suggested_title": "在一个中等规模 Kubernetes 集群中，什么情况下值得从 kube-proxy 迁移到 Cilium eBPF？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在一个复杂项目里你会如何把系统设计分别讲清楚给开发测试产品和管理层会使用",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在一个复杂项目里你会如何把系统设计分别讲清楚给开发测试产品和管理层会使用.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在一个微服务系统中如何把-metricslogstracing-串起来形成",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在一个微服务系统中如何把-metricslogstracing-串起来形成.md",
+      "applied_changes": [],
+      "suggested_title": "在一个微服务系统中，如何把 Metrics、Logs、Tracing 串起来形成完整的可观测性体系？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在中小规模-k8s-集群中你会如何设计-metricslogsprobes",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在中小规模-k8s-集群中你会如何设计-metricslogsprobes.md",
+      "applied_changes": [],
+      "suggested_title": "在中小规模 K8s 集群中，你会如何设计 Metrics、Logs、Probes 三支柱的可观测性架构？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在什么场景下你会选择先建模-仿真而不是直接开发原型或上线压测请说明你的判断依",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在什么场景下你会选择先建模-仿真而不是直接开发原型或上线压测请说明你的判断依.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在什么场景下你会选择瀑布模型而不是敏捷请结合需求稳定性合规性和交付节奏说明判",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在什么场景下你会选择瀑布模型而不是敏捷请结合需求稳定性合规性和交付节奏说明判.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在什么条件下go-中的高性能-json-库如-sonic能够显著提升端到端",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在什么条件下go-中的高性能-json-库如-sonic能够显著提升端到端.md",
+      "applied_changes": [],
+      "suggested_title": "在什么条件下，Go 中的高性能 JSON 库（如 sonic）能够显著提升端到端吞吐？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在什么约束下你会选择-seaweedfs-替代-minio请从依赖运维复杂度",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在什么约束下你会选择-seaweedfs-替代-minio请从依赖运维复杂度.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在做云原生-可观测性技术选型时你会如何判断一个开源项目是否具备健康的维护者",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在做云原生-可观测性技术选型时你会如何判断一个开源项目是否具备健康的维护者.md",
+      "applied_changes": [],
+      "suggested_title": "在做云原生/可观测性技术选型时，你会如何判断一个开源项目是否具备健康的“维护者—最终用户”反馈回路？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在共享-k8s-集群中同时承载生产和开发环境时你会从哪些维度设计隔离策略请说",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在共享-k8s-集群中同时承载生产和开发环境时你会从哪些维度设计隔离策略请说.md",
+      "applied_changes": [],
+      "suggested_title": "在共享 K8s 集群中同时承载生产和开发环境时，你会从哪些维度设计隔离策略？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在告警富化中需要同时查询-clickhousedns-解析链路对象存储和外部",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在告警富化中需要同时查询-clickhousedns-解析链路对象存储和外部.md",
+      "applied_changes": [],
+      "suggested_title": "在告警富化中需要同时查询 ClickHouse、DNS 解析链路、对象存储和外部探测，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在图的-dfs-中为什么必须维护-visited如果图有环或有多个连通分量代",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在图的-dfs-中为什么必须维护-visited如果图有环或有多个连通分量代.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在多层代理架构中envoy-的-useremoteaddress-和-xffn",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在多层代理架构中envoy-的-useremoteaddress-和-xffn.md",
+      "applied_changes": [],
+      "suggested_title": "在多层代理架构中，Envoy 的 useRemoteAddress 和 xffNumTrustedHops 如何协...",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在多数据源日志同时出现应用层探测网络层扫描和身份认证异常时你会如何用-ht",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在多数据源日志同时出现应用层探测网络层扫描和身份认证异常时你会如何用-ht.md",
+      "applied_changes": [],
+      "suggested_title": "在多数据源日志同时出现应用层探测、网络层扫描和身份认证异常时，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在多模型和-agent-场景下模型路由应如何在延迟成本和效果之间做权衡你会",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在多模型和-agent-场景下模型路由应如何在延迟成本和效果之间做权衡你会.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在多集群架构下你们如何解决跨集群服务发现与策略一致性的问题",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在多集群架构下你们如何解决跨集群服务发现与策略一致性的问题.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在大规模分布式系统中如何设计跨应用层网络层身份层的日志关联架构来检测多阶段",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在大规模分布式系统中如何设计跨应用层网络层身份层的日志关联架构来检测多阶段.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在对象识别时如何区分领域对象和实现对象如校验器搜索器通信器什么时候应",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在对象识别时如何区分领域对象和实现对象如校验器搜索器通信器什么时候应.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在已有-qdrant-和-surrealdb-的前提下为什么会话持久化仍然选择",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在已有-qdrant-和-surrealdb-的前提下为什么会话持久化仍然选择.md",
+      "applied_changes": [],
+      "suggested_title": "在已有 Qdrant 和 SurrealDB 的前提下，为什么会话持久化仍然选择 SQLite3？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在并行-subagent-场景下结果收集序列化和状态同步应该怎么设计为什么",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在并行-subagent-场景下结果收集序列化和状态同步应该怎么设计为什么.md",
+      "applied_changes": [],
+      "suggested_title": "在并行 Subagent 场景下，结果收集、序列化和状态同步应该怎么设计？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在接入第三方-ai-agent-能力时为什么通常优先选择官方-api-直连而",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在接入第三方-ai-agent-能力时为什么通常优先选择官方-api-直连而.md",
+      "applied_changes": [],
+      "suggested_title": "在接入第三方 AI/Agent 能力时，为什么通常优先选择官方 API 直连，而不是通过第三方代理或中间订阅层？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在推荐排序中为什么要把社交信号作为主目标函数的一部分而不是仅做展示层规则",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在推荐排序中为什么要把社交信号作为主目标函数的一部分而不是仅做展示层规则.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在推荐系统里为什么说召回缺失比排序失误更致命如果好友视频在通用兴趣召回中",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在推荐系统里为什么说召回缺失比排序失误更致命如果好友视频在通用兴趣召回中.md",
+      "applied_changes": [],
+      "suggested_title": "在推荐系统里，为什么说“召回缺失比排序失误更致命”？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在推进-gitops-manifest-as-code-时哪些资源必须优先纳管",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在推进-gitops-manifest-as-code-时哪些资源必须优先纳管.md",
+      "applied_changes": [],
+      "suggested_title": "在推进 GitOps/manifest-as-code 时，哪些资源必须优先纳管，哪些资源可以例外或延后？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在新引入超大规格节点后为什么有时会选择控制面与工作负载混部而不是严格隔离风险",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在新引入超大规格节点后为什么有时会选择控制面与工作负载混部而不是严格隔离风险.md",
+      "applied_changes": [],
+      "suggested_title": "在新引入超大规格节点后，为什么有时会选择控制面与工作负载混部而不是严格隔离？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在最小覆盖子串-字符串排列这类滑动窗口题中valid-计数器表示什么为什么只",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在最小覆盖子串-字符串排列这类滑动窗口题中valid-计数器表示什么为什么只.md",
+      "applied_changes": [],
+      "suggested_title": "在最小覆盖子串/字符串排列这类滑动窗口题中，valid 计数器表示什么？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在有序数组中的-two-sum-three-sum-问题里如何利用对撞指针",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在有序数组中的-two-sum-three-sum-问题里如何利用对撞指针.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在检测悬挂cname记录时如何针对不同云提供商aws-s3azure识别",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在检测悬挂cname记录时如何针对不同云提供商aws-s3azure识别.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在渐进式-gitops-接管过程中为什么会出现大量资源同时-outofsync",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在渐进式-gitops-接管过程中为什么会出现大量资源同时-outofsync.md",
+      "applied_changes": [],
+      "suggested_title": "在渐进式 GitOps 接管过程中，为什么会出现大量资源同时 OutOfSync？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在生产环境中为什么仅有原始网络流量事件还不够cilium-hubble-的",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在生产环境中为什么仅有原始网络流量事件还不够cilium-hubble-的.md",
+      "applied_changes": [],
+      "suggested_title": "在生产环境中，为什么仅有原始网络流量事件还不够？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在知识蒸馏或奖励模型训练中为什么常用软标签常见会搭配哪些损失函数比如交叉熵",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在知识蒸馏或奖励模型训练中为什么常用软标签常见会搭配哪些损失函数比如交叉熵.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在短视频滚动场景中如果需要新增社交元数据展示你会如何设计数据获取策略以避免影",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在短视频滚动场景中如果需要新增社交元数据展示你会如何设计数据获取策略以避免影.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在秒杀-库存扣减场景中如何用-redis-lua-脚本同时实现扣库存用户限购",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在秒杀-库存扣减场景中如何用-redis-lua-脚本同时实现扣库存用户限购.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在移动站核心页面重构中为什么会考虑-qwikjs而不是传统-react-v",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在移动站核心页面重构中为什么会考虑-qwikjs而不是传统-react-v.md",
+      "applied_changes": [],
+      "suggested_title": "在移动站核心页面重构中，为什么会考虑 Qwik.js，而不是传统 React/Vue 的 SSR + hydrat...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在自动插桩场景下如何根据-span-名称模式反推出对应的中间件调用链位置以及",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在自动插桩场景下如何根据-span-名称模式反推出对应的中间件调用链位置以及.md",
+      "applied_changes": [],
+      "suggested_title": "在自动插桩场景下，如何根据 span 名称模式反推出对应的中间件、调用链位置以及可能的源码入口？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在裸金属-k8s-中为什么要同时使用-keepalivedhaproxy-和",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在裸金属-k8s-中为什么要同时使用-keepalivedhaproxy-和.md",
+      "applied_changes": [],
+      "suggested_title": "在裸金属 K8s 中，为什么要同时使用 Keepalived、HAProxy 和 Cilium L2 + Envo...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在设计-ai-推理服务的网络架构时payload-processing-和-e",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在设计-ai-推理服务的网络架构时payload-processing-和-e.md",
+      "applied_changes": [],
+      "suggested_title": "在设计 AI 推理服务的网络架构时，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-在设计面向-ai-agent-的-http-错误响应时为什么要采用-rfc-9",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-在设计面向-ai-agent-的-http-错误响应时为什么要采用-rfc-9.md",
+      "applied_changes": [],
+      "suggested_title": "在设计面向 AI Agent 的 HTTP 错误响应时，为什么要采用 RFC 9457 而非自定义格式？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-垂直扩展和水平扩展分别是什么各自适用于什么场景",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-垂直扩展和水平扩展分别是什么各自适用于什么场景.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-多个-kubernetes-命名空间共享同一个-rabbitmq-集群时如何设",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-多个-kubernetes-命名空间共享同一个-rabbitmq-集群时如何设.md",
+      "applied_changes": [],
+      "suggested_title": "多个 Kubernetes 命名空间共享同一个 RabbitMQ 集群时，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-多个客户端同时连接同一个服务端端口时内核如何区分不同-tcp-连接为什么连接",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-多个客户端同时连接同一个服务端端口时内核如何区分不同-tcp-连接为什么连接.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-多个微服务共享同一个对象存储-seaweedfs-集群时你会如何设计-s3-访",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-多个微服务共享同一个对象存储-seaweedfs-集群时你会如何设计-s3-访.md",
+      "applied_changes": [],
+      "suggested_title": "多个微服务共享同一个对象存储/SeaweedFS 集群时，你会如何设计 S3 访问隔离？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-多租户日志系统中出现-noisy-neighbor-时你会如何设计摄入并发队",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-多租户日志系统中出现-noisy-neighbor-时你会如何设计摄入并发队.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如何判断一道题是否适合用动态规划解决最优子结构和重叠子问题分别指什么",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如何判断一道题是否适合用动态规划解决最优子结构和重叠子问题分别指什么.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如何区分有记忆-人设的聊天机器人和真正的-agent请给出你的判断维度",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如何区分有记忆-人设的聊天机器人和真正的-agent请给出你的判断维度.md",
+      "applied_changes": [],
+      "suggested_title": "如何区分“有记忆/人设的聊天机器人”和“真正的 Agent”？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如何将-ai-的-prompt-管理纳入-gitops-工作流确保-ai-行为",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如何将-ai-的-prompt-管理纳入-gitops-工作流确保-ai-行为.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如何用-unsafe-实现零拷贝转换这样做有哪些潜在风险",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如何用-unsafe-实现零拷贝转换这样做有哪些潜在风险.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如何用一张-follow-表同时高效支持我关注了谁谁关注了我是否已关注",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如何用一张-follow-表同时高效支持我关注了谁谁关注了我是否已关注.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如何设计一套前端大规模迁移方案使新旧架构并存期间维护复杂度可控",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如何设计一套前端大规模迁移方案使新旧架构并存期间维护复杂度可控.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如何通过-content-negotiation-实现同一错误端点同时支持浏览器",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如何通过-content-negotiation-实现同一错误端点同时支持浏览器.md",
+      "applied_changes": [],
+      "suggested_title": "如何通过 Content Negotiation 实现同一错误端点同时支持浏览器和 AI Agent，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果-ai-agent-调用外部-api-时只依赖-http-状态码做重试判断",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果-ai-agent-调用外部-api-时只依赖-http-状态码做重试判断.md",
+      "applied_changes": [],
+      "suggested_title": "如果 AI Agent 调用外部 API 时只依赖 HTTP 状态码做重试判断，会有哪些问题？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果-ai-可以快速重写一个推荐模块你会如何设计系统边界确保新旧模块可以安全",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果-ai-可以快速重写一个推荐模块你会如何设计系统边界确保新旧模块可以安全.md",
+      "applied_changes": [],
+      "suggested_title": "如果 AI 可以快速重写一个推荐模块，你会如何设计系统边界，确保新旧模块可以安全替换？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果-dapr-envoy-等-sidecar-的默认端口落在-ip-local",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果-dapr-envoy-等-sidecar-的默认端口落在-ip-local.md",
+      "applied_changes": [],
+      "suggested_title": "如果 Dapr/Envoy 等 sidecar 的默认端口落在 ip_local_port_range 内，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果-dev-test-prod-中的服务使用相同的-app-id-或相同的-e",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果-dev-test-prod-中的服务使用相同的-app-id-或相同的-e.md",
+      "applied_changes": [],
+      "suggested_title": "如果 dev/test/prod 中的服务使用相同的 app-id 或相同的 exchange/queue 命名，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果-domain-是多值-payloadmust-not-matc",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果-domain-是多值-payloadmust-not-matc.md",
+      "applied_changes": [],
+      "suggested_title": "如果 `domain` 是多值 payload，`must_not + MatchAny` 的语义是什么？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果-mysql-更新成功但-redis-删除失败会出现什么问题你会如何设计",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果-mysql-更新成功但-redis-删除失败会出现什么问题你会如何设计.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果-network-analytics-logs-显示疑似-ddos而",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果-network-analytics-logs-显示疑似-ddos而.md",
+      "applied_changes": [],
+      "suggested_title": "如果 `network_analytics_logs` 显示疑似 DDoS，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果-rag-回答里的引用条目需要支持站内预览-一键跳转-obsidian",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果-rag-回答里的引用条目需要支持站内预览-一键跳转-obsidian.md",
+      "applied_changes": [],
+      "suggested_title": "如果 RAG 回答里的引用条目需要支持“站内预览 + 一键跳转 Obsidian 编辑”，",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果kafka消息发送失败如何保证redis库存与订单数据的一致性",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果kafka消息发送失败如何保证redis库存与订单数据的一致性.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果一个-agent-需要按最小权限调用多个工具和外部服务你会如何设计工作负载",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果一个-agent-需要按最小权限调用多个工具和外部服务你会如何设计工作负载.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果一个-kubernetes-生产集群长期未升级需要跨多个版本-leapfr",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果一个-kubernetes-生产集群长期未升级需要跨多个版本-leapfr.md",
+      "applied_changes": [],
+      "suggested_title": "如果一个 Kubernetes 生产集群长期未升级，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果一个-rss-llm-抽取管线的主要耗时在远端模型推理与网络往返你会如何判",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果一个-rss-llm-抽取管线的主要耗时在远端模型推理与网络往返你会如何判.md",
+      "applied_changes": [],
+      "suggested_title": "如果一个 RSS/LLM 抽取管线的主要耗时在远端模型推理与网络往返，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果一个安全告警只告诉你某条-dns-记录配置错误你会如何设计目标上下文",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果一个安全告警只告诉你某条-dns-记录配置错误你会如何设计目标上下文.md",
+      "applied_changes": [],
+      "suggested_title": "如果一个安全告警只告诉你“某条 DNS 记录配置错误”，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果一个操作要同时更新磁盘文件向量数据库和图数据库但没有分布式事务你会如何",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果一个操作要同时更新磁盘文件向量数据库和图数据库但没有分布式事务你会如何.md",
+      "applied_changes": [],
+      "suggested_title": "如果一个操作要同时更新磁盘文件、向量数据库和图数据库，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果一个方案只有上下文图没有交互描述或者只有交互图没有系统边界图会分别带来哪",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果一个方案只有上下文图没有交互描述或者只有交互图没有系统边界图会分别带来哪.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果一个生产级-k8s-集群要求覆盖从单-pod-丢失到整集群毁灭的灾难场景你",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果一个生产级-k8s-集群要求覆盖从单-pod-丢失到整集群毁灭的灾难场景你.md",
+      "applied_changes": [],
+      "suggested_title": "如果一个生产级 K8s 集群要求覆盖从单 Pod 丢失到整集群毁灭的灾难场景，你会如何设计分层备份体系？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果一个用户注册模块同时负责校验持久化发邮件和日志你会如何拆分拆分后测试",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果一个用户注册模块同时负责校验持久化发邮件和日志你会如何拆分拆分后测试.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果一个系统具备较强的感知记忆和身份一致性但缺少工具调用规划和主动性你会",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果一个系统具备较强的感知记忆和身份一致性但缺少工具调用规划和主动性你会.md",
+      "applied_changes": [],
+      "suggested_title": "如果一个系统具备较强的感知、记忆和身份一致性，但缺少工具调用、规划和主动性，你会把它归类为什么？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果不能记录明文用户名你会如何设计一个稳定的账户级标识用于风控为什么不能只依",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果不能记录明文用户名你会如何设计一个稳定的账户级标识用于风控为什么不能只依.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果业务大量依赖外部-saas-或动态域名-api你会如何设计基于-ciliu",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果业务大量依赖外部-saas-或动态域名-api你会如何设计基于-ciliu.md",
+      "applied_changes": [],
+      "suggested_title": "如果业务大量依赖外部 SaaS 或动态域名 API，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果业务要求满足欧盟数据主权合规同时又不能牺牲全球-ddos-防护能力你会如",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果业务要求满足欧盟数据主权合规同时又不能牺牲全球-ddos-防护能力你会如.md",
+      "applied_changes": [],
+      "suggested_title": "如果业务要求满足欧盟数据主权合规，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果代理网关不支持或静默丢弃-stop-sequencesreact-ag",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果代理网关不支持或静默丢弃-stop-sequencesreact-ag.md",
+      "applied_changes": [],
+      "suggested_title": "如果代理网关不支持或静默丢弃 `stop_sequences`，ReAct Agent 的推理链为什么会失真？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果你所在团队要规划云原生可观测性路线图为什么需要关注-observabili",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果你所在团队要规划云原生可观测性路线图为什么需要关注-observabili.md",
+      "applied_changes": [],
+      "suggested_title": "如果你所在团队要规划云原生可观测性路线图，为什么需要关注 Observability Day 这类社区活动？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果你是开源项目维护者发现某个pr大量使用了未经审查的ai生成代码你会如何处",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果你是开源项目维护者发现某个pr大量使用了未经审查的ai生成代码你会如何处.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果你来设计多组件项目的发布流程如何避免单组件发布时出现连坐效应请给出",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果你来设计多组件项目的发布流程如何避免单组件发布时出现连坐效应请给出.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果你的系统需要满足数据主权或-gdpr-本地合规要求你会如何利用-cloud",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果你的系统需要满足数据主权或-gdpr-本地合规要求你会如何利用-cloud.md",
+      "applied_changes": [],
+      "suggested_title": "如果你的系统需要满足数据主权或 GDPR/本地合规要求，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果你的语料是-30-50-篇中英文混合技术文档你为什么会选择零依赖-bigr",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果你的语料是-30-50-篇中英文混合技术文档你为什么会选择零依赖-bigr.md",
+      "applied_changes": [],
+      "suggested_title": "如果你的语料是 30-50 篇中英文混合技术文档，",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果你要在-kubernetes-中为多个-ai-应用统一接入-openaia",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果你要在-kubernetes-中为多个-ai-应用统一接入-openaia.md",
+      "applied_changes": [],
+      "suggested_title": "如果你要在 Kubernetes 中为多个 AI 应用统一接入 OpenAI、Anthropic 和自建推理服务，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果你负责一个数百万行代码的移动端代码库如何设计一套自动化安全补丁系统需要考",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果你负责一个数百万行代码的移动端代码库如何设计一套自动化安全补丁系统需要考.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果公司要求降低对单一云厂商的依赖你会如何从计算-存储iam可观测性ci",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果公司要求降低对单一云厂商的依赖你会如何从计算-存储iam可观测性ci.md",
+      "applied_changes": [],
+      "suggested_title": "如果公司要求降低对单一云厂商的依赖，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果出现vip-可达但服务-502-超时或客户端真实-ip-丢失你会如",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果出现vip-可达但服务-502-超时或客户端真实-ip-丢失你会如.md",
+      "applied_changes": [],
+      "suggested_title": "如果出现“VIP 可达但服务 502/超时”或“客户端真实 IP 丢失”，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果发现好友互动视频整体排序偏低你会如何判断根因是特征缺失样本分布问题还是",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果发现好友互动视频整体排序偏低你会如何判断根因是特征缺失样本分布问题还是.md",
+      "applied_changes": [],
+      "suggested_title": "如果发现好友互动视频整体排序偏低，你会如何判断根因是特征缺失、样本分布问题，还是模型目标定义错误？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果只做-namespace-隔离而不做节点网络资源和权限隔离会出现哪些实",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果只做-namespace-隔离而不做节点网络资源和权限隔离会出现哪些实.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果只建立-follower-id-和-following-id-的单列索引会",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果只建立-follower-id-和-following-id-的单列索引会.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果团队为了赶进度想跳过代码评审补做安全设计和文档你会如何评估风险并推动改进",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果团队为了赶进度想跳过代码评审补做安全设计和文档你会如何评估风险并推动改进.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果团队已经把前端框架切到-qwik但-lcp-inp-改善不明显你会如何从",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果团队已经把前端框架切到-qwik但-lcp-inp-改善不明显你会如何从.md",
+      "applied_changes": [],
+      "suggested_title": "如果团队已经把前端框架切到 Qwik，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果团队当前发布流程高度依赖手工操作你会如何设计一条-ci-cd-监控反馈",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果团队当前发布流程高度依赖手工操作你会如何设计一条-ci-cd-监控反馈.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果多个-goroutine-同时读取同一个不存在的-key随后有一个写入到来",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果多个-goroutine-同时读取同一个不存在的-key随后有一个写入到来.md",
+      "applied_changes": [],
+      "suggested_title": "如果多个 goroutine 同时读取同一个不存在的 key，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果容器退出码分别是-01137139143你会如何判断根因并给出修复",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果容器退出码分别是-01137139143你会如何判断根因并给出修复.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果归档文档与线上-k8s-集群实际状态不一致你会如何设计一次只读巡检来识别漂",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果归档文档与线上-k8s-集群实际状态不一致你会如何设计一次只读巡检来识别漂.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果把判断条件写成-windowc-needc-会出现什么错误请",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果把判断条件写成-windowc-needc-会出现什么错误请.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果某个-pod-持续重启或-oomkilled你会如何结合-cadvisor",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果某个-pod-持续重启或-oomkilled你会如何结合-cadvisor.md",
+      "applied_changes": [],
+      "suggested_title": "如果某个 Pod 持续重启或 OOMKilled，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果某个服务延迟升高但错误率并不明显你会如何结合-opentelemetry",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果某个服务延迟升高但错误率并不明显你会如何结合-opentelemetry.md",
+      "applied_changes": [],
+      "suggested_title": "如果某个服务延迟升高但错误率并不明显，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果现在要新增一个-slack-企业微信适配器你会如何设计事件模型和-api",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果现在要新增一个-slack-企业微信适配器你会如何设计事件模型和-api.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果生产问题同时涉及-opentelemetry-collectorprome",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果生产问题同时涉及-opentelemetry-collectorprome.md",
+      "applied_changes": [],
+      "suggested_title": "如果生产问题同时涉及 OpenTelemetry Collector、Prometheus、Jaeger 等多个项目，",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果用-pg-dump-no-owner-导入测试库后migratio",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果用-pg-dump-no-owner-导入测试库后migratio.md",
+      "applied_changes": [],
+      "suggested_title": "如果用 `pg_dump --no-owner` 导入测试库后，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果用-pvideo-engagement-bubble-impressi",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果用-pvideo-engagement-bubble-impressi.md",
+      "applied_changes": [],
+      "suggested_title": "如果用 P(video engagement | bubble impression) 建模社交增量价值，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果登录接口遭遇大规模撞库或账户接管攻击你会如何设计检测与缓解机制并区分普通",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果登录接口遭遇大规模撞库或账户接管攻击你会如何设计检测与缓解机制并区分普通.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果知识导入流程中经常出现重复条目和低质量噪声你会如何设计一个自动化质量关卡",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果知识导入流程中经常出现重复条目和低质量噪声你会如何设计一个自动化质量关卡.md",
+      "applied_changes": [],
+      "suggested_title": "如果知识导入流程中经常出现重复条目和低质量噪声，你会如何设计一个自动化质量关卡？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果线上-agent-频繁出现-stop-sequence-不生效模型伪造-o",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果线上-agent-频繁出现-stop-sequence-不生效模型伪造-o.md",
+      "applied_changes": [],
+      "suggested_title": "如果线上 Agent 频繁出现 stop sequence 不生效、模型伪造 Observation、工具参数不符...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果线上-redis-既要尽量少丢数据又要控制性能损耗你会如何选择-rdb",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果线上-redis-既要尽量少丢数据又要控制性能损耗你会如何选择-rdb.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果线上-redis-缓存淘汰效果不好你会如何在-allkeys-lru",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果线上-redis-缓存淘汰效果不好你会如何在-allkeys-lru.md",
+      "applied_changes": [],
+      "suggested_title": "如果线上 Redis 缓存淘汰效果不好，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果线上服务必须访问-qdrant-local-这类-embedded-数据库",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果线上服务必须访问-qdrant-local-这类-embedded-数据库.md",
+      "applied_changes": [],
+      "suggested_title": "如果线上服务必须访问 Qdrant local 这类 embedded 数据库，你会怎样设计并发保护和部署方案？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要分析-cnpg-集群主库与从库的流量分布你会重点看哪些指标与-promq",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要分析-cnpg-集群主库与从库的流量分布你会重点看哪些指标与-promq.md",
+      "applied_changes": [],
+      "suggested_title": "如果要分析 CNPG 集群主库与从库的流量分布，你会重点看哪些指标与 PromQL？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要在-falco准入控制networkpolicy-和-tetragon",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要在-falco准入控制networkpolicy-和-tetragon.md",
+      "applied_changes": [],
+      "suggested_title": "如果要在 Falco、准入控制、NetworkPolicy 和 Tetragon 之间做组合或选型，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要在-k8s-上把对象存储从单副本渐进演进到多副本你会如何设计-maste",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要在-k8s-上把对象存储从单副本渐进演进到多副本你会如何设计-maste.md",
+      "applied_changes": [],
+      "suggested_title": "如果要在 K8s 上把对象存储从单副本渐进演进到多副本，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要把-openclaw-接入自动化工作流平台你会如何设计认证超时重试",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要把-openclaw-接入自动化工作流平台你会如何设计认证超时重试.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要把一个单-master-的-5-节点-k8s-集群升级为高可用控制面你会",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要把一个单-master-的-5-节点-k8s-集群升级为高可用控制面你会.md",
+      "applied_changes": [],
+      "suggested_title": "如果要把一个单 Master 的 5 节点 K8s 集群升级为高可用控制面，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要把生产环境-gateway-的-allowedroutesnamesp",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要把生产环境-gateway-的-allowedroutesnamesp.md",
+      "applied_changes": [],
+      "suggested_title": "如果要把生产环境 Gateway 的 `allowedRoutes.namespaces` 从 `from:",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要抽象多家云厂商能力但不同厂商只支持计算存储消息中的一部分你会如何设",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要抽象多家云厂商能力但不同厂商只支持计算存储消息中的一部分你会如何设.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要求保留真实客户端-ip-且做到秒级故障切换请你画出从-vip-到-bac",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要求保留真实客户端-ip-且做到秒级故障切换请你画出从-vip-到-bac.md",
+      "applied_changes": [],
+      "suggested_title": "如果要求保留真实客户端 IP 且做到秒级故障切换，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要用-jit-调试网关替代共享堡垒机为-kubernetes-生产环境设计",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要用-jit-调试网关替代共享堡垒机为-kubernetes-生产环境设计.md",
+      "applied_changes": [],
+      "suggested_title": "如果要用 JIT 调试网关替代共享堡垒机，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要监控一个多实例微服务的-p95-p99-延迟你会选择-histogram",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要监控一个多实例微服务的-p95-p99-延迟你会选择-histogram.md",
+      "applied_changes": [],
+      "suggested_title": "如果要监控一个多实例微服务的 P95/P99 延迟，你会选择 Histogram 还是 Summary？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要设计一个订单系统或社交-feed-系统你会如何在-sql-和-nosql",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要设计一个订单系统或社交-feed-系统你会如何在-sql-和-nosql.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要设计点赞用户画像消息队列排行榜分别会选哪种-redis-数据结构",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要设计点赞用户画像消息队列排行榜分别会选哪种-redis-数据结构.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果要评估是否移除-keepalived-和-或-haproxy你会从故障域",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果要评估是否移除-keepalived-和-或-haproxy你会从故障域.md",
+      "applied_changes": [],
+      "suggested_title": "如果要评估是否移除 Keepalived 和/或 HAProxy，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让-ai-agent-代表用户完成下单与支付你会如何设计授权幂等性和审计",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让-ai-agent-代表用户完成下单与支付你会如何设计授权幂等性和审计.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你为-agent-mcp-工具设计一套结构化错误响应协议你会定义哪些字段",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你为-agent-mcp-工具设计一套结构化错误响应协议你会定义哪些字段.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你为 Agent/MCP 工具设计一套结构化错误响应协议，你会定义哪些字段？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你为一个云原生微服务系统设计可观测性方案你会如何规划日志指标告警和自",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你为一个云原生微服务系统设计可观测性方案你会如何规划日志指标告警和自.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你为一个元数据驱动的知识系统新增一个-domain-和-entry-typ",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你为一个元数据驱动的知识系统新增一个-domain-和-entry-typ.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你为一个元数据驱动的知识系统新增一个 domain 和 entry type，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你为一家大型组织设计-shadow-it-的-outside-in-资产发",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你为一家大型组织设计-shadow-it-的-outside-in-资产发.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你为一家大型组织设计 Shadow IT 的 outside-in 资产发现方案，你会接入哪些公开数据源？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你为一家快速扩张的组织设计攻击面管理体系你会如何实现发现分级修复",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你为一家快速扩张的组织设计攻击面管理体系你会如何实现发现分级修复.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你为一家快速扩张的组织设计攻击面管理体系，你会如何实现“发现→分级→修复”的自动化闭环？",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你为接入多个-llm-提供商的-ai-应用设计边缘安全层你会如何实现发",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你为接入多个-llm-提供商的-ai-应用设计边缘安全层你会如何实现发.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你为接入多个 LLM 提供商的 AI 应用设计边缘安全层，你会如何实现“发现-检测-缓解”闭环？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你从零设计一个-go-服务你会如何从系统边界核心职责到接口定义逐步完成",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你从零设计一个-go-服务你会如何从系统边界核心职责到接口定义逐步完成.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你从零设计一个可持续演化的知识图谱系统你会如何划分知识条目层关系图谱层",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你从零设计一个可持续演化的知识图谱系统你会如何划分知识条目层关系图谱层.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你在-api-网关或流量分析系统中发现企业内部的-ai-端点为什么不能只",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你在-api-网关或流量分析系统中发现企业内部的-ai-端点为什么不能只.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你在 API 网关或流量分析系统中发现企业内部的 AI 端点，为什么不能只靠路径规则？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你在一个团队内推动可观测性建设你会如何设计从-metricslogs",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你在一个团队内推动可观测性建设你会如何设计从-metricslogs.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你在一个团队内推动可观测性建设，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你基于-kubernetes-搭一个-ai-推理平台你会如何统一管理-g",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你基于-kubernetes-搭一个-ai-推理平台你会如何统一管理-g.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你基于 Kubernetes 搭一个 AI 推理平台，你会如何统一管理 GPU 调度、模型服务、弹性伸缩和模型路由？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你把一家数万员工企业从传统-vpn-迁移到-zero-trust-sase",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你把一家数万员工企业从传统-vpn-迁移到-zero-trust-sase.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你把一家数万员工企业从传统 VPN 迁移到 Zero Trust/SASE，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你比较-agent-工程和传统软件工程在开发流程测试方法调试手段上的本",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你比较-agent-工程和传统软件工程在开发流程测试方法调试手段上的本.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个-ai-devops-agent把一次故障调查沉淀为后续可复用",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个-ai-devops-agent把一次故障调查沉淀为后续可复用.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你设计一个 AI DevOps Agent，把一次故障调查沉淀为后续可复用的“运维记忆”，你会保存哪些关键信息？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个-ai-推理请求的网关处理管道你会如何处理有序处理链中某个节点",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个-ai-推理请求的网关处理管道你会如何处理有序处理链中某个节点.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个-claude-code-skill-来编排多个-repo-的并",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个-claude-code-skill-来编排多个-repo-的并.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你设计一个 Claude Code skill 来编排多个 repo 的并行分析与后处理，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个-sckg-自动入库流程你会如何做质量门控避免把低价值",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个-sckg-自动入库流程你会如何做质量门控避免把低价值.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个-shared-first-的-kubernetes-内部平台",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个-shared-first-的-kubernetes-内部平台.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你设计一个 shared-first 的 Kubernetes 内部平台，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个可动态新增数据源的日志摄入平台你会选择-schema-driv",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个可动态新增数据源的日志摄入平台你会选择-schema-driv.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你设计一个可动态新增数据源的日志摄入平台，你会选择 schema-driven 还是为每类日志硬编码解析链路？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个基于-github-actions-llm-的-issue",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个基于-github-actions-llm-的-issue.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你设计一个基于 GitHub Actions + LLM 的 issue 自动分类流水线，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个基于-github-actions-llm-的事件驱动反馈处",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个基于-github-actions-llm-的事件驱动反馈处.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你设计一个基于 GitHub Actions + LLM 的事件驱动反馈处理流水线，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个多仓库开源项目的贡献统计方案你会如何定义统计边界区分核心代码",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个多仓库开源项目的贡献统计方案你会如何定义统计边界区分核心代码.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个安全总览仪表盘你会如何把海量告警压缩成可执行的-action",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个安全总览仪表盘你会如何把海量告警压缩成可执行的-action.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个每天产出千万级安全洞察的检测引擎你为什么会选择按能力拆分-ch",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个每天产出千万级安全洞察的检测引擎你为什么会选择按能力拆分-ch.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你设计一个每天产出千万级安全洞察的检测引擎，",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个自治式-devops-agent-的事件调查闭环你会如何编排数",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个自治式-devops-agent-的事件调查闭环你会如何编排数.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你设计一个自治式 DevOps Agent 的事件调查闭环，你会如何编排数据采集、分析、根因识别和缓解四个阶段？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计一个高并发短链接系统的唯一-id-生成方案你会如何在随机码自增",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计一个高并发短链接系统的唯一-id-生成方案你会如何在随机码自增.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你设计登录时的泄露凭证检查如何在不上传或存储用户明文密码的前提下完成比对",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你设计登录时的泄露凭证检查如何在不上传或存储用户明文密码的前提下完成比对.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果让你负责将一个高流量强-seo-的移动站页面迁移到-qwikjs你会如",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果让你负责将一个高流量强-seo-的移动站页面迁移到-qwikjs你会如.md",
+      "applied_changes": [],
+      "suggested_title": "如果让你负责将一个高流量、强 SEO 的移动站页面迁移到 Qwik.js，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果请求先进入了区域外边缘节点你会如何设计一个既满足数据驻留要求又兼顾性能与可",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果请求先进入了区域外边缘节点你会如何设计一个既满足数据驻留要求又兼顾性能与可.md",
+      "applied_changes": [],
+      "suggested_title": "如果请求先进入了区域外边缘节点，你会如何设计一个既满足数据驻留要求又兼顾性能与可用性的区域内转发机制？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果问卷标签稀疏刷新周期长而站内互动标签噪声大你会如何设计训练样本特征和",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果问卷标签稀疏刷新周期长而站内互动标签噪声大你会如何设计训练样本特征和.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果集群的大量关键信息只存在于运行时状态中你会如何从现网反向梳理出一份可交接",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果集群的大量关键信息只存在于运行时状态中你会如何从现网反向梳理出一份可交接.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-如果需求里包含大量隐式约束比如可测试性扩展性异常处理审计日志你会分别在",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-如果需求里包含大量隐式约束比如可测试性扩展性异常处理审计日志你会分别在.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-子类为什么需要通过-super-调用父类构造逻辑构造函数和普通方",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-子类为什么需要通过-super-调用父类构造逻辑构造函数和普通方.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-定时调度检查和事件驱动处理分别适合什么场景两者并存时如何解决重复检测漏报",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-定时调度检查和事件驱动处理分别适合什么场景两者并存时如何解决重复检测漏报.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-封装接口多态分别解决什么问题它们之间是什么关系",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-封装接口多态分别解决什么问题它们之间是什么关系.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-将-nextjs-应用部署到-k8s-时ci-cd-流程与-go-微服务有哪",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-将-nextjs-应用部署到-k8s-时ci-cd-流程与-go-微服务有哪.md",
+      "applied_changes": [],
+      "suggested_title": "将 Next.js 应用部署到 K8s 时，CI/CD 流程与 Go 微服务有哪些本质差异？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-开源项目引入ai使用策略时如何在降低贡献门槛与保障代码质量之间取得平衡",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-开源项目引入ai使用策略时如何在降低贡献门槛与保障代码质量之间取得平衡.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-引入-close-friends-召回后你会用哪些指标验证它提升了候选覆盖率和",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-引入-close-friends-召回后你会用哪些指标验证它提升了候选覆盖率和.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-当-argocd-application-整体处于-outofsync-时你会",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-当-argocd-application-整体处于-outofsync-时你会.md",
+      "applied_changes": [],
+      "suggested_title": "当 ArgoCD Application 整体处于 OutOfSync 时，你会如何判断一次手动 Sync 是否安全？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-当-goroutine-因-channel系统调用网络-i-o-发生阻塞时",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-当-goroutine-因-channel系统调用网络-i-o-发生阻塞时.md",
+      "applied_changes": [],
+      "suggested_title": "当 goroutine 因 channel、系统调用、网络 I/O 发生阻塞时，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-当-kubernetes-pod-进入-crashloopbackoff-时你",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-当-kubernetes-pod-进入-crashloopbackoff-时你.md",
+      "applied_changes": [],
+      "suggested_title": "当 Kubernetes Pod 进入 CrashLoopBackOff 时，你会按什么顺序进行排查？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-当-kubernetes-控制面出现异常怀疑-etcd-有问题时你会如何组合",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-当-kubernetes-控制面出现异常怀疑-etcd-有问题时你会如何组合.md",
+      "applied_changes": [],
+      "suggested_title": "当 Kubernetes 控制面出现异常、怀疑 etcd 有问题时，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-当一个-cli-工具从单命令演进到多命令时你会如何把内联逻辑提取为可复用-pi",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-当一个-cli-工具从单命令演进到多命令时你会如何把内联逻辑提取为可复用-pi.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-当应用依赖-pgvectorpg-search-等扩展而共享-postgre",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-当应用依赖-pgvectorpg-search-等扩展而共享-postgre.md",
+      "applied_changes": [],
+      "suggested_title": "当应用依赖 pgvector、pg_search 等扩展，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-当集群规模扩展到数十个时网络层会面临哪些关键挑战你们是如何选型和应对的",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-当集群规模扩展到数十个时网络层会面临哪些关键挑战你们是如何选型和应对的.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-快照读和当前读有什么区别在-read-committed-和-repeatab",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-快照读和当前读有什么区别在-read-committed-和-repeatab.md",
+      "applied_changes": [],
+      "suggested_title": "快照读和当前读有什么区别？在 READ COMMITTED 和 REPEATABLE READ 隔离级别下，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-手搓-react-agent-时基于文本格式解析工具调用与使用模型原生-too",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-手搓-react-agent-时基于文本格式解析工具调用与使用模型原生-too.md",
+      "applied_changes": [],
+      "suggested_title": "手搓 ReAct Agent 时，基于文本格式解析工具调用与使用模型原生 tool_use API 的本质差异是什么？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-执行-go-func-时goroutine-从创建到真正被-cpu-执",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-执行-go-func-时goroutine-从创建到真正被-cpu-执.md",
+      "applied_changes": [],
+      "suggested_title": "执行 `go func()` 时，goroutine 从创建到真正被 CPU 执行会经历哪些 runtime 阶段？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-把-configyaml-作为单一真相源时代码层cli-层模板层如何保持",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-把-configyaml-作为单一真相源时代码层cli-层模板层如何保持.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-把构建缓存从-local-path-迁移到-nfs-时除了支持-readwri",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-把构建缓存从-local-path-迁移到-nfs-时除了支持-readwri.md",
+      "applied_changes": [],
+      "suggested_title": "把构建缓存从 local-path 迁移到 NFS 时，除了支持 ReadWriteMany，还要重点评估哪些取舍：",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-接入-cdn-时如何设计缓存策略资源版本管理和主动失效机制避免内容过期或频",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-接入-cdn-时如何设计缓存策略资源版本管理和主动失效机制避免内容过期或频.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-接手一个-kubernetes-集群后发现线上资源数量远大于-git-仓库中的",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-接手一个-kubernetes-集群后发现线上资源数量远大于-git-仓库中的.md",
+      "applied_changes": [],
+      "suggested_title": "接手一个 Kubernetes 集群后，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-描述-cri-o-credential-provider-的完整认证流程从-p",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-描述-cri-o-credential-provider-的完整认证流程从-p.md",
+      "applied_changes": [],
+      "suggested_title": "描述 CRI-O Credential Provider 的完整认证流程：",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-操作系统是如何制造独占-cpu的幻觉的请结合时钟中断调度器用户态-内核",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-操作系统是如何制造独占-cpu的幻觉的请结合时钟中断调度器用户态-内核.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-敏捷宣言的四组价值排序分别是什么如何理解更重视左侧而不是否定右侧",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-敏捷宣言的四组价值排序分别是什么如何理解更重视左侧而不是否定右侧.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-敏捷并不等于没有计划你如何理解敏捷中的计划反馈和变更控制",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-敏捷并不等于没有计划你如何理解敏捷中的计划反馈和变更控制.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-数字主权为什么不能只停留在政策层面请结合数据驻留身份管理供应链安全和审计透",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-数字主权为什么不能只停留在政策层面请结合数据驻留身份管理供应链安全和审计透.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-数据噪声训练噪声生成采样噪声rl探索噪声分别出现在什么阶段对模型效果的影",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-数据噪声训练噪声生成采样噪声rl探索噪声分别出现在什么阶段对模型效果的影.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-数据库同步流水线中为什么-public-schema-需要在-drop-后立即",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-数据库同步流水线中为什么-public-schema-需要在-drop-后立即.md",
+      "applied_changes": [],
+      "suggested_title": "数据库同步流水线中，为什么 public schema 需要在 DROP 后立即手动 CREATE，而其他 sch...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-无缓冲-channel-和有缓冲-channel-分别在什么条件下会让发送方进入",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-无缓冲-channel-和有缓冲-channel-分别在什么条件下会让发送方进入.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-时间轮与最小堆定时器相比各自适合什么场景请从精度吞吐内存占用延迟抖动和",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-时间轮与最小堆定时器相比各自适合什么场景请从精度吞吐内存占用延迟抖动和.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-时间轮为什么能实现近似-o1-的定时任务插入与触发它的时间复杂度边界和前提",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-时间轮为什么能实现近似-o1-的定时任务插入与触发它的时间复杂度边界和前提.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-机器人检测与欺诈-身份真实性检测分别解决什么问题为什么两者在账户安全里是互补关",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-机器人检测与欺诈-身份真实性检测分别解决什么问题为什么两者在账户安全里是互补关.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-标准-bfs层序-bfs多源-bfs双向-bfs-分别适用于什么题型如何",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-标准-bfs层序-bfs多源-bfs双向-bfs-分别适用于什么题型如何.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-检测到密码命中泄露库后为什么通常不应直接判定为恶意登录你会如何联动-mfa",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-检测到密码命中泄露库后为什么通常不应直接判定为恶意登录你会如何联动-mfa.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-注册风控中对-high-medium-low-风险邮箱分别采取封禁挑战还是人",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-注册风控中对-high-medium-low-风险邮箱分别采取封禁挑战还是人.md",
+      "applied_changes": [],
+      "suggested_title": "注册风控中，对 high/medium/low 风险邮箱分别采取封禁、挑战还是人工审核，决策依据是什么？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-活动图和时序图都能描述行为它们的关注点有什么本质区别请结合一个接口调用或",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-活动图和时序图都能描述行为它们的关注点有什么本质区别请结合一个接口调用或.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-海量延时任务场景下为什么时间轮通常比小顶堆更适合两者在时间复杂度精度内存",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-海量延时任务场景下为什么时间轮通常比小顶堆更适合两者在时间复杂度精度内存.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-物理备份和逻辑备份的本质区别是什么各自适合哪些恢复场景",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-物理备份和逻辑备份的本质区别是什么各自适合哪些恢复场景.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-生产环境中新增-kubernetes-节点后构建-pod-一直处于-image",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-生产环境中新增-kubernetes-节点后构建-pod-一直处于-image.md",
+      "applied_changes": [],
+      "suggested_title": "生产环境中新增 Kubernetes 节点后，构建 Pod 一直处于 ImagePullBackOff，你会如何排查？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-用-timeticker-每秒执行任务时如果任务执行时间超过-1-秒会发生什",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-用-timeticker-每秒执行任务时如果任务执行时间超过-1-秒会发生什.md",
+      "applied_changes": [],
+      "suggested_title": "用 time.Ticker 每秒执行任务时，如果任务执行时间超过 1 秒会发生什么？",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-用例图活动图时序图类图分别回答什么问题如果描述一个电商下单流程你会如何",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-用例图活动图时序图类图分别回答什么问题如果描述一个电商下单流程你会如何.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-相比-flannel-calico-kube-proxy-network",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-相比-flannel-calico-kube-proxy-network.md",
+      "applied_changes": [],
+      "suggested_title": "相比 Flannel/Calico + kube-proxy + NetworkPolicy Controller...",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-相比让每个应用自己直连外部推理-api把路由凭证管理和策略控制下沉到-gat",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-相比让每个应用自己直连外部推理-api把路由凭证管理和策略控制下沉到-gat.md",
+      "applied_changes": [],
+      "suggested_title": "相比让每个应用自己直连外部推理 API，把路由、凭证管理和策略控制下沉到 Gateway 层有什么收益与代价？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-秒杀场景下如何用-redis-lua-保证库存扣减的原子性为什么-lua",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-秒杀场景下如何用-redis-lua-保证库存扣减的原子性为什么-lua.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-秒杀系统中消息队列如何实现削峰填谷消费者消费速率如何控制",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-秒杀系统中消息队列如何实现削峰填谷消费者消费速率如何控制.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-移动网络切换导致客户端-ip-变化时传统-tcp-会话为什么会中断边缘会话锚",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-移动网络切换导致客户端-ip-变化时传统-tcp-会话为什么会中断边缘会话锚.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-线上某个核心接口-rt-飙升但错误率不高你会如何结合日志和指标逐步定位问题",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-线上某个核心接口-rt-飙升但错误率不高你会如何结合日志和指标逐步定位问题.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-结构模型时序模型状态模型分别解决什么问题请结合一个订单-任务处理流程说明各",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-结构模型时序模型状态模型分别解决什么问题请结合一个订单-任务处理流程说明各.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-给你一个-tempo-trace请求总耗时-268ms但-redis-gor",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-给你一个-tempo-trace请求总耗时-268ms但-redis-gor.md",
+      "applied_changes": [],
+      "suggested_title": "给你一个 Tempo trace：",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-给你一段业务需求描述你会如何迭代识别对象类属性和方法请说明从初始提取到修正",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-给你一段业务需求描述你会如何迭代识别对象类属性和方法请说明从初始提取到修正.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-给定这段-waittimeout-代码你能指出其中的并发风险资源浪费点以及",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-给定这段-waittimeout-代码你能指出其中的并发风险资源浪费点以及.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-裸金属-k8s-集群选型-cni-时你会从哪些维度评估cilium-相比-c",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-裸金属-k8s-集群选型-cni-时你会从哪些维度评估cilium-相比-c.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请举一个-go-接口设计违反-lsp-的例子例如某个实现收紧输入条件改变错误",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请举一个-go-接口设计违反-lsp-的例子例如某个实现收紧输入条件改变错误.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请你写一个回溯通用模板并说明其中终止条件路径维护撤销选择和剪枝分别起什么作",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请你写一个回溯通用模板并说明其中终止条件路径维护撤销选择和剪枝分别起什么作.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请你用-goroutine-和-channel-实现一个生产者-消费者模型并说",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请你用-goroutine-和-channel-实现一个生产者-消费者模型并说.md",
+      "applied_changes": [],
+      "suggested_title": "请你用 goroutine 和 channel 实现一个生产者-消费者模型，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请你画出-tracesmetricsprofiles-三路数据从业务服务到",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请你画出-tracesmetricsprofiles-三路数据从业务服务到.md",
+      "applied_changes": [],
+      "suggested_title": "请你画出 Traces、Metrics、Profiles 三路数据从业务服务到 OTel Collector、Te...",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请你说明-devops-如何把开发测试集成部署和监控串成持续交付闭环各环",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请你说明-devops-如何把开发测试集成部署和监控串成持续交付闭环各环.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请分别实现精确匹配左边界查找和右边界查找并解释各自的区间定义循环条件边界",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请分别实现精确匹配左边界查找和右边界查找并解释各自的区间定义循环条件边界.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请分析下面一段包含-defer变量修改和嵌套函数调用的代码输出并解释原因",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请分析下面一段包含-defer变量修改和嵌套函数调用的代码输出并解释原因.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请完整说明-go-的-gmp-模型中-gmp-的职责以及一个-gorout",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请完整说明-go-的-gmp-模型中-gmp-的职责以及一个-gorout.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请实现一个支持超时的-waitgroup-等待函数并说明为什么不能直接取消",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请实现一个支持超时的-waitgroup-等待函数并说明为什么不能直接取消.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请对比-kube-proxy-的-iptables-ipvs-模式与-ciliu",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请对比-kube-proxy-的-iptables-ipvs-模式与-ciliu.md",
+      "applied_changes": [],
+      "suggested_title": "请对比 kube-proxy 的 iptables/IPVS 模式与 Cilium eBPF kube-proxy...",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请按跳说明一个-https-请求从-client-到-pod-的完整链路分别解",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请按跳说明一个-https-请求从-client-到-pod-的完整链路分别解.md",
+      "applied_changes": [],
+      "suggested_title": "请按跳说明一个 HTTPS 请求从 Client 到 Pod 的完整链路，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请描述-go-异步抢占的完整链路从-sysmon-检测向目标线程发送-sig",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请描述-go-异步抢占的完整链路从-sysmon-检测向目标线程发送-sig.md",
+      "applied_changes": [],
+      "suggested_title": "请描述 Go 异步抢占的完整链路：",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请描述一次静态资源通过-cdn-访问的完整链路包括-dns-解析就近调度缓",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请描述一次静态资源通过-cdn-访问的完整链路包括-dns-解析就近调度缓.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请用两个-goroutine-和-channel-实现交替打印数字和字母如-1",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请用两个-goroutine-和-channel-实现交替打印数字和字母如-1.md",
+      "applied_changes": [],
+      "suggested_title": "请用两个 goroutine 和 channel 实现交替打印数字和字母（如 12AB34CD...），",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请画出-ziplist-的内存布局并解释-prevlen-和-encod",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请画出-ziplist-的内存布局并解释-prevlen-和-encod.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请结合一个你做过的-go-项目说明你如何把业务需求逐步落到接口设计架构设计",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请结合一个你做过的-go-项目说明你如何把业务需求逐步落到接口设计架构设计.md",
+      "applied_changes": [],
+      "suggested_title": "请结合一个你做过的 Go 项目，说明你如何把业务需求逐步落到接口设计、架构设计、数据模型和组件级设计？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请结合你做过的项目选一个生命周期复杂的对象描述它的关键状态触发事件以及如何",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请结合你做过的项目选一个生命周期复杂的对象描述它的关键状态触发事件以及如何.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "project-deep-dive",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请结合实际项目说明你如何在设计评审中发现并消除团队对方案的理解偏差",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请结合实际项目说明你如何在设计评审中发现并消除团队对方案的理解偏差.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "project-deep-dive",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请解释-go-调度器中的-gmp-模型为什么不能只设计成-g-和-m-两层",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请解释-go-调度器中的-gmp-模型为什么不能只设计成-g-和-m-两层.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请解释-innodb-中-mvcc-的实现原理隐藏字段undo-logre",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请解释-innodb-中-mvcc-的实现原理隐藏字段undo-logre.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请解释-nonebot2-的-driveradapterbotevent",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请解释-nonebot2-的-driveradapterbotevent.md",
+      "applied_changes": [],
+      "suggested_title": "请解释 NoneBot2 的 Driver、Adapter、Bot、Event Pipeline、Matcher...",
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请解释-pmtudpath-mtu-discovery的工作原理以及在路径",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请解释-pmtudpath-mtu-discovery的工作原理以及在路径.md",
+      "applied_changes": [],
+      "suggested_title": "请解释 PMTUD（Path MTU Discovery）的工作原理，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请解释抽象与信息隐藏的区别并说明它们如何共同降低系统复杂度",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请解释抽象与信息隐藏的区别并说明它们如何共同降低系统复杂度.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请解释软件设计中模型和仿真的区别与联系并举一个你熟悉的系统设计例子",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请解释软件设计中模型和仿真的区别与联系并举一个你熟悉的系统设计例子.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-请设计一个-bm25-向量检索的混合排序架构说明分数归一化召回池扩大权",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-请设计一个-bm25-向量检索的混合排序架构说明分数归一化召回池扩大权.md",
+      "applied_changes": [],
+      "suggested_title": "请设计一个 BM25 + 向量检索的混合排序架构，",
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-负载翻倍后你会通过哪些手段判断系统是否真正具备扩展能力而不只是撑过去了",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-负载翻倍后你会通过哪些手段判断系统是否真正具备扩展能力而不只是撑过去了.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-跨节点构建缓存共享为什么用-nfs-pvc而不是-registry-层缓存或",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-跨节点构建缓存共享为什么用-nfs-pvc而不是-registry-层缓存或.md",
+      "applied_changes": [],
+      "suggested_title": "跨节点构建缓存共享为什么用 NFS PVC，而不是 Registry 层缓存或 S3？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-软件设计中常见的方法论有哪些它们各自解决什么问题适用在什么场景",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-软件设计中常见的方法论有哪些它们各自解决什么问题适用在什么场景.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "tech-choices",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-软标签和硬标签的本质区别是什么为什么软标签通常能提供比硬标签更丰富的训练信号",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-软标签和硬标签的本质区别是什么为什么软标签通常能提供比硬标签更丰富的训练信号.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-递归实现树遍历在极端情况下有什么风险如何用迭代替代",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-递归实现树遍历在极端情况下有什么风险如何用迭代替代.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-面向-agent-的商务系统与传统面向人类的网页-app-流程相比在-api",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-面向-agent-的商务系统与传统面向人类的网页-app-流程相比在-api.md",
+      "applied_changes": [],
+      "suggested_title": "面向 Agent 的商务系统与传统面向人类的网页/APP 流程相比，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-面对-api-product-search-valuation-predic",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-面对-api-product-search-valuation-predic.md",
+      "applied_changes": [],
+      "suggested_title": "面对 /api/product-search、/valuation/predict 这类非聊天命名的接口，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-面对-prompt-injectionpii-泄露和-agent-工具越权调用",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-面对-prompt-injectionpii-泄露和-agent-工具越权调用.md",
+      "applied_changes": [],
+      "suggested_title": "面对 prompt injection、PII 泄露和 Agent 工具越权调用，",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-面对指标日志追踪和拓扑四类数据你会如何做跨源关联基线对比和置信度排序以",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-面对指标日志追踪和拓扑四类数据你会如何做跨源关联基线对比和置信度排序以.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-预定义区域和-custom-regions-各有什么优缺点在-ai-推理cd",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-预定义区域和-custom-regions-各有什么优缺点在-ai-推理cd.md",
+      "applied_changes": [],
+      "suggested_title": "预定义区域和 Custom Regions 各有什么优缺点？",
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-预读窗口设置过大或过小分别会带来什么问题如何做自适应调整",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-预读窗口设置过大或过小分别会带来什么问题如何做自适应调整.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": null,
+      "errors": []
+    },
+    {
+      "id": "iq-20260326-高内聚低耦合在模块设计中有哪些权衡过度拆分会带来哪些问题",
+      "path": "/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/iq-20260326-高内聚低耦合在模块设计中有哪些权衡过度拆分会带来哪些问题.md",
+      "applied_changes": [],
+      "suggested_title": null,
+      "suggested_category": "real-scenarios",
+      "errors": []
+    }
+  ]
+}

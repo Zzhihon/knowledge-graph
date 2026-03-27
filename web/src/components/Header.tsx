@@ -1,4 +1,4 @@
-import { Database, ChevronRight, RefreshCw, Upload, Download } from 'lucide-react'
+import { Database, ChevronRight, RefreshCw, Upload, Download, Workflow } from 'lucide-react'
 import ActionButton from './ActionButton'
 
 const TAB_LABELS: Record<string, string> = {
@@ -20,9 +20,10 @@ interface Props {
   onSync: () => void
   onOpenIngest: () => void
   onOpenExport: () => void
+  onOpenIntegrate?: () => void
 }
 
-export default function Header({ activeTab, isSyncing, onSync, onOpenIngest, onOpenExport }: Props) {
+export default function Header({ activeTab, isSyncing, onSync, onOpenIngest, onOpenExport, onOpenIntegrate }: Props) {
   return (
     <header className="h-14 border-b border-zinc-800/50 flex items-center justify-between px-6 bg-[#09090b]/80 backdrop-blur-md z-10">
       <div className="flex items-center gap-2 text-sm text-zinc-400">
@@ -46,6 +47,14 @@ export default function Header({ activeTab, isSyncing, onSync, onOpenIngest, onO
           cmd="kg ingest"
           onClick={onOpenIngest}
         />
+        {onOpenIntegrate && (
+          <ActionButton
+            icon={<Workflow className="w-4 h-4" />}
+            label="整合网关"
+            cmd="kg integrate"
+            onClick={onOpenIntegrate}
+          />
+        )}
         <ActionButton
           icon={<Download className="w-4 h-4" />}
           label="导出文档"

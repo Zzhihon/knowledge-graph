@@ -16,9 +16,11 @@ import TopicExplorerView from './views/TopicExplorerView'
 import InterviewView from './views/InterviewView'
 import CourseKnowledgeView from './views/CourseKnowledgeView'
 import EntryPreview from './components/EntryPreview'
+import IntegrationPanel from './components/IntegrationPanel'
 import { useRSSPull } from './hooks/useRSSPull'
 import { useInterviewGenerate } from './hooks/useInterviewGenerate'
 import { useCourseProcess } from './hooks/useCourseProcess'
+import { useIntegrate } from './hooks/useIntegrate'
 import { get, post, del } from './api/client'
 import type { SyncResult, ConversationListItem, ExamPaper } from './types'
 
@@ -41,6 +43,10 @@ export default function App() {
 
   // Course process state — lives at App level so it persists across tab switches
   const [courseProcessState, courseProcessActions] = useCourseProcess()
+
+  // Integration gateway state — lives at App level, triggered after ingest
+  const [integrateState, integrateActions] = useIntegrate()
+  const [isIntegratePanelOpen, setIsIntegratePanelOpen] = useState(false)
 
   const refreshConversations = useCallback(async () => {
     try {
@@ -119,6 +125,7 @@ export default function App() {
           onSync={handleSync}
           onOpenIngest={() => setIsIngestOpen(true)}
           onOpenExport={() => setIsExportOpen(true)}
+          onOpenIntegrate={() => setIsIntegratePanelOpen(true)}
         />
 
         {/* Sync result notification bar */}
@@ -208,12 +215,29 @@ export default function App() {
       </main>
 
       {isExportOpen && <ExportModal onClose={() => setIsExportOpen(false)} />}
-      {isIngestOpen && <IngestModal onClose={() => setIsIngestOpen(false)} />}
+      {isIngestOpen && (
+        <IngestModal
+          onClose={() => setIsIngestOpen(false)}
+          onIngestComplete={(entryIds) => {
+            if (entryIds.length > 0) {
+              integrateActions.start(entryIds)
+              setIsIntegratePanelOpen(true)
+            }
+          }}
+        />
+      )}
       {previewEntryId && (
         <EntryPreview
           entryId={previewEntryId}
           onClose={() => setPreviewEntryId(null)}
           onNavigate={(id) => setPreviewEntryId(id)}
+        />
+      )}
+      {(isIntegratePanelOpen || integrateState.phase !== 'idle') && (
+        <IntegrationPanel
+          state={integrateState}
+          actions={integrateActions}
+          onClose={() => setIsIntegratePanelOpen(false)}
         />
       )}
     </div>
