@@ -53,7 +53,7 @@ def _cleanup_expired_jobs() -> None:
 def _run_job(job: IntegrateJob) -> None:
     """Background worker: consume integration generator, append events to job store."""
     try:
-        from agents.integrate import integrate_entries
+        from kg.application.workflows.entry_integration import integrate_entries
 
         for event_data in integrate_entries(**job.params):
             if job.cancel_event.is_set():
@@ -246,7 +246,7 @@ def start_integrate_all(req: IntegrateAllRequest) -> JSONResponse:
 @router.get("/integrate/checkpoint")
 def get_checkpoint() -> dict:
     """Get checkpoint status — how many entries have been integrated."""
-    from agents.integrate import _load_checkpoint, _CHECKPOINT_FILE
+    from agents.integrate import _CHECKPOINT_FILE, _load_checkpoint
     done = _load_checkpoint()
     return {
         "done_count": len(done),

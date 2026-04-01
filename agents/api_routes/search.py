@@ -28,7 +28,7 @@ class AskRequest(BaseModel):
 @router.post("/query")
 def post_query(req: QueryRequest) -> list[dict[str, Any]]:
     """Hybrid semantic search over the knowledge base."""
-    from agents.query import search
+    from kg.application.services.search_service import search
 
     filters: dict[str, str] = {}
     if req.domain:
@@ -46,7 +46,7 @@ def post_query(req: QueryRequest) -> list[dict[str, Any]]:
 @router.post("/ask")
 def post_ask(req: AskRequest) -> StreamingResponse:
     """RAG question-answering with SSE streaming."""
-    from agents.ask import ask_stream
+    from kg.application.services.ask_service import ask_stream
 
     def event_generator():
         for chunk in ask_stream(

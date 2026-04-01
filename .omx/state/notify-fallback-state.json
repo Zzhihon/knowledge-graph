@@ -1,0 +1,64 @@
+{
+  "pid": 4516,
+  "parent_pid": 97641,
+  "started_at": "2026-04-01T04:18:57.495Z",
+  "cwd": "/Users/bt1q/Github-Projects/knowledge-graph",
+  "notify_script": "/Users/bt1q/Github-Projects/oh-my-codex/dist/scripts/notify-hook.js",
+  "poll_ms": 75,
+  "pid_file": null,
+  "max_lifetime_ms": 0,
+  "tracked_files": 1,
+  "seen_turns": 0,
+  "dispatch_drain": {
+    "enabled": true,
+    "max_per_tick": 5,
+    "run_count": 1,
+    "leader_only": true,
+    "last_tick_at": "2026-04-01T04:18:57.508Z",
+    "last_result": {
+      "processed": 0,
+      "skipped": 0,
+      "failed": 0
+    },
+    "last_error": null
+  },
+  "leader_nudge": {
+    "enabled": true,
+    "leader_only": true,
+    "stale_threshold_ms": 180000,
+    "precomputed_leader_stale": true,
+    "last_tick_at": "2026-04-01T04:18:57.508Z",
+    "last_error": null,
+    "run_count": 1
+  },
+  "ralph_continue_steer": {
+    "enabled": true,
+    "cadence_ms": 60000,
+    "message": "Ralph loop active continue",
+    "active": false,
+    "last_state_check_at": "2026-04-01T04:18:57.578Z",
+    "last_sent_at": "",
+    "cooldown_anchor_at": "",
+    "last_reason": "blocked_by_current_session",
+    "last_error": null,
+    "state_path": "",
+    "pane_id": "",
+    "pane_current_command": "",
+    "current_phase": "",
+    "shared_timestamp_path": "/Users/bt1q/Github-Projects/knowledge-graph/.omx/state/ralph-last-steer-at",
+    "shared_last_sent_at": "",
+    "singleton_lock_path": "/Users/bt1q/Github-Projects/knowledge-graph/.omx/state/ralph-continue-steer.lock"
+  },
+  "fallback_auto_nudge": {
+    "enabled": true,
+    "stall_ms": 5000,
+    "last_tick_at": "2026-04-01T04:18:57.562Z",
+    "last_turn_at": "2026-04-01T04:00:20.673Z",
+    "last_turn_count": 5,
+    "last_message": "已继续推进，先做了**第一批可回滚、带回归保护的结构迁移**。\n\n## 本轮完成\n### 1. 建立 `kg/` 新包骨架\n新增了这些新分层入口：\n\n- `kg/interfaces/cli/main",
+    "last_reason": "eligible_but_not_sent",
+    "last_error": null,
+    "last_nudged_signature": "",
+    "last_nudged_at": ""
+  }
+}

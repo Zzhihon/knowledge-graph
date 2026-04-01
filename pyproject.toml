@@ -40,10 +40,10 @@ dev = [
 ]
 
 [project.scripts]
-kg = "agents.cli:cli"
+kg = "kg.interfaces.cli.main:cli"
 
 [tool.hatch.build.targets.wheel]
-packages = ["agents"]
+packages = ["agents", "kg"]
 
 [tool.ruff]
 target-version = "py311"

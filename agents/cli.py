@@ -225,51 +225,19 @@ def query(
 
     QUESTION: 查询问题（与 --build 互斥）
     """
-    if build:
-        from agents.query import build_index
+    from kg.interfaces.cli.commands.query import run_query_command
 
-        count = build_index()
-        console.print(f"[green]索引构建完成，共 {count} 个条目。[/]")
-        console.print("[dim]提示: 推荐使用 `kg sync` 同时构建向量索引和图数据库。[/]")
-        return
-
-    from agents.query import print_results, search
-
-    # In JSON mode, redirect query module's Rich console to stderr
-    # so diagnostic messages don't contaminate the JSON output on stdout.
-    if output_format == "json":
-        import agents.query as _qmod
-
-        _qmod.console = Console(stderr=True)
-
-    if not question:
-        console.print("[red]请提供查询问题，或使用 --build 构建索引。[/]")
-        console.print("用法: kg query '你的问题' [选项]")
-        console.print("[dim]提示: 首次使用前请先运行 `kg sync` 构建索引。[/]")
-        sys.exit(1)
-
-    filters: dict[str, str] = {}
-    if domain:
-        filters["domain"] = domain
-    if entry_type:
-        filters["type"] = entry_type
-    if depth:
-        filters["depth"] = depth
-    if status:
-        filters["status"] = status
-
-    results = search(
-        query=question,
-        filters=filters if filters else None,
+    run_query_command(
+        question=question,
+        build=build,
+        domain=domain,
+        entry_type=entry_type,
+        depth=depth,
+        status=status,
         top_k=top_k,
+        output_format=output_format,
+        console=console,
     )
-
-    if output_format == "json":
-        import json
-
-        print(json.dumps(results, ensure_ascii=False))
-    else:
-        print_results(results, question)
 
 
 @cli.command()
@@ -289,19 +257,16 @@ def ask(question: str, top_k: int, domain: str | None, no_graph: bool, no_fallba
 
     QUESTION: 你的问题
     """
-    from agents.ask import ask as do_ask
+    from kg.interfaces.cli.commands.ask import run_ask_command
 
-    try:
-        do_ask(
-            question=question,
-            top_k=top_k,
-            domain=domain,
-            use_graph=not no_graph,
-            enable_fallback=not no_fallback,
-        )
-    except RuntimeError as exc:
-        console.print(f"[red]问答错误: {exc}[/]")
-        sys.exit(1)
+    run_ask_command(
+        question=question,
+        top_k=top_k,
+        domain=domain,
+        no_graph=no_graph,
+        no_fallback=no_fallback,
+        console=console,
+    )
 
 
 @cli.command()

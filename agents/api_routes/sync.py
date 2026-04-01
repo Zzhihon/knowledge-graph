@@ -17,7 +17,7 @@ class SyncRequest(BaseModel):
 @router.post("/sync")
 def post_sync(req: SyncRequest) -> dict[str, Any]:
     """Sync vault to Qdrant + SurrealDB indexes."""
-    from agents.sync_engine import full_sync, incremental_sync
+    from kg.application.services.sync_service import full_sync, incremental_sync
 
     try:
         if req.full:

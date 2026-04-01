@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, File, Query, UploadFile
 
@@ -13,7 +13,7 @@ router = APIRouter(tags=["ingest"])
 
 @router.post("/ingest")
 async def post_ingest(
-    file: UploadFile = File(...),
+    file: Annotated[UploadFile, File(...)],
     dry_run: bool = Query(False),
     quality_check: bool = Query(True),
 ) -> dict[str, Any]:
@@ -30,7 +30,7 @@ async def post_ingest(
 
     try:
         if quality_check:
-            from agents.ingest import ingest_file_with_quality
+            from kg.application.services.ingest_service import ingest_file_with_quality
 
             results = ingest_file_with_quality(file_path=tmp_path, dry_run=dry_run)
             created = sum(1 for r in results if r.get("action") == "create")
@@ -54,7 +54,7 @@ async def post_ingest(
                 ],
             }
         else:
-            from agents.ingest import ingest_file
+            from kg.application.services.ingest_service import ingest_file
 
             results = ingest_file(file_path=tmp_path, dry_run=dry_run)
             return {
@@ -80,7 +80,7 @@ async def post_ingest(
 
 @router.post("/ingest/batch")
 async def post_ingest_batch(
-    files: list[UploadFile] = File(...),
+    files: Annotated[list[UploadFile], File(...)],
     dry_run: bool = Query(False),
     quality_check: bool = Query(True),
 ) -> dict[str, Any]:
@@ -88,7 +88,7 @@ async def post_ingest_batch(
 
     Supports .md, .txt, and .pdf files.
     """
-    from agents.batch_ingest import ingest_files
+    from kg.application.workflows.batch_ingest import ingest_files
 
     # Write all uploaded files to temp locations
     tmp_paths: list[Path] = []
