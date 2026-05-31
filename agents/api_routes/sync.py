@@ -16,7 +16,7 @@ class SyncRequest(BaseModel):
 
 @router.post("/sync")
 def post_sync(req: SyncRequest) -> dict[str, Any]:
-    """Sync vault to Qdrant + SurrealDB indexes."""
+    """Sync vault to Weaviate + SurrealDB indexes."""
     from kg.application.services.sync_service import full_sync, incremental_sync
 
     try:
@@ -27,6 +27,6 @@ def post_sync(req: SyncRequest) -> dict[str, Any]:
         if "already accessed" in str(exc):
             raise HTTPException(
                 status_code=409,
-                detail="Qdrant 索引正在被其他操作使用，请稍后重试",
+                detail="向量索引正在被其他操作使用，请稍后重试",
             ) from exc
         raise

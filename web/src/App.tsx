@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import ExportModal from './components/ExportModal'
 import IngestModal from './components/IngestModal'
+import SearchOverlay from './components/SearchOverlay'
 import DashboardView from './views/DashboardView'
 import AskView from './views/AskView'
 import QuizView from './views/QuizView'
@@ -28,6 +29,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [isExportOpen, setIsExportOpen] = useState(false)
   const [isIngestOpen, setIsIngestOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
 
   const [conversations, setConversations] = useState<ConversationListItem[]>([])
@@ -60,6 +62,18 @@ export default function App() {
   useEffect(() => {
     refreshConversations()
   }, [refreshConversations])
+
+  // Global Cmd+K / Ctrl+K shortcut to toggle search overlay
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setIsSearchOpen(prev => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const handleSelectConversation = (id: string) => {
     setCurrentConversationId(id)
@@ -126,6 +140,7 @@ export default function App() {
           onOpenIngest={() => setIsIngestOpen(true)}
           onOpenExport={() => setIsExportOpen(true)}
           onOpenIntegrate={() => setIsIntegratePanelOpen(true)}
+          onOpenSearch={() => setIsSearchOpen(true)}
         />
 
         {/* Sync result notification bar */}
@@ -138,7 +153,7 @@ export default function App() {
                 {' · '}更新 <span className="text-amber-400">{syncResult.changed}</span>
                 {' · '}删除 <span className="text-rose-400">{syncResult.deleted}</span>
                 {' · '}未变 <span className="text-zinc-500">{syncResult.unchanged}</span>
-                {' · '}向量 <span className="text-indigo-400">{syncResult.qdrant_upserted}</span>
+                {' · '}向量 <span className="text-indigo-400">{syncResult.vector_upserted}</span>
               </span>
             </div>
             <button
@@ -226,6 +241,11 @@ export default function App() {
           }}
         />
       )}
+      <SearchOverlay
+        open={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onSelectEntry={(id) => setPreviewEntryId(id)}
+      />
       {previewEntryId && (
         <EntryPreview
           entryId={previewEntryId}

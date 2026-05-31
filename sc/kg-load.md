@@ -26,7 +26,27 @@ personas: []
    - If empty, prompt the user: "What topic or project should I load context for?"
    - Normalize keywords for search (e.g., "golang gc" -> search for "golang", "gc", "garbage collection")
 
-2. **Search Knowledge Entries (01-06)**: Use Grep to search across the knowledge vault directories for entries matching the topic keywords:
+2. **Semantic Search First (Qdrant + BM25)**: Retrieve knowledge entries through the project search adapter, not by lexical search alone.
+   - Preferred command:
+     ```bash
+     cd /Users/bt1q/Github-Projects/knowledge-graph && python integrations/omx/kg_skill.py load "$ARGUMENTS" --top-k 10
+     ```
+   - Equivalent CLI command when JSON is needed:
+     ```bash
+     cd /Users/bt1q/Github-Projects/knowledge-graph && kg query "$ARGUMENTS" --top-k 10 --format json
+     ```
+   - This path uses `agents.query.search()`, which performs Qdrant vector search + BM25 keyword search and merges results by hybrid score.
+   - If the command reports that the index is empty or stale, run `kg sync` or ask the user before continuing if sync would be expensive.
+   - Keep the returned ranking and scores visible in the briefing so gaps are auditable.
+
+3. **Read Semantic Hits**: Read the Markdown files returned by semantic search using their `file_path` values.
+   - Default: read up to 8-10 semantic hits when the task is planning, architecture, debugging, or project-context sensitive.
+   - Do not cap at 3-5 for planning tasks; missing one architecture/debug entry can materially change the plan.
+   - Deduplicate by entry ID/path before reading.
+
+4. **Lexical Fallback and Supplement**: Use Grep/Glob only after semantic retrieval:
+   - As a fallback if Qdrant/BM25 search fails.
+   - As a supplement for exact project names, acronyms, filenames, or identifiers that may not embed well.
    - Search paths:
      - `/Users/bt1q/Github-Projects/knowledge-graph/01-Principles/`
      - `/Users/bt1q/Github-Projects/knowledge-graph/02-Patterns/`
@@ -34,20 +54,17 @@ personas: []
      - `/Users/bt1q/Github-Projects/knowledge-graph/04-Architecture/`
      - `/Users/bt1q/Github-Projects/knowledge-graph/05-Research/`
      - `/Users/bt1q/Github-Projects/knowledge-graph/06-Team/`
-   - Search strategy:
-     - First pass: Grep for topic keywords in file contents (titles, questions, tags, domain fields)
-     - Second pass: Glob for filenames containing topic slugs
-   - Rank results by relevance: entries where the keyword appears in `title`, `domain`, or `tags` frontmatter rank higher than body mentions
-   - Select the top 3-5 most relevant entries
+     - `/Users/bt1q/Github-Projects/knowledge-graph/08-Problems/`
+     - `/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/`
+   - Add lexical-only hits to the context only when they are clearly relevant.
 
-3. **Search Project Tracking (07-Projects/)**: Use Grep and Glob to search for project notes:
+5. **Search Project Tracking (07-Projects/)**: Use Grep and Glob to search project notes:
    - Search path: `/Users/bt1q/Github-Projects/knowledge-graph/07-Projects/`
-   - Look for files matching the topic/project name
-   - Extract: current status, recent decisions, blockers, next steps, open questions
+   - Look for files matching the topic/project name.
+   - Extract: current status, recent decisions, blockers, next steps, open questions.
+   - Project notes are not part of the normal vector index, so this step is required even when semantic search succeeds.
 
-4. **Read Matching Entries**: Read the top matching files from both searches using the Read tool.
-
-5. **Present Context Briefing**: Output a structured summary with the following sections:
+6. **Present Context Briefing**: Output a structured summary with the following sections:
 
 ```markdown
 ## Knowledge Context: {topic}
@@ -78,7 +95,7 @@ personas: []
 - {Based on review dates: entries past their review_date that are relevant to this topic}
 ```
 
-6. **Context Availability**: After presenting the briefing, this context remains available for the rest of the conversation. Reference loaded entries by their IDs or titles in subsequent work.
+7. **Context Availability**: After presenting the briefing, this context remains available for the rest of the conversation. Reference loaded entries by their IDs or titles in subsequent work.
 
 ## Key Paths
 - Vault root: `/Users/bt1q/Github-Projects/knowledge-graph/`
@@ -112,7 +129,8 @@ personas: []
 ## Boundaries
 
 **Will:**
-- Search the vault thoroughly using multiple search strategies (content grep, filename glob)
+- Search the vault through semantic hybrid retrieval first (Qdrant vector search + BM25)
+- Use Grep/Glob as fallback and exact-match supplement, not as the primary ranking mechanism
 - Read and summarize the most relevant entries for immediate context
 - Present project state from 07-Projects/ when available
 - Identify knowledge gaps and suggest focus areas
@@ -121,5 +139,5 @@ personas: []
 **Will Not:**
 - Modify or update any vault entries (use `/sc:kg` or `/sc:kg-review` for that)
 - Fabricate knowledge not present in the vault
-- Load more than 5 entries to avoid context overload
+- Rely only on lexical grep when semantic search is available
 - Search outside the knowledge-graph vault directories

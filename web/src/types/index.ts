@@ -29,6 +29,23 @@ export interface SearchResult {
   metadata: Record<string, unknown>
 }
 
+export interface TypeaheadResult {
+  id: string
+  title: string
+  domain: string | string[]
+  type: string
+  depth: string
+  tags: string[]
+  confidence: number | null
+  score: number
+}
+
+export interface TypeaheadResponse {
+  results: TypeaheadResult[]
+  total: number
+  query: string
+}
+
 export interface Source {
   id: string
   title: string
@@ -240,7 +257,7 @@ export interface SyncResult {
   changed: number
   deleted: number
   unchanged: number
-  qdrant_upserted: number
+  vector_upserted: number
   graph_upserted: number
   edges_created: number
 }

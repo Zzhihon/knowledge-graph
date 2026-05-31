@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from agents.radar import compute_domain_strength, generate_radar_report
+from agents.radar import compute_all_strengths, compute_domain_strength, print_radar
 
-__all__ = ["compute_domain_strength", "generate_radar_report"]
+__all__ = ["compute_all_strengths", "compute_domain_strength", "print_radar"]

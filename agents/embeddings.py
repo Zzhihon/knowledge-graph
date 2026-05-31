@@ -11,10 +11,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    pass
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -55,10 +52,8 @@ def _init_backend() -> None:
         api_keys = []
         base_url = ""
 
-    # Use Gemini if:
-    # 1. embedding_model is set to gemini-embedding-* in config
-    # 2. OR api_keys are configured (implies Gemini API is available)
-    if "gemini" in model_name.lower() or api_keys:
+    # Use Gemini only if embedding_model explicitly set to gemini-*
+    if "gemini" in model_name.lower():
         # Find the embedding-dedicated key (weight=0, gemini model)
         api_key = None
         if api_keys:
@@ -95,6 +90,7 @@ def _get_local_model():
 def _embed_gemini(texts: list[str]) -> list[list[float]]:
     """Generate embeddings using Gemini API."""
     import httpx
+
     from agents.config import load_config
 
     config = load_config()
@@ -114,20 +110,30 @@ def _embed_gemini(texts: list[str]) -> list[list[float]]:
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",
         },
-        timeout=30.0,
+        timeout=60.0,
     )
 
     results = []
-    for text in texts:
-        resp = client.post(
-            f"{base_url}/v1beta/models/{GEMINI_EMBEDDING_MODEL}:embedContent",
-            json={
-                "content": {"parts": [{"text": text}]},
-                "taskType": GEMINI_TASK_TYPE,
-            },
-        )
-        resp.raise_for_status()
-        results.append(resp.json()["embedding"]["values"])
+    for idx, text in enumerate(texts, 1):
+        last_exc: Exception | None = None
+        for attempt in range(3):
+            try:
+                resp = client.post(
+                    f"{base_url}/v1beta/models/{GEMINI_EMBEDDING_MODEL}:embedContent",
+                    json={
+                        "content": {"parts": [{"text": text}]},
+                        "taskType": GEMINI_TASK_TYPE,
+                    },
+                )
+                resp.raise_for_status()
+                results.append(resp.json()["embedding"]["values"])
+                break
+            except Exception as exc:
+                last_exc = exc
+                if attempt < 2:
+                    time.sleep(1.5 * (attempt + 1))
+        else:
+            raise RuntimeError(f"Gemini embedding failed at item {idx}/{len(texts)}") from last_exc
     return results
 
 
@@ -155,6 +161,15 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
         try:
             return _embed_gemini(texts)
         except Exception as exc:
+            try:
+                from agents.config import load_config
+                explicit_gemini = "gemini" in load_config().agent.embedding_model.lower()
+            except Exception:
+                explicit_gemini = False
+            if explicit_gemini:
+                raise RuntimeError(
+                    f"Gemini embedding failed and fallback is disabled: {exc}"
+                ) from exc
             logger.warning(f"Gemini embedding failed, falling back to local: {exc}")
             return _embed_local(texts)
     else:

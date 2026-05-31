@@ -4,7 +4,7 @@
 VAULT_ROOT="/Users/bt1q/Github-Projects/knowledge-graph"
 MARKER_DIR="/tmp/.claude-kg-sessions"
 VENV_PYTHON="${VAULT_ROOT}/.venv/bin/python3"
-QDRANT_DIR="${VAULT_ROOT}/indexes/qdrant"
+WEAVIATE_DIR="${VAULT_ROOT}/indexes/weaviate"
 
 mkdir -p "$MARKER_DIR" 2>/dev/null || true
 find "$MARKER_DIR" -name "session-*" -mmin +720 -delete 2>/dev/null || true
@@ -21,15 +21,15 @@ if [[ ! -f "$VENV_PYTHON" ]]; then
     exit 0
 fi
 
-# Check if index needs sync (markdown files newer than Qdrant index)
+# Check if index needs sync (markdown files newer than Weaviate index)
 NEEDS_SYNC=false
-if [[ -d "$QDRANT_DIR" ]]; then
+if [[ -d "$WEAVIATE_DIR" ]]; then
     # Find newest markdown file in vault
     NEWEST_MD=$(find "${VAULT_ROOT}"/0[1-6]-*/ -name "*.md" -type f -print0 2>/dev/null | xargs -0 stat -f "%m %N" 2>/dev/null | sort -rn | head -1 | cut -d' ' -f1)
-    # Find Qdrant index modification time
-    QDRANT_MTIME=$(stat -f "%m" "$QDRANT_DIR" 2>/dev/null || echo "0")
+    # Find Weaviate index modification time
+    WEAVIATE_MTIME=$(stat -f "%m" "$WEAVIATE_DIR" 2>/dev/null || echo "0")
 
-    if [[ -n "$NEWEST_MD" ]] && [[ "$NEWEST_MD" -gt "$QDRANT_MTIME" ]]; then
+    if [[ -n "$NEWEST_MD" ]] && [[ "$NEWEST_MD" -gt "$WEAVIATE_MTIME" ]]; then
         NEEDS_SYNC=true
     fi
 fi
@@ -42,7 +42,7 @@ fi
 
 INPUT=$(cat)
 
-# Use Qdrant semantic search
+# Use Weaviate semantic search
 OUTPUT=$(cd "$VAULT_ROOT" && echo "$INPUT" | "$VENV_PYTHON" -c "
 import sys, json, os
 os.environ.setdefault('HF_HUB_OFFLINE', '1')

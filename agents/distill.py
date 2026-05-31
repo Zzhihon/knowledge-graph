@@ -2,7 +2,7 @@
 
 Discovers candidate groups via vector similarity, synthesises them
 through Claude into a single canonical entry, and cleans up the old
-entries from disk, Qdrant, and SurrealDB.
+entries from disk, Weaviate, and SurrealDB.
 """
 
 from __future__ import annotations
@@ -200,8 +200,8 @@ def execute_distill(
     """Distill multiple entries into a single canonical entry.
 
     Steps: load entries → Claude synthesis → write new file →
-    delete old files + Qdrant points + SurrealDB nodes/edges →
-    upsert new entry into Qdrant + SurrealDB.
+    delete old files + Weaviate points + SurrealDB nodes/edges →
+    upsert new entry into Weaviate + SurrealDB.
     """
     from agents.embeddings import embed_texts
     from agents.graph_store import get_graph_store
@@ -270,7 +270,7 @@ def execute_distill(
             deleted += 1
             console.print(f"  [red]已删除:[/] {old_path}")
 
-    # Update Qdrant: delete old, insert new
+    # Update Weaviate: delete old, insert new
     with get_vector_store(config) as store:
         store.ensure_collection()
         store.delete_points(entry_ids)

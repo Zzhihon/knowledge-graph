@@ -39,6 +39,8 @@ interface PracticeCard {
 export default function InterviewView({ onPreviewEntry, genState, genActions }: Props) {
   const [mode, setMode] = useState<ViewMode>('browse')
   const [questions, setQuestions] = useState<InterviewQuestion[]>([])
+  const [simulationSets, setSimulationSets] = useState<InterviewQuestion[]>([])
+  const [simulationTotal, setSimulationTotal] = useState(0)
   const [stats, setStats] = useState<InterviewStats | null>(null)
   const [categories, setCategories] = useState<InterviewCategoryInfo[]>([])
   const [loading, setLoading] = useState(true)
@@ -87,11 +89,16 @@ export default function InterviewView({ onPreviewEntry, genState, genActions }: 
       if (filterTag) params.tag = filterTag
       if (searchQuery) params.search = searchQuery
 
-      const [questionsRes, categoriesRes, statsRes, domainsRes] = await Promise.all([
+      const [questionsRes, categoriesRes, statsRes, domainsRes, simulationRes] = await Promise.all([
         get<InterviewListResponse>('/interview/questions', params),
         get<InterviewCategoryInfo[]>('/interview/categories'),
         get<InterviewStats>('/interview/stats'),
         get<Array<{ key: string; label: string; icon: string; sub_domains: string[] }>>('/interview/domains'),
+        get<InterviewListResponse>('/interview/questions', {
+          page: '1',
+          page_size: '50',
+          tag: 'mock-simulation',
+        }),
       ])
       setQuestions(questionsRes.items)
       setTotalPages(questionsRes.total_pages)
@@ -99,6 +106,8 @@ export default function InterviewView({ onPreviewEntry, genState, genActions }: 
       setCategories(categoriesRes)
       setStats(statsRes)
       setSkillDomains(domainsRes)
+      setSimulationSets(simulationRes.items)
+      setSimulationTotal(simulationRes.total)
     } catch {
       // backend may not be up
     } finally {
@@ -509,7 +518,7 @@ export default function InterviewView({ onPreviewEntry, genState, genActions }: 
           {categories.map((c) => (
             <div
               key={c.key}
-              onClick={() => { setFilterCategory(filterCategory === c.key ? '' : c.key); setPage(1) }}
+              onClick={() => { setFilterCategory(filterCategory === c.key ? '' : c.key); setFilterTag(''); setPage(1) }}
               className={`p-3 rounded-xl border transition-colors cursor-pointer ${
                 filterCategory === c.key
                   ? 'border-indigo-500/50 bg-indigo-500/5'
@@ -525,8 +534,89 @@ export default function InterviewView({ onPreviewEntry, genState, genActions }: 
               <div className="text-xs text-zinc-500 line-clamp-1">{c.description}</div>
             </div>
           ))}
+          {simulationSets.length > 0 && (
+            <div
+              onClick={() => {
+                if (filterTag === 'mock-simulation') {
+                  setFilterTag('')
+                } else {
+                  setFilterTag('mock-simulation')
+                  setFilterCategory('')
+                }
+                setPage(1)
+              }}
+              className={`p-3 rounded-xl border transition-colors cursor-pointer ${
+                filterTag === 'mock-simulation'
+                  ? 'border-indigo-500/50 bg-indigo-500/5'
+                  : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-zinc-200">
+                  🎯 面试模拟
+                </span>
+                <span className="text-xs text-zinc-500">{simulationTotal} 题</span>
+              </div>
+              <div className="text-xs text-zinc-500 line-clamp-1">高频大厂非算法拷打题</div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Special topic section — only shown when mock-simulation filter is active */}
+      {simulationSets.length > 0 && filterTag === 'mock-simulation' && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-sm font-medium text-zinc-300">专题区 · 面试模拟</h2>
+              <p className="text-xs text-zinc-500 mt-1">
+                基于当前简历与关联源码仓库整理的高频大厂非算法拷打题，答案内附源码依据。
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setFilterTag(filterTag === 'mock-simulation' ? '' : 'mock-simulation')
+                setPage(1)
+              }}
+              className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                filterTag === 'mock-simulation'
+                  ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-300'
+                  : 'border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700 hover:text-zinc-300'
+              }`}
+            >
+              {filterTag === 'mock-simulation' ? '取消只看专题' : '只看专题'}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {simulationSets.map((q) => (
+              <button
+                key={q.id}
+                onClick={() => onPreviewEntry?.(q.id)}
+                className="text-left p-4 rounded-xl border border-zinc-800 bg-zinc-900/40 hover:border-indigo-500/40 hover:bg-zinc-900/70 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="text-sm font-medium text-zinc-100 leading-6">{q.title}</div>
+                  <span className={`shrink-0 px-2 py-0.5 text-[11px] rounded-md border ${DIFFICULTY_COLORS[q.difficulty] || ''}`}>
+                    {q.difficulty}
+                  </span>
+                </div>
+                <div className="text-xs text-zinc-500 mb-3">
+                  {categories.find(c => c.key === q.category)?.label || q.category}
+                  {q.project ? ` · ${q.project}` : ''}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {q.tags.filter(t => t !== 'mock-simulation').slice(0, 4).map(tag => (
+                    <span key={tag} className="px-2 py-0.5 text-[11px] bg-zinc-800 text-zinc-400 rounded">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex items-center gap-3">

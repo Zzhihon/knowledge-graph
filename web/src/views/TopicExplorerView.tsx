@@ -96,7 +96,7 @@ export default function TopicExplorerView() {
               全域知识大盘
             </h1>
             <p className="text-sm text-zinc-400 max-w-md">
-              监控你的知识图谱健康状态。系统已基于 Qdrant 和 SurrealDB 完成最新一次索引同步。
+              监控你的知识图谱健康状态。系统已基于 Weaviate 和 SurrealDB 完成最新一次索引同步。
             </p>
           </div>
 

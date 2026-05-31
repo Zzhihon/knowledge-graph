@@ -28,17 +28,17 @@ A `UserPromptSubmit` hook (`.claude/hooks/kg-algo-auto-load.sh`) auto-detects al
 ```
 00-Index/         — MOC files (algorithm.md, golang.md, etc.)
 01-Principles/    — Core principles and theory
-02-Patterns/      — Algorithm pattern templates (9 active)
+02-Patterns/      — Algorithm pattern templates (10 active)
 03-Debug/         — Debugging records
 04-Architecture/  — Architecture decisions
 05-Research/      — Research explorations
 06-Team/          — Team knowledge
 07-Projects/      — Project tracking
-08-Problems/      — Algorithm problems (58 entries)
+08-Problems/      — Algorithm problems (63 entries)
 Templates/        — Entry templates
 ```
 
-## Available Algorithm Patterns (9)
+## Available Algorithm Patterns (10)
 - Sliding Window (滑动窗口) — 5 problems
 - Two Pointers (双指针) — 5 problems
 - Binary Search (二分查找) — 5 problems
@@ -48,6 +48,7 @@ Templates/        — Entry templates
 - Hash Map (哈希表) — 6 problems
 - Greedy (贪心) — 5 problems
 - Monotonic Stack (单调栈) — 5 problems
+- Trie (前缀树) — 5 problems
 
 ## Key Commands
 - `/sc:kg` — Capture knowledge from conversation

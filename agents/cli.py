@@ -284,18 +284,14 @@ def review(domain: str | None, output: Path | None, report: bool) -> None:
     扫描所有条目，检查过期、低置信度、草稿状态等问题，
     并进行域覆盖分析。
     """
-    from agents.review import generate_review_report, print_review_summary
+    from kg.interfaces.cli.commands.review import run_review_command
 
-    if report or output:
-        report_text = generate_review_report(
-            domain_filter=domain,
-            output_path=output,
-        )
-        if not output:
-            # Print report to stdout when no output file specified
-            console.print(report_text)
-    else:
-        print_review_summary(domain_filter=domain)
+    run_review_command(
+        domain=domain,
+        output=output,
+        report=report,
+        console=console,
+    )
 
 
 @cli.command()
@@ -304,109 +300,9 @@ def stats() -> None:
 
     展示各知识域、条目类型、深度层级的分布统计。
     """
-    from agents.config import load_config
-    from agents.utils import load_entries
+    from kg.interfaces.cli.commands.stats import run_stats_command
 
-    try:
-        config = load_config()
-    except FileNotFoundError as exc:
-        console.print(f"[red]配置错误: {exc}[/]")
-        sys.exit(1)
-
-    entries = load_entries(config.vault_path)
-
-    if not entries:
-        console.print(Panel(
-            "[yellow]知识库为空。[/]\n"
-            "使用 `kg ingest <file>` 开始添加知识条目。",
-            title="知识库统计",
-            border_style="yellow",
-        ))
-        return
-
-    # Aggregate statistics
-    domain_counts: dict[str, int] = {}
-    type_counts: dict[str, int] = {}
-    depth_counts: dict[str, int] = {}
-    status_counts: dict[str, int] = {}
-
-    for entry in entries:
-        meta = entry["metadata"]
-        d = meta.get("domain", "unknown")
-        t = meta.get("type", "unknown")
-        dp = meta.get("depth", "unknown")
-        s = meta.get("status", "unknown")
-
-        domains = d if isinstance(d, list) else [d]
-        for dk in domains:
-            domain_counts[dk] = domain_counts.get(dk, 0) + 1
-        type_counts[t] = type_counts.get(t, 0) + 1
-        depth_counts[dp] = depth_counts.get(dp, 0) + 1
-        status_counts[s] = status_counts.get(s, 0) + 1
-
-    # Summary panel
-    console.print(Panel(
-        f"[bold]总条目数: {len(entries)}[/]\n"
-        f"知识域数: {len(domain_counts)}  "
-        f"类型数: {len(type_counts)}  "
-        f"深度层级: {len(depth_counts)}",
-        title="知识库统计",
-        border_style="blue",
-    ))
-
-    # Domain distribution table
-    domain_table = Table(title="知识域分布", show_lines=True)
-    domain_table.add_column("域", style="bold cyan")
-    domain_table.add_column("条目数", justify="right", style="green")
-    domain_table.add_column("占比", justify="right")
-
-    for domain_key, count in sorted(
-        domain_counts.items(), key=lambda x: x[1], reverse=True
-    ):
-        domain_cfg = config.get_domain(domain_key)
-        label = f"{domain_cfg.icon} {domain_cfg.label}" if domain_cfg else domain_key
-        pct = count / len(entries) * 100
-        domain_table.add_row(label, str(count), f"{pct:.1f}%")
-    console.print(domain_table)
-
-    # Type distribution table
-    type_table = Table(title="条目类型分布", show_lines=True)
-    type_table.add_column("类型", style="bold magenta")
-    type_table.add_column("条目数", justify="right", style="green")
-
-    for type_key, count in sorted(
-        type_counts.items(), key=lambda x: x[1], reverse=True
-    ):
-        type_cfg = config.get_entry_type(type_key)
-        label = type_cfg.label if type_cfg else type_key
-        type_table.add_row(label, str(count))
-    console.print(type_table)
-
-    # Depth distribution table
-    depth_table = Table(title="深度层级分布", show_lines=True)
-    depth_table.add_column("层级", style="bold yellow")
-    depth_table.add_column("条目数", justify="right", style="green")
-
-    for depth_key, count in sorted(
-        depth_counts.items(), key=lambda x: x[1], reverse=True
-    ):
-        label = config.depth_levels.get(depth_key, depth_key)
-        depth_table.add_row(label, str(count))
-    console.print(depth_table)
-
-    # Status distribution
-    status_table = Table(title="状态分布", show_lines=True)
-    status_table.add_column("状态", style="bold")
-    status_table.add_column("条目数", justify="right", style="green")
-
-    for status_key, count in sorted(
-        status_counts.items(), key=lambda x: x[1], reverse=True
-    ):
-        style = "green" if status_key == "validated" else (
-            "yellow" if status_key == "draft" else "white"
-        )
-        status_table.add_row(f"[{style}]{status_key}[/]", str(count))
-    console.print(status_table)
+    run_stats_command(console=console)
 
 
 @cli.command()
@@ -415,77 +311,9 @@ def init() -> None:
 
     检查并创建必要的目录和索引文件。
     """
-    from agents.config import load_config
-    from agents.utils import get_entry_dir
+    from kg.interfaces.cli.commands.init import run_init_command
 
-    try:
-        config = load_config()
-    except FileNotFoundError as exc:
-        console.print(f"[red]配置错误: {exc}[/]")
-        sys.exit(1)
-
-    vault = config.vault_path
-    console.print(f"[bold blue]知识库根目录:[/] {vault}\n")
-
-    # Required directories
-    required_dirs = [
-        "00-Index",
-        "01-Principles",
-        "02-Patterns",
-        "03-Debug",
-        "04-Architecture",
-        "05-Research",
-        "06-Team",
-        "07-Projects",
-        "08-Problems",
-        "agents",
-        "Assets",
-        "Templates",
-    ]
-
-    # Optional directories created by the system
-    system_dirs = [
-        "indexes",
-        "indexes/qdrant",
-        "indexes/surrealdb",
-    ]
-
-    all_dirs = required_dirs + system_dirs
-    created = 0
-    verified = 0
-
-    table = Table(show_header=True, show_lines=False)
-    table.add_column("目录", style="cyan")
-    table.add_column("状态", width=12)
-
-    for dir_name in all_dirs:
-        dir_path = vault / dir_name
-        if dir_path.is_dir():
-            table.add_row(dir_name, "[green]已存在[/]")
-            verified += 1
-        else:
-            dir_path.mkdir(parents=True, exist_ok=True)
-            table.add_row(dir_name, "[yellow]已创建[/]")
-            created += 1
-
-    console.print(table)
-
-    # Verify config.yaml exists
-    config_file = vault / "config.yaml"
-    if config_file.is_file():
-        console.print(f"\n[green]config.yaml 已验证[/]")
-    else:
-        console.print(f"\n[red]config.yaml 缺失![/]")
-
-    # Summary
-    console.print(Panel(
-        f"已验证: {verified} 个目录\n"
-        f"已创建: {created} 个目录\n"
-        f"知识库名称: {config.name}\n"
-        f"作者: {config.author}",
-        title="初始化完成",
-        border_style="green",
-    ))
+    run_init_command(console=console)
 
 
 @cli.command()
@@ -688,278 +516,14 @@ def history(entry_id: str) -> None:
 @cli.command()
 @click.option("--full", is_flag=True, help="强制全量重建（跳过增量检测）")
 def sync(full: bool) -> None:
-    """同步知识库到 Qdrant 向量索引 + SurrealDB 图数据库。
+    """同步知识库到 Weaviate 向量索引 + SurrealDB 图数据库。
 
     默认增量同步：只处理新增、修改、删除的条目。
     使用 --full 强制全量重建。
     """
-    from agents.config import load_config
-    from agents.utils import load_entries
+    from kg.interfaces.cli.commands.sync import run_sync_command
 
-    try:
-        config = load_config()
-    except FileNotFoundError as exc:
-        console.print(f"[red]配置错误: {exc}[/]")
-        sys.exit(1)
-
-    entries = load_entries(config.vault_path)
-    if not entries:
-        console.print("[yellow]知识库为空，无需同步。[/]")
-        return
-
-    valid_entries = _prepare_entries(entries)
-    if not valid_entries:
-        console.print("[yellow]未找到有效的知识条目。[/]")
-        return
-
-    if full:
-        _full_sync(config, valid_entries)
-    else:
-        _incremental_sync(config, valid_entries)
-
-
-def _prepare_entries(entries: list) -> list:
-    """过滤并准备有效条目，注入 content_hash 和 file_path."""
-    from agents.utils import compute_content_hash
-
-    valid: list = []
-    for entry in entries:
-        meta = entry["metadata"]
-        entry_id = meta.get("id", "")
-        if not entry_id:
-            continue
-        entry_copy = dict(entry)
-        entry_copy["metadata"] = dict(meta)
-        entry_copy["metadata"]["file_path"] = str(entry["path"])
-        entry_copy["metadata"]["content_hash"] = compute_content_hash(entry["path"])
-        valid.append(entry_copy)
-    return valid
-
-
-def _entry_to_text(entry: dict) -> str:
-    """将条目转换为用于 embedding 的文本."""
-    meta = entry["metadata"]
-    title = meta.get("title", "")
-    tags = meta.get("tags", [])
-    if isinstance(tags, list):
-        tags_str = ", ".join(str(t) for t in tags)
-    else:
-        tags_str = str(tags)
-    return f"{title}\n{tags_str}\n\n{entry['content']}"
-
-
-def _full_sync(config, valid_entries: list) -> None:
-    """全量重建：drop + recreate 所有索引."""
-    from agents.embeddings import embed_texts
-    from agents.graph_store import get_graph_store
-    from agents.vector_store import get_vector_store
-
-    console.print(f"[bold blue]全量同步 {len(valid_entries)} 个条目...[/]\n")
-
-    texts = [_entry_to_text(e) for e in valid_entries]
-
-    # Step 1: Qdrant
-    console.print("[bold]1/2 Qdrant 向量索引[/]")
-    console.print("[dim]  正在生成嵌入向量...[/]")
-    embeddings = embed_texts(texts)
-
-    with get_vector_store(config) as store:
-        store.init_collection()
-        vec_count = store.upsert_entries(valid_entries, embeddings)
-    console.print(f"[green]  {vec_count} 个条目已写入 Qdrant[/]\n")
-
-    # Step 2: SurrealDB
-    console.print("[bold]2/2 SurrealDB 图数据库[/]")
-    with get_graph_store(config) as gs:
-        gs.init_schema()
-        result = gs.sync_entries_and_relations(valid_entries)
-    console.print(
-        f"[green]  {result['entries_synced']} 个节点, "
-        f"{result['edges_created']} 条边已创建, "
-        f"{result['edges_removed']} 条过期边已移除[/]\n"
-    )
-
-    # Summary
-    summary_table = Table(title="全量同步摘要", show_lines=True)
-    summary_table.add_column("引擎", style="bold cyan")
-    summary_table.add_column("操作", style="green")
-    summary_table.add_column("数量", justify="right")
-    summary_table.add_row("Qdrant", "向量入库", str(vec_count))
-    summary_table.add_row("SurrealDB", "节点同步", str(result["entries_synced"]))
-    summary_table.add_row("SurrealDB", "边创建", str(result["edges_created"]))
-    summary_table.add_row("SurrealDB", "过期边移除", str(result["edges_removed"]))
-    console.print(summary_table)
-
-
-def _incremental_sync(config, valid_entries: list) -> None:
-    """增量同步：只处理新增、修改、删除的条目."""
-    from agents.embeddings import embed_texts
-    from agents.graph_store import get_graph_store
-    from agents.vector_store import get_vector_store
-
-    # Build disk state: {entry_id: entry}
-    disk_map: dict[str, dict] = {}
-    for entry in valid_entries:
-        eid = entry["metadata"]["id"]
-        disk_map[eid] = entry
-
-    with get_vector_store(config) as store:
-        # ensure_collection returns True if collection already existed
-        existed = store.ensure_collection()
-
-        if not existed:
-            # 新 collection → 首次全量
-            console.print("[yellow]首次同步，执行全量构建...[/]\n")
-            store.close()
-            _full_sync(config, valid_entries)
-            return
-
-        # Scroll existing payloads
-        stored_payloads = store.get_all_payloads()
-
-        # 检测旧格式（无 content_hash）
-        if stored_payloads:
-            sample = next(iter(stored_payloads.values()))
-            if not sample.get("content_hash"):
-                console.print(
-                    "[yellow]检测到旧格式索引（缺少 content_hash），"
-                    "自动执行全量重建...[/]\n"
-                )
-                store.close()
-                _full_sync(config, valid_entries)
-                return
-
-        # Diff: new / changed / deleted / unchanged
-        stored_ids = set(stored_payloads.keys())
-        disk_ids = set(disk_map.keys())
-
-        new_ids = disk_ids - stored_ids
-        deleted_ids = stored_ids - disk_ids
-        common_ids = disk_ids & stored_ids
-
-        changed_ids: set[str] = set()
-        unchanged_ids: set[str] = set()
-        for eid in common_ids:
-            disk_hash = disk_map[eid]["metadata"]["content_hash"]
-            stored_hash = stored_payloads[eid].get("content_hash", "")
-            if disk_hash != stored_hash:
-                changed_ids.add(eid)
-            else:
-                unchanged_ids.add(eid)
-
-        # Check if nothing changed
-        if not new_ids and not changed_ids and not deleted_ids:
-            console.print(
-                Panel(
-                    f"[green]所有 {len(unchanged_ids)} 个条目均为最新，无需操作。[/]",
-                    title="增量同步",
-                    border_style="green",
-                )
-            )
-            return
-
-        # Report diff
-        console.print(f"[bold blue]增量同步检测结果:[/]")
-        console.print(f"  新增: [green]{len(new_ids)}[/]")
-        console.print(f"  修改: [yellow]{len(changed_ids)}[/]")
-        console.print(f"  删除: [red]{len(deleted_ids)}[/]")
-        console.print(f"  未变: [dim]{len(unchanged_ids)}[/]\n")
-
-        # Step 1: Qdrant — embed + upsert new/changed, delete removed
-        to_process_ids = new_ids | changed_ids
-        to_process = [disk_map[eid] for eid in to_process_ids]
-        vec_upserted = 0
-        vec_deleted = 0
-
-        if to_process:
-            console.print("[bold]1/2 Qdrant 向量索引[/]")
-            texts = [_entry_to_text(e) for e in to_process]
-            console.print(f"[dim]  正在生成 {len(texts)} 条嵌入向量...[/]")
-            embeddings = embed_texts(texts)
-            vec_upserted = store.upsert_entries(to_process, embeddings)
-            console.print(f"[green]  {vec_upserted} 个条目已更新[/]")
-
-        if deleted_ids:
-            vec_deleted = store.delete_points(list(deleted_ids))
-            console.print(f"[green]  {vec_deleted} 个条目已删除[/]")
-
-        if not to_process and not deleted_ids:
-            console.print("[bold]1/2 Qdrant 向量索引[/]")
-            console.print("[dim]  无需更新[/]")
-
-        console.print()
-
-    # Step 2: SurrealDB — incremental graph sync + diff recording
-    console.print("[bold]2/2 SurrealDB 图数据库[/]")
-    changed_entries = [disk_map[eid] for eid in (new_ids | changed_ids)]
-
-    diff_count = 0
-    with get_graph_store(config) as gs:
-        gs.init_schema()
-        graph_result = gs.sync_partial(
-            changed_entries=changed_entries,
-            deleted_ids=list(deleted_ids),
-            all_known_ids=disk_ids,
-        )
-
-        # Record diffs for evolution tracking
-        from agents.diff_store import DiffStore
-
-        ds = DiffStore(gs)
-        ds.init_schema()
-
-        for eid in new_ids:
-            entry = disk_map[eid]
-            ds.record_change(
-                eid, "created", "", entry["content"],
-                "", entry["metadata"]["content_hash"],
-            )
-            diff_count += 1
-
-        for eid in changed_ids:
-            entry = disk_map[eid]
-            old_content = ds.get_latest_content(eid) or ""
-            ds.record_change(
-                eid, "modified", old_content, entry["content"],
-                stored_payloads[eid].get("content_hash", ""),
-                entry["metadata"]["content_hash"],
-            )
-            diff_count += 1
-
-        for eid in deleted_ids:
-            old_content = ds.get_latest_content(eid) or ""
-            ds.record_change(
-                eid, "deleted", old_content, "",
-                stored_payloads[eid].get("content_hash", ""),
-                "",
-            )
-            diff_count += 1
-
-    console.print(
-        f"[green]  {graph_result['entries_upserted']} 个节点更新, "
-        f"{graph_result['entries_deleted']} 个节点删除, "
-        f"{graph_result['edges_created']} 条边创建[/]"
-    )
-    if diff_count:
-        console.print(f"[green]  {diff_count} 条变更记录已保存[/]")
-    console.print()
-
-    # Summary
-    summary_table = Table(title="增量同步摘要", show_lines=True)
-    summary_table.add_column("类别", style="bold cyan")
-    summary_table.add_column("操作", style="green")
-    summary_table.add_column("数量", justify="right")
-    summary_table.add_row("变更检测", "新增", str(len(new_ids)))
-    summary_table.add_row("变更检测", "修改", str(len(changed_ids)))
-    summary_table.add_row("变更检测", "删除", str(len(deleted_ids)))
-    summary_table.add_row("变更检测", "未变", str(len(unchanged_ids)))
-    summary_table.add_row("Qdrant", "向量更新", str(vec_upserted))
-    summary_table.add_row("Qdrant", "向量删除", str(vec_deleted))
-    summary_table.add_row("SurrealDB", "节点更新", str(graph_result["entries_upserted"]))
-    summary_table.add_row("SurrealDB", "节点删除", str(graph_result["entries_deleted"]))
-    summary_table.add_row("SurrealDB", "边创建", str(graph_result["edges_created"]))
-    summary_table.add_row("演化追踪", "变更记录", str(diff_count))
-    console.print(summary_table)
+    run_sync_command(full=full, console=console)
 
 
 @cli.command(name="diff")
@@ -973,85 +537,14 @@ def diff_cmd(entry_id: str, limit: int, stats_only: bool) -> None:
 
     ENTRY_ID: 知识条目 ID (如 ke-20260226-xxx)
     """
-    from rich.syntax import Syntax
+    from kg.interfaces.cli.commands.diff import run_diff_command
 
-    from agents.config import load_config
-    from agents.diff_store import DiffStore
-    from agents.graph_store import get_graph_store
-
-    try:
-        config = load_config()
-    except FileNotFoundError as exc:
-        console.print(f"[red]配置错误: {exc}[/]")
-        sys.exit(1)
-
-    try:
-        gs = get_graph_store(config)
-        gs.connect()
-    except Exception as exc:
-        console.print(f"[red]无法连接图数据库: {exc}[/]")
-        console.print("[dim]提示: 请先运行 `kg sync` 构建图数据库。[/]")
-        sys.exit(1)
-
-    try:
-        ds = DiffStore(gs)
-
-        if stats_only:
-            s = ds.get_stats(entry_id)
-            if s["total_changes"] == 0:
-                console.print(f"[yellow]条目 {entry_id} 无变更记录。[/]")
-                return
-
-            console.print(Panel(
-                f"[bold]总变更次数:[/] {s['total_changes']}\n"
-                f"[bold]最近修改:[/] {s['last_modified']}\n"
-                f"[bold]总新增行:[/] [green]+{s['total_additions']}[/]\n"
-                f"[bold]总删除行:[/] [red]-{s['total_deletions']}[/]",
-                title=f"条目演化统计: {entry_id}",
-                border_style="blue",
-            ))
-            return
-
-        history = ds.get_history(entry_id, limit=limit)
-
-        if not history:
-            console.print(f"[yellow]条目 {entry_id} 无变更记录。[/]")
-            console.print("[dim]提示: 变更记录在 `kg sync` 时自动生成。[/]")
-            return
-
-        console.print(Panel(
-            f"[bold]共 {len(history)} 条变更记录[/]",
-            title=f"条目演化历史: {entry_id}",
-            border_style="blue",
-        ))
-
-        type_style = {"created": "green", "modified": "yellow", "deleted": "red"}
-
-        for record in history:
-            change_type = record.get("change_type", "unknown")
-            timestamp = record.get("timestamp", "?")
-            stats = record.get("stats", {})
-            if not isinstance(stats, dict):
-                stats = {}
-            additions = stats.get("additions", 0)
-            deletions = stats.get("deletions", 0)
-            style = type_style.get(change_type, "white")
-
-            header = (
-                f"[{style}]{change_type}[/{style}]  "
-                f"{timestamp}  "
-                f"[green]+{additions}[/] [red]-{deletions}[/]"
-            )
-            console.print(f"\n{header}")
-
-            diff_text = record.get("diff_text", "")
-            if diff_text:
-                console.print(Syntax(diff_text, "diff", theme="monokai", line_numbers=False))
-            elif change_type == "created":
-                console.print("[dim]  (首次创建，无差异对比)[/]")
-
-    finally:
-        gs.close()
+    run_diff_command(
+        entry_id=entry_id,
+        limit=limit,
+        stats_only=stats_only,
+        console=console,
+    )
 
 
 @cli.command()
@@ -1072,131 +565,15 @@ def graph(entry_id: str, depth: int, fmt: str, output: str | None) -> None:
 
     ENTRY_ID: 知识条目 ID (如 ke-20260226-xxx)
     """
-    import json
+    from kg.interfaces.cli.commands.graph import run_graph_command
 
-    from rich.tree import Tree
-
-    from agents.config import load_config
-    from agents.graph_store import get_graph_store
-
-    try:
-        config = load_config()
-    except FileNotFoundError as exc:
-        console.print(f"[red]配置错误: {exc}[/]")
-        sys.exit(1)
-
-    try:
-        gs = get_graph_store(config)
-        gs.connect()
-    except Exception as exc:
-        console.print(f"[red]无法连接图数据库: {exc}[/]")
-        console.print("[dim]提示: 请先运行 `kg sync` 构建图数据库。[/]")
-        sys.exit(1)
-
-    try:
-        entry = gs.get_entry(entry_id)
-        if entry is None:
-            console.print(f"[red]未找到条目: {entry_id}[/]")
-            console.print("[dim]提示: 请先运行 `kg sync` 同步图数据库。[/]")
-            gs.close()
-            sys.exit(1)
-
-        # ── Mermaid / Canvas formats ──
-        if fmt in ("mermaid", "canvas"):
-            from agents.graph_viz import build_graph_data, to_canvas, to_mermaid
-
-            graph_data = build_graph_data(gs, entry_id, depth)
-
-            if fmt == "mermaid":
-                mermaid_str = to_mermaid(graph_data)
-                if output:
-                    Path(output).parent.mkdir(parents=True, exist_ok=True)
-                    Path(output).write_text(mermaid_str)
-                    console.print(f"[green]Mermaid 已写入: {output}[/]")
-                else:
-                    console.print(mermaid_str)
-            else:  # canvas
-                canvas_data = to_canvas(graph_data, config.vault_path)
-                out_path = output or str(
-                    config.vault_path / "graphs" / f"graph-{entry_id}.canvas"
-                )
-                Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-                Path(out_path).write_text(
-                    json.dumps(canvas_data, ensure_ascii=False, indent=2)
-                )
-                console.print(f"[green]Canvas 已写入: {out_path}[/]")
-            return
-
-        # ── Text format (original Rich tree) ──
-        title = entry.get("title", entry_id)
-        console.print(Panel(
-            f"[bold]{title}[/]\n"
-            f"类型: {entry.get('entry_type', '?')}  "
-            f"深度: {entry.get('depth', '?')}  "
-            f"置信度: {entry.get('confidence', 0):.0%}",
-            title=f"条目: {entry_id}",
-            border_style="blue",
-        ))
-
-        # Relations
-        relations = gs.get_relations(entry_id, direction="both")
-
-        if relations:
-            # Group by type and direction
-            tree = Tree(f"[bold cyan]{entry_id}[/] 关系网络")
-
-            outbound = [r for r in relations if r["direction"] == "out"]
-            inbound = [r for r in relations if r["direction"] == "in"]
-
-            if outbound:
-                out_branch = tree.add("[bold green]出边 (→)[/]")
-                for rel in outbound:
-                    out_branch.add(
-                        f"[green]--{rel['rel_type']}-->[/] "
-                        f"[cyan]{rel['target_id']}[/]"
-                    )
-
-            if inbound:
-                in_branch = tree.add("[bold yellow]入边 (←)[/]")
-                for rel in inbound:
-                    in_branch.add(
-                        f"[yellow]<--{rel['rel_type']}--[/] "
-                        f"[cyan]{rel['target_id']}[/]"
-                    )
-
-            console.print(tree)
-        else:
-            console.print("[dim]无关系边。[/]")
-
-        # N-hop neighborhood
-        if depth >= 2:
-            neighborhood = gs.neighborhood(entry_id, depth=depth)
-            nodes = neighborhood.get("nodes", [])
-            if nodes:
-                console.print(f"\n[bold]{depth}-跳邻居 ({len(nodes)} 个节点):[/]")
-                nb_table = Table(show_lines=False)
-                nb_table.add_column("ID", style="cyan", max_width=45)
-                nb_table.add_column("标题", style="white", max_width=35)
-                nb_table.add_column("类型", style="magenta", width=12)
-
-                for node in nodes[:20]:
-                    nid = node.get("id", "")
-                    if isinstance(nid, dict):
-                        nid = str(nid)
-                    if str(nid).startswith("entry:"):
-                        nid = str(nid)[6:].strip("`").strip("⟨").strip("⟩")
-                    nb_table.add_row(
-                        str(nid),
-                        node.get("title", ""),
-                        node.get("entry_type", ""),
-                    )
-
-                console.print(nb_table)
-                if len(nodes) > 20:
-                    console.print(f"[dim]  ... 还有 {len(nodes) - 20} 个节点[/]")
-
-    finally:
-        gs.close()
+    run_graph_command(
+        entry_id=entry_id,
+        depth=depth,
+        fmt=fmt,
+        output=output,
+        console=console,
+    )
 
 
 @cli.command()
@@ -1208,15 +585,9 @@ def backlinks(entry_id: str) -> None:
 
     ENTRY_ID: 知识条目 ID (如 ke-20260315-xxx)
     """
-    from agents.backlinks import find_backlinks, print_backlinks
+    from kg.interfaces.cli.commands.graph import run_backlinks_command
 
-    results = find_backlinks(entry_id)
-    print_backlinks(entry_id, results)
-
-    if results:
-        console.print(
-            f"\n[dim]共 {len(results)} 个条目引用了 {entry_id}。[/]"
-        )
+    run_backlinks_command(entry_id=entry_id, console=console)
 
 
 @cli.command()
@@ -1228,46 +599,9 @@ def serve(port: int, dev: bool) -> None:
     生产模式: uvicorn 直接服务 FastAPI + 静态前端。
     开发模式 (--dev): 后台启动 Vite dev server + uvicorn API。
     """
-    import subprocess
+    from kg.interfaces.cli.commands.serve import run_serve_command
 
-    import uvicorn
-
-    if dev:
-        web_dir = Path(__file__).parent.parent / "web"
-        if not (web_dir / "package.json").exists():
-            console.print(f"[red]前端项目未找到: {web_dir}[/]")
-            console.print("[dim]请先在 web/ 目录下运行 npm install[/]")
-            sys.exit(1)
-
-        console.print("[bold blue]开发模式: 启动 Vite + FastAPI[/]")
-        console.print(f"  Vite dev server: http://localhost:5173")
-        console.print(f"  FastAPI backend: http://localhost:{port}")
-        console.print()
-
-        # Start Vite dev server in background
-        vite_proc = subprocess.Popen(
-            ["npm", "run", "dev"],
-            cwd=str(web_dir),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-
-        try:
-            uvicorn.run("agents.api:app", host="0.0.0.0", port=port, reload=True)
-        finally:
-            vite_proc.terminate()
-            vite_proc.wait()
-    else:
-        static_dir = Path(__file__).parent / "static"
-        if not static_dir.is_dir():
-            console.print("[yellow]提示: 未找到前端构建产物。[/]")
-            console.print("[dim]请先运行 cd web && npm run build[/]")
-            console.print(f"[dim]或使用 --dev 进入开发模式。[/]\n")
-
-        console.print(f"[bold green]Knowledge Graph Web UI[/]")
-        console.print(f"  访问: http://localhost:{port}")
-        console.print()
-        uvicorn.run("agents.api:app", host="0.0.0.0", port=port)
+    run_serve_command(port=port, dev=dev, console=console)
 
 
 @cli.command(name="cross-domain")

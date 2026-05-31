@@ -124,7 +124,7 @@ export default function Sidebar({
             <span className="text-emerald-400 font-medium">连接正常</span>
           </div>
           <div className="flex justify-between items-center text-xs">
-            <span className="text-zinc-400">Qdrant 向量空间</span>
+            <span className="text-zinc-400">Weaviate 向量空间</span>
             <span className="text-emerald-400 font-medium">已就绪</span>
           </div>
         </div>

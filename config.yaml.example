@@ -161,8 +161,8 @@ agent:
   # API 代理配置
   base_url: "https://your-proxy-url.example.com"
   embedding_dim: 3072
-  vector_db: "qdrant"
-  vector_db_path: "./indexes/qdrant"
+  vector_db: "weaviate"
+  vector_db_path: "./indexes/weaviate"
   graph_db: "surrealdb"
   graph_db_path: "./indexes/surrealdb"
   surrealdb:
@@ -170,6 +170,10 @@ agent:
     database: "main"
   confidence_threshold: 0.7
   search_alpha: 0.7   # 向量权重 (0.0=纯BM25, 1.0=纯向量)
+  weaviate_port: 8079
+  weaviate_grpc_port: 50050
+  bm25_b: 0.75
+  bm25_k1: 1.5
 
 # 审查周期
 review:

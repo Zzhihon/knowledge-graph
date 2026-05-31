@@ -22,9 +22,9 @@ from agents.vector_store import VectorStore, get_vector_store
 
 logger = logging.getLogger(__name__)
 
-# Module-level lock — Qdrant local mode only supports one client at a time.
+# Module-level lock — serialize novelty checks across threads.
 # This serializes all novelty checks across threads.
-_qdrant_lock = threading.Lock()
+_store_lock = threading.Lock()
 
 
 @dataclass
@@ -68,9 +68,9 @@ def assess_entries(
     results: list[QualityAssessment] = []
 
     # Open VectorStore once for all novelty checks in this batch.
-    # Uses the module-level lock to prevent Qdrant file contention
+    # Uses the module-level lock to prevent concurrent store access
     # when multiple threads call assess_entries concurrently.
-    with _qdrant_lock:
+    with _store_lock:
         try:
             store = get_vector_store(config)
         except Exception:
@@ -117,7 +117,7 @@ def _compute_novelty(
 ) -> tuple[float, str | None, Path | None]:
     """Measure how novel an entry is relative to existing knowledge.
 
-    Embeds title + key insights, searches Qdrant for the most similar
+    Embeds title + key insights, searches Weaviate for the most similar
     existing entry, and returns ``1 - best_similarity``.
 
     Args:

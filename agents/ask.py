@@ -12,11 +12,14 @@ Features:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Generator
+from typing import TYPE_CHECKING, Any
 
-import anthropic
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    import anthropic
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -136,10 +139,7 @@ def _stream_answer(
 
     sys_prompt = system_prompt or _SYSTEM_PROMPT
 
-    if context:
-        user_content = f"知识库上下文:\n\n{context}\n\n---\n问题: {question}"
-    else:
-        user_content = question
+    user_content = f"知识库上下文:\n\n{context}\n\n---\n问题: {question}" if context else question
 
     messages: list[dict[str, Any]] = [
         {"role": "user", "content": user_content},
@@ -199,10 +199,7 @@ def _stream_answer_sse(
 
     sys_prompt = system_prompt or _SYSTEM_PROMPT
 
-    if context:
-        user_content = f"知识库上下文:\n\n{context}\n\n---\n问题: {question}"
-    else:
-        user_content = question
+    user_content = f"知识库上下文:\n\n{context}\n\n---\n问题: {question}" if context else question
 
     messages: list[dict[str, Any]] = [
         {"role": "user", "content": user_content},
@@ -271,7 +268,7 @@ def _auto_ingest_qa(
         target_dir.mkdir(parents=True, exist_ok=True)
         target_file = target_dir / f"{entry_id}.md"
 
-        now = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         metadata: dict[str, Any] = {
             "id": entry_id,
@@ -371,7 +368,7 @@ def ask(
 
     if not results:
         fb = config.fallback
-        if enable_fallback and fb.enabled:
+        if enable_fallback and fb.enabled is True:
             # Fallback: direct LLM answer + auto-ingest
             console.print(Panel(
                 "[yellow]知识库中未找到相关条目，正在使用 Fallback 直接回答...[/]",
@@ -382,7 +379,11 @@ def ask(
             from agents.api_client import get_fallback_client
             client, model = get_fallback_client(fb.key_index)
 
-            console.print(Panel(f"[bold]{question}[/]", title="问题 (Fallback)", border_style="magenta"))
+            console.print(Panel(
+                f"[bold]{question}[/]",
+                title="问题 (Fallback)",
+                border_style="magenta",
+            ))
             full_text = _stream_answer(
                 question, None, model,
                 client=client,
@@ -463,8 +464,11 @@ def ask_stream(
 
     if not results:
         fb = config.fallback
-        if enable_fallback and fb.enabled:
-            yield {"type": "status", "data": {"message": "知识库无结果，Fallback 直接回答...", "phase": "fallback"}}
+        if enable_fallback and fb.enabled is True:
+            yield {
+                "type": "status",
+                "data": {"message": "知识库无结果，Fallback 直接回答...", "phase": "fallback"},
+            }
 
             from agents.api_client import get_fallback_client
             client, model = get_fallback_client(fb.key_index)

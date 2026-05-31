@@ -55,7 +55,7 @@ export default function DashboardView({ setActiveTab, onPreviewEntry }: Props) {
             <div className="p-2.5 bg-zinc-800/50 rounded-lg text-indigo-400"><Search className="w-5 h-5" /></div>
             <div>
               <h3 className="text-zinc-200 font-medium mb-1">查阅与问答</h3>
-              <p className="text-zinc-500 text-sm mb-2">基于 Qdrant + 图谱的 RAG 增强检索</p>
+              <p className="text-zinc-500 text-sm mb-2">基于 Weaviate + 图谱的 RAG 增强检索</p>
               <span className="text-xs text-zinc-600 font-mono bg-zinc-900 px-1.5 py-0.5 rounded">kg ask / query</span>
             </div>
           </div>

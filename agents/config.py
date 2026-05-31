@@ -81,6 +81,10 @@ class AgentConfig:
     search_alpha: float  # 向量权重 (0.0=纯BM25, 1.0=纯向量)
     api_keys: list[APIKeyConfig] = field(default_factory=list)
     base_url: str = ""
+    weaviate_port: int = 8079
+    weaviate_grpc_port: int = 50050
+    bm25_b: float = 0.75
+    bm25_k1: float = 1.5
 
 
 @dataclass(frozen=True)
@@ -188,14 +192,18 @@ def _parse_agent(raw: dict[str, Any]) -> AgentConfig:
         model=raw.get("model", "claude-sonnet-4-20250514"),
         embedding_model=raw.get("embedding_model", "all-MiniLM-L6-v2"),
         embedding_dim=int(raw.get("embedding_dim", 384)),
-        vector_db=raw.get("vector_db", "qdrant"),
-        vector_db_path=raw.get("vector_db_path", "./indexes/qdrant"),
+        vector_db=raw.get("vector_db", "weaviate"),
+        vector_db_path=raw.get("vector_db_path", "./indexes/weaviate"),
         graph_db=raw.get("graph_db", "surrealdb"),
         graph_db_path=raw.get("graph_db_path", "./indexes/surrealdb"),
         confidence_threshold=float(raw.get("confidence_threshold", 0.7)),
         search_alpha=float(raw.get("search_alpha", 0.7)),
         api_keys=api_keys,
         base_url=raw.get("base_url", ""),
+        weaviate_port=int(raw.get("weaviate_port", 8079)),
+        weaviate_grpc_port=int(raw.get("weaviate_grpc_port", 50050)),
+        bm25_b=float(raw.get("bm25_b", 0.75)),
+        bm25_k1=float(raw.get("bm25_k1", 1.5)),
     )
 
 

@@ -1,6 +1,6 @@
 """Embedding-based pre-filter for RSS documents.
 
-Checks incoming articles against existing knowledge entries in Qdrant
+Checks incoming articles against existing knowledge entries in Weaviate
 using embedding similarity. Articles above the skip threshold are
 considered duplicates and skipped, saving Claude API calls.
 """

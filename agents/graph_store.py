@@ -3,7 +3,7 @@
 Provides graph-native storage and traversal for knowledge entries.
 Entry metadata is stored as nodes; relationships (references,
 prerequisites, supersedes) are stored as typed edges via RELATE.
-Vectors are NOT stored here — Qdrant handles that.
+Vectors are NOT stored here — Weaviate handles that.
 """
 
 from __future__ import annotations
@@ -145,7 +145,7 @@ class GraphStore:
             "entry_type": metadata.get("type", ""),
             "depth": metadata.get("depth", ""),
             "status": metadata.get("status", ""),
-            "confidence": float(metadata.get("confidence", 0.5)),
+            "confidence": float(metadata.get("confidence") or 0.5),
             "file_path": metadata.get("file_path", ""),
             "created": metadata.get("created", ""),
             "updated": metadata.get("updated", ""),
