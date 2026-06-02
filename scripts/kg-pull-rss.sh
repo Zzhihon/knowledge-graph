@@ -9,7 +9,7 @@
 set -euo pipefail
 
 # 配置
-VAULT_DIR="/Users/bt1q/Github-Projects/knowledge-graph"
+VAULT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_DIR="$VAULT_DIR/.kg/logs"
 LOG_FILE="$LOG_DIR/rss-pull-$(date +%Y%m%d).log"
 

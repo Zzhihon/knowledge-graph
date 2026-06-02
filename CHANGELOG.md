@@ -9,7 +9,7 @@
 - **测试骨架** — 从零建立 pytest 测试套件（53 个测试，1s 全量通过）
   - `tests/conftest.py` — 共享 fixtures（tmp_vault、vector_store、graph_store、sample_entry）
   - `tests/test_utils.py` — 8 个测试覆盖 slugify / generate_id / get_entry_dir / compute_content_hash / load_entries
-  - `tests/test_vector_store.py` — 8 个测试覆盖 Qdrant 集合管理、upsert/search、payload scroll、delete
+  - `tests/test_vector_store.py` — 8 个测试覆盖 Weaviate 集合管理、upsert/search、payload scroll、delete
   - `tests/test_graph_store.py` — 12 个测试覆盖 _parse_relations 纯函数、Entry CRUD、关系操作、sync_partial
   - `tests/test_sync_integration.py` — 4 个端到端测试覆盖全量同步、增量无变更/变更检测/删除检测
   - `tests/test_cli.py` — 5 个 CLI 冒烟测试（CliRunner）
@@ -24,7 +24,7 @@
 ### Added
 
 - **增量同步** — `kg sync` 默认只处理新增、修改、删除的条目，跳过未变更条目
-  - 基于 SHA-256 content hash 的变更检测（对比磁盘文件 hash 与 Qdrant payload 中存储的 hash）
+  - 基于 SHA-256 content hash 的变更检测（对比磁盘文件 hash 与 Weaviate payload 中存储的 hash）
   - 首次同步或旧格式索引自动回退全量重建
   - 无变更时输出"所有条目均为最新"并跳过 embed
 - `kg sync --full` flag，强制全量重建（保留原有 drop + recreate 行为）
@@ -61,7 +61,7 @@
 | 1 | 首次 sync（clean indexes） | 全量写入 126 条目 + 406 边 |
 | 2 | 立即再跑 sync | "所有 126 个条目均为最新，无需操作" |
 | 3 | 编辑 1 个 .md → sync | 修改 1，未变 125，只 embed 1 条 |
-| 4 | 删除 1 个 .md → sync | 删除 1（Qdrant + SurrealDB），未变 125 |
+| 4 | 删除 1 个 .md → sync | 删除 1（Weaviate + SurrealDB），未变 125 |
 | 5 | `kg sync --full` | 全量重建 126 条目 |
 | 6 | `kg query` / `kg link` / `kg graph` | 功能正常，不受增量逻辑影响 |
 
@@ -70,7 +70,7 @@
 初始版本。
 
 - `kg ingest` — 从对话/文档提取知识条目
-- `kg sync` — 全量同步 Qdrant + SurrealDB
+- `kg sync` — 全量同步 Weaviate + SurrealDB
 - `kg query` — 语义检索知识库
 - `kg review` — 知识库健康审查
 - `kg stats` — 统计信息

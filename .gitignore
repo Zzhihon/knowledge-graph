@@ -16,9 +16,7 @@ exports/
 *.canvas
 
 # ── Obsidian ──
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
-.obsidian/plugins/*/data.json
+.obsidian/
 .trash/
 
 # ── 索引数据（可重建） ──
@@ -32,6 +30,11 @@ feeds-test.yaml
 
 # ── 脚本日志 ──
 scripts/.*.log
+
+# ── 运行检查点 / 本地报告（可重建） ──
+.integrate_checkpoint.json
+.interview_cleanup_*.json
+benchmarks/results_*.json
 
 # ── Python ──
 __pycache__/
@@ -47,10 +50,13 @@ Thumbs.db
 
 # ── Node / 前端 ──
 node_modules/
+web/tsconfig.tsbuildinfo
+agents/static/
 
 # ── 环境 ──
 .env
 graph-export.json
 graph-viewer.html
+front.tsx
 
 .omx/

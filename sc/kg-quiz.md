@@ -27,12 +27,12 @@ personas: []
 ## Behavioral Flow
 
 1. **Scan Vault Entries**: Use Glob to find all `.md` files across knowledge directories:
-   - `/Users/bt1q/Github-Projects/knowledge-graph/01-Principles/`
-   - `/Users/bt1q/Github-Projects/knowledge-graph/02-Patterns/`
-   - `/Users/bt1q/Github-Projects/knowledge-graph/03-Debug/`
-   - `/Users/bt1q/Github-Projects/knowledge-graph/04-Architecture/`
-   - `/Users/bt1q/Github-Projects/knowledge-graph/05-Research/`
-   - `/Users/bt1q/Github-Projects/knowledge-graph/06-Team/`
+   - `<repo>/01-Principles/`
+   - `<repo>/02-Patterns/`
+   - `<repo>/03-Debug/`
+   - `<repo>/04-Architecture/`
+   - `<repo>/05-Research/`
+   - `<repo>/06-Team/`
    - If `--domain` is specified, use Grep to filter entries where the `domain` frontmatter field matches.
 
 2. **Select Entries for Review**: Read entry frontmatter to identify candidates. Prioritize entries where:
@@ -120,7 +120,7 @@ personas: []
 ```
 
 ## Key Paths
-- Vault root: `/Users/bt1q/Github-Projects/knowledge-graph/`
+- Vault root: `<repo>/`
 - Knowledge dirs: `01-Principles/`, `02-Patterns/`, `03-Debug/`, `04-Architecture/`, `05-Research/`, `06-Team/`
 
 ## Examples

@@ -5,7 +5,7 @@
 ### 1. 安装依赖
 
 ```bash
-cd /Users/bt1q/Github-Projects/knowledge-graph
+cd <repo>
 pip install -e .
 ```
 
@@ -51,10 +51,10 @@ kg pull rss --feeds /path/to/custom-feeds.yaml
 crontab -e
 
 # 添加以下行（每天早上 9 点拉取）
-0 9 * * * /Users/bt1q/Github-Projects/knowledge-graph/scripts/kg-pull-rss.sh
+0 9 * * * <repo>/scripts/kg-pull-rss.sh
 
 # 或者每 6 小时拉取一次
-0 */6 * * * /Users/bt1q/Github-Projects/knowledge-graph/scripts/kg-pull-rss.sh
+0 */6 * * * <repo>/scripts/kg-pull-rss.sh
 ```
 
 查看 cron 日志：
@@ -84,7 +84,7 @@ Claude 提取知识条目 + 质量评估 + 去重
        ↓
 写入 vault (01-05 目录)
        ↓
-kg sync (更新 Qdrant + SurrealDB 索引)
+kg sync (更新 Weaviate + SurrealDB 索引)
 ```
 
 ---
@@ -112,7 +112,7 @@ rss:
 
 ### 去重机制
 
-1. **Source ID 去重**: 每篇文章的 URL 作为 `source_id`，写入 Qdrant payload
+1. **Source ID 去重**: 每篇文章的 URL 作为 `source_id`，写入 Weaviate payload
 2. **质量评估去重**: `ingest_file_with_quality()` 会检测与现有条目的相似度
    - 相似度 < 0.3 → 创建新条目
    - 相似度 >= 0.3 → 合并到现有条目

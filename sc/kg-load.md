@@ -26,16 +26,16 @@ personas: []
    - If empty, prompt the user: "What topic or project should I load context for?"
    - Normalize keywords for search (e.g., "golang gc" -> search for "golang", "gc", "garbage collection")
 
-2. **Semantic Search First (Qdrant + BM25)**: Retrieve knowledge entries through the project search adapter, not by lexical search alone.
+2. **Semantic Search First (Weaviate + BM25)**: Retrieve knowledge entries through the project search adapter, not by lexical search alone.
    - Preferred command:
      ```bash
-     cd /Users/bt1q/Github-Projects/knowledge-graph && python integrations/omx/kg_skill.py load "$ARGUMENTS" --top-k 10
+     cd <repo> && python integrations/omx/kg_skill.py load "$ARGUMENTS" --top-k 10
      ```
    - Equivalent CLI command when JSON is needed:
      ```bash
-     cd /Users/bt1q/Github-Projects/knowledge-graph && kg query "$ARGUMENTS" --top-k 10 --format json
+     cd <repo> && kg query "$ARGUMENTS" --top-k 10 --format json
      ```
-   - This path uses `agents.query.search()`, which performs Qdrant vector search + BM25 keyword search and merges results by hybrid score.
+   - This path uses `agents.query.search()`, which performs Weaviate native hybrid search (BM25 + vector) with project filters.
    - If the command reports that the index is empty or stale, run `kg sync` or ask the user before continuing if sync would be expensive.
    - Keep the returned ranking and scores visible in the briefing so gaps are auditable.
 
@@ -45,21 +45,21 @@ personas: []
    - Deduplicate by entry ID/path before reading.
 
 4. **Lexical Fallback and Supplement**: Use Grep/Glob only after semantic retrieval:
-   - As a fallback if Qdrant/BM25 search fails.
+   - As a fallback if Weaviate/BM25 search fails.
    - As a supplement for exact project names, acronyms, filenames, or identifiers that may not embed well.
    - Search paths:
-     - `/Users/bt1q/Github-Projects/knowledge-graph/01-Principles/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/02-Patterns/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/03-Debug/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/04-Architecture/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/05-Research/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/06-Team/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/08-Problems/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/09-Interview/`
+     - `<repo>/01-Principles/`
+     - `<repo>/02-Patterns/`
+     - `<repo>/03-Debug/`
+     - `<repo>/04-Architecture/`
+     - `<repo>/05-Research/`
+     - `<repo>/06-Team/`
+     - `<repo>/08-Problems/`
+     - `<repo>/09-Interview/`
    - Add lexical-only hits to the context only when they are clearly relevant.
 
 5. **Search Project Tracking (07-Projects/)**: Use Grep and Glob to search project notes:
-   - Search path: `/Users/bt1q/Github-Projects/knowledge-graph/07-Projects/`
+   - Search path: `<repo>/07-Projects/`
    - Look for files matching the topic/project name.
    - Extract: current status, recent decisions, blockers, next steps, open questions.
    - Project notes are not part of the normal vector index, so this step is required even when semantic search succeeds.
@@ -98,7 +98,7 @@ personas: []
 7. **Context Availability**: After presenting the briefing, this context remains available for the rest of the conversation. Reference loaded entries by their IDs or titles in subsequent work.
 
 ## Key Paths
-- Vault root: `/Users/bt1q/Github-Projects/knowledge-graph/`
+- Vault root: `<repo>/`
 - Knowledge dirs: `01-Principles/`, `02-Patterns/`, `03-Debug/`, `04-Architecture/`, `05-Research/`, `06-Team/`
 - Project dir: `07-Projects/`
 
@@ -129,7 +129,7 @@ personas: []
 ## Boundaries
 
 **Will:**
-- Search the vault through semantic hybrid retrieval first (Qdrant vector search + BM25)
+- Search the vault through semantic hybrid retrieval first (Weaviate native hybrid search)
 - Use Grep/Glob as fallback and exact-match supplement, not as the primary ranking mechanism
 - Read and summarize the most relevant entries for immediate context
 - Present project state from 07-Projects/ when available

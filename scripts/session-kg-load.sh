@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Claude Code UserPromptSubmit hook: semantic search + auto-sync if index is stale
 
-VAULT_ROOT="/Users/bt1q/Github-Projects/knowledge-graph"
+VAULT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MARKER_DIR="/tmp/.claude-kg-sessions"
 VENV_PYTHON="${VAULT_ROOT}/.venv/bin/python3"
 WEAVIATE_DIR="${VAULT_ROOT}/indexes/weaviate"

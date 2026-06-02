@@ -1,7 +1,7 @@
 # Knowledge Graph Vault
 
 ## Project Context
-Personal knowledge graph vault (Obsidian). Vault root: `/Users/bt1q/Github-Projects/knowledge-graph/`.
+Personal knowledge graph vault (Obsidian). Vault root: `<repo>/`.
 
 ## Algorithm Study Hook
 

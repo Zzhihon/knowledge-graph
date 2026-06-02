@@ -120,7 +120,7 @@ kg review --domain golang
 crontab -e
 
 # 每天早上 9 点拉取
-0 9 * * * /Users/bt1q/Github-Projects/knowledge-graph/scripts/kg-pull-rss.sh
+0 9 * * * <repo>/scripts/kg-pull-rss.sh
 
 # 查看日志
 tail -f .kg/logs/rss-pull-$(date +%Y%m%d).log

@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +17,6 @@ from agents.file_converter import convert_to_text
 from agents.ingest import ingest_file, ingest_file_with_quality
 from agents.utils import load_entries, slugify
 
-COURSE_SLIDES_DIR = Path("/Users/bt1q/Bt1Q-Self/SCNU/slides")
 COURSE_MODULE_TAG = "module:course-knowledge"
 COURSE_SOURCE_TAG = "source:course"
 COURSE_SOURCE_TYPE_TAG = "source_type:slides"
@@ -51,7 +51,10 @@ class CourseFileResult:
 
 
 def get_course_slides_dir() -> Path:
-    return COURSE_SLIDES_DIR
+    configured = os.environ.get("KG_COURSE_SLIDES_DIR")
+    if configured:
+        return Path(configured).expanduser()
+    return load_config().root_path / "course-slides"
 
 
 def get_course_file_tag(file_path: Path) -> str:
@@ -102,7 +105,7 @@ def save_course_process_result(
         "status": status,
         "error": error,
         "retry_count": retry_count,
-        "updated_at": datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "updated_at": datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -213,7 +216,14 @@ def list_course_entries(
             "tags": tags,
             "created": metadata.get("created", ""),
             "updated": metadata.get("updated", ""),
-            "course_file": next((str(t).split(":", 1)[1] for t in tags if str(t).startswith("course_file:")), ""),
+            "course_file": next(
+                (
+                    str(t).split(":", 1)[1]
+                    for t in tags
+                    if str(t).startswith("course_file:")
+                ),
+                "",
+            ),
             "file_path": str(entry["path"]),
         })
 
@@ -270,7 +280,9 @@ def get_course_stats(config: ProjectConfig | None = None) -> dict[str, Any]:
             confidence_count += 1
 
     persisted_state = load_course_process_state(config)
-    failed_files = [key for key, value in persisted_state.items() if value.get("status") == "failed"]
+    failed_files = [
+        key for key, value in persisted_state.items() if value.get("status") == "failed"
+    ]
 
     return {
         "source_dir": file_index["source_dir"],
@@ -317,7 +329,12 @@ def _run_ingest_once(
         if not text.strip():
             raise ValueError("文件内容为空")
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".md", mode="w", encoding="utf-8") as tmp:
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".md",
+            mode="w",
+            encoding="utf-8",
+        ) as tmp:
             tmp.write(text)
             tmp_path = Path(tmp.name)
 
@@ -459,7 +476,9 @@ def iter_course_processing(
     requested = {item.lower() for item in (course_files or []) if item}
     indexed_files = file_index["files"]
     if requested:
-        indexed_files = [item for item in indexed_files if str(item["course_file"]).lower() in requested]
+        indexed_files = [
+            item for item in indexed_files if str(item["course_file"]).lower() in requested
+        ]
     files = [Path(item["file_path"]) for item in indexed_files]
     worker_count = max(1, min(workers, MAX_WORKERS))
 
