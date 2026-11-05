@@ -8,6 +8,7 @@ This file applies to the repository root and everything beneath it.
 - For direct questions about previously captured local knowledge, prefer **`kg-ask`** over generic answering when a grounded local answer is useful.
 - For knowledge capture, use **`kg-capture`** only to create a **proposal-only** draft from stable conclusions.
 - Do **not** write new knowledge entries or trigger ingest/integrate automatically unless the user explicitly asks for that behavior.
+- The one standing exception is the automatic capture pipeline the owner set up (`docs/auto-capture.md`): runs dispatched by agent-autoloop with the `kg-distill` or `kg-daily` skill write entries, project pages and daily briefs following `docs/knowledge-schema.md`. Interactive sessions stay proposal-only.
 
 ## Integration direction
 

@@ -590,6 +590,44 @@ def backlinks(entry_id: str) -> None:
     run_backlinks_command(entry_id=entry_id, console=console)
 
 
+@cli.group()
+def capture() -> None:
+    """自动沉淀：增量读取 Claude Code / Codex 会话，按预算切成待整理批次。"""
+
+
+@capture.command(name="scan")
+@click.option("--dry-run", is_flag=True, help="只预览这一批会读哪些会话，不写入、不移动进度")
+@click.option("--autoloop", is_flag=True, help="按 agent-autoloop 回执格式输出，发出 capture.ready 事件")
+def capture_scan(dry_run: bool, autoloop: bool) -> None:
+    """读下一批会话（白名单目录、额度上限、断点续读见 .kg/capture/config.yaml）。"""
+    from kg.interfaces.cli.commands.capture import run_capture_scan_command
+
+    run_capture_scan_command(dry_run=dry_run, autoloop=autoloop, console=console)
+
+
+@capture.command(name="status")
+def capture_status() -> None:
+    """查看已记录的会话进度和待整理的批次。"""
+    from kg.interfaces.cli.commands.capture import run_capture_status_command
+
+    run_capture_status_command(console=console)
+
+
+@cli.group()
+def brief() -> None:
+    """每日日报。"""
+
+
+@brief.command(name="collect")
+@click.option("--autoloop", is_flag=True, help="按 agent-autoloop 回执格式输出，发出 brief.ready 事件")
+@click.option("--no-fetch", is_flag=True, help="不请求 AIHOT")
+def brief_collect(autoloop: bool, no_fetch: bool) -> None:
+    """收集写日报要用的资料（不调用模型）。"""
+    from kg.interfaces.cli.commands.capture import run_brief_collect_command
+
+    run_brief_collect_command(autoloop=autoloop, no_fetch=no_fetch, console=console)
+
+
 @cli.command()
 @click.option("--port", type=int, default=8765, help="API 服务器端口 (默认: 8765)")
 @click.option("--dev", is_flag=True, help="同时启动 Vite 开发服务器")

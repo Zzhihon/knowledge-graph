@@ -23,9 +23,15 @@ _TYPE_DIR_MAP: dict[str, str] = {
     "architecture": "04-Architecture",
     "research": "05-Research",
     "team": "06-Team",
+    "project": "07-Projects",
     "problem": "08-Problems",
     "interview": "09-Interview",
+    "experience": "10-Experience",
+    "experiment": "11-Experiments",
 }
+
+# Every vault folder that holds entries, in display order.
+VAULT_ENTRY_DIRS: list[str] = sorted(set(_TYPE_DIR_MAP.values()))
 
 
 def compute_content_hash(file_path: Path) -> str:
@@ -91,8 +97,8 @@ def get_entry_dir(entry_type: str) -> str:
     """Map an entry type key to its vault directory name.
 
     Args:
-        entry_type: One of 'principle', 'pattern', 'debug',
-                    'architecture', 'research', 'team', 'problem'.
+        entry_type: One of the keys of _TYPE_DIR_MAP, e.g. 'principle',
+                    'debug', 'project', 'experience', 'experiment'.
 
     Returns:
         The directory name such as '01-Principles'.
@@ -115,7 +121,7 @@ def load_entries(
 ) -> list[dict[str, Any]]:
     """Load all knowledge entries from the vault directories.
 
-    Scans 01-06 directories under base_path for .md files, parses
+    Scans every entry folder (VAULT_ENTRY_DIRS) under base_path for .md files, parses
     YAML frontmatter, and returns structured dicts.
 
     Args:
@@ -128,18 +134,7 @@ def load_entries(
         'content' (body text), and 'path' (file Path).
     """
     entries: list[dict[str, Any]] = []
-    target_dirs = [
-        "01-Principles",
-        "02-Patterns",
-        "03-Debug",
-        "04-Architecture",
-        "05-Research",
-        "06-Team",
-        "08-Problems",
-        "09-Interview",
-    ]
-
-    for dir_name in target_dirs:
+    for dir_name in VAULT_ENTRY_DIRS:
         dir_path = base_path / dir_name
         if not dir_path.is_dir():
             continue

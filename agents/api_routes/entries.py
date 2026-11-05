@@ -9,13 +9,11 @@ from typing import Any
 import frontmatter
 from fastapi import APIRouter, HTTPException
 
+from agents.utils import VAULT_ENTRY_DIRS
+
 router = APIRouter(tags=["entries"])
 
-_DIRS = [
-    "01-Principles", "02-Patterns", "03-Debug",
-    "04-Architecture", "05-Research", "06-Team", "07-Projects",
-    "08-Problems", "09-Interview",
-]
+_DIRS = VAULT_ENTRY_DIRS
 
 # Matches the date-based prefix shared by IDs and filenames, e.g.
 # "iq-20260406-hfq-07" from "iq-20260406-hfq-07-workflow-engine-details"

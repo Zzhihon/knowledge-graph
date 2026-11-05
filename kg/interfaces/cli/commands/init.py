@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from rich.panel import Panel
 from rich.table import Table
 
+from agents.utils import VAULT_ENTRY_DIRS
 from kg.infrastructure.config.loader import load_config
 
 if TYPE_CHECKING:
@@ -27,14 +28,8 @@ def run_init_command(*, console: Console) -> None:
 
     required_dirs = [
         "00-Index",
-        "01-Principles",
-        "02-Patterns",
-        "03-Debug",
-        "04-Architecture",
-        "05-Research",
-        "06-Team",
-        "07-Projects",
-        "08-Problems",
+        "00-Index/Daily",
+        *VAULT_ENTRY_DIRS,
         "agents",
         "Assets",
         "Templates",
