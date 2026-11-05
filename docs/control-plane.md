@@ -224,3 +224,32 @@ kg plane status                       # 每个采集器的资源数、各状态�
 - 纯净度（每小时 + 出口 IP 变化时）写在 `egress:<线路>:purity`：IP 画像、DNS 泄漏、直连泄漏抽样、时区 / 语言提示；出口 IP 24 小时稳定性由接口从探测 signal 计算。每项带 `checked_at`。
 - 旧探测记录：`kg plane egress import <file.ndjson> [--db 路径] [--line 名字]`，导入后逐条跑状态库规则，并和整段回放比对，不一致时退出码 1。
 - 接口：`GET /api/plane/egress?hours=24[&now=Unix秒]`。看板"出口"页（`web/src/views/EgressView.tsx`）。
+
+## 进行中看板：`sessions` 采集器
+
+`kg plane collect sessions` 回答"现在有哪些项目在推进、最新的会话做到哪一步、哪里在等我"。代码在 `kg/plane/collectors/sessions.py`，判断都是 `kg/plane/progress.py` 里的纯函数。
+
+```
+.kg/capture/config.yaml 的 allow / deny ─┐
+Claude / Codex 会话文件 ─▶ session_reader（按 mtime / 大小增量读，缓存 .kg/plane/sessions-cursor.json）
+orca worktree ps / project list --json ─┤
+git status / log / remote ──────────────┼─▶ judge_project ─▶ project:<名字>、session:<来源>:<id>
+GitHub 汇总快照（只读文件）──────────────┤
+07-Projects/proj-*.md 的 Current State ─┘
+```
+
+- **会话**：和夜间沉淀用同一套解析和跳过规则（子 agent、无头运行、导入副本、agent-autoloop 派的活），另外跳过 `codex exec` 和不在白名单里的目录。每个文件记读到的字节位置、大小和 mtime；文件没变就不打开，变长了只读新增的完整行，变短了从头读。文本先脱敏（链接、`kg eval mine` 的密钥规则、`token:` 后面的值、IPv4）再截断，缓存里也只有脱敏后的内容。只聊了一句"hi"、没有回复的会话不展示。
+- **会话状态**：`waiting`（Agent 最后一步在问你，或者挂着 AskUserQuestion 这类提问工具）、`working`（10 分钟内文件有变化）、`done`（停在一条普通回复上）、`interrupted`（停在你的话或工具调用上）。怎么算"在问你"见 `question_reason`，每条都写明依据。
+- **项目阶段**，按顺序判断：等你（3 天内有会话在等你）→ 活跃（有会话在写，或 1 小时内有会话、提交、Orca 终端输出）→ 停滞（3 天没动，但有未提交改动或未合并 PR）→ 已收尾（没有未提交改动和未合并 PR）→ 歇着（其余）。信号状态：活跃 `up`，等你、停滞 `degraded`，歇着、已收尾 `asleep`。
+- **规则 `project.stalled`**：项目停滞时开一条 info 事故，不再停滞就关，`--autoloop` 会发 `plane.incident.*` 事件。
+- **Orca** 读不到时 `orca` 记 `null`（未知），不报错；不在白名单里的工作区只计数，不写进状态库。
+- **未合并 PR** 只读 `sessions.github_snapshot` 指向的快照里本人的 PR，按 GitHub 仓库对到项目；快照没覆盖的仓库记 `null`。几个本地仓库指向同一个 GitHub 仓库时，PR 算在和仓库同名的项目上。
+
+接口（`agents/api_routes/sessions.py`）：
+
+| 端点 | 参数 | 返回 |
+|---|---|---|
+| `GET /api/plane/projects` | | 项目列表（等你、活跃、停滞、歇着、已收尾的顺序），`attention.waiting`（3 天内在等你的会话）、`attention.stalled`，`collected_at`、`stale`（超过两个周期没采集） |
+| `GET /api/plane/sessions` | `project`、`state`、`limit` | 最近 7 天的会话，新的在前；每条带 `resume` 恢复命令 |
+
+"在等你"的判断要用真实会话人工抽查：`python -m kg.plane.waiting_review export` 抽 20 个（一半判成在等、一半判成不在等）写到 `.kg/plane/waiting-review.jsonl`（不进 git），逐行把 `human` 填成 true / false，再 `python -m kg.plane.waiting_review score` 看一致率。`--days 30 --exclude <上一轮文件>` 用来抽一轮没见过的会话。
