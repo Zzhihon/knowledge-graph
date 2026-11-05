@@ -6,13 +6,13 @@ the availability and the error budget left. All functions are pure: the rule fra
 state store calls them on the recent window and diffs the result with what is already open.
 
 Rules
-- `egress.outage` (severity medium): at least `min_failures` consecutive failed probes whose
+- `egress.outage` (severity warning): at least `min_failures` consecutive failed probes whose
   covered time (first to last probe, plus one interval) reaches `min_down_s`. With a 1-minute
   probe that is 3 failures = 3 minutes; with the 5-minute legacy probe it is 2 failures = 10
   minutes, the soonest a 5-minute probe can tell a real outage from one bad request. Opening is
   decided only on an on-schedule failure, so a wake-up failure alone never opens one. Closed by
   the first successful probe; `asleep` / `unknown` probes neither extend nor close it.
-- `egress.identity` (severity high): opened on the very first probe whose exit does not match
+- `egress.identity` (severity critical): opened on the very first probe whose exit does not match
   the expectation, closed by the first probe whose exit matches again.
 """
 
@@ -44,7 +44,7 @@ class Incident:
     key: str  # stable across re-evaluations: <rule>:<line>:<started_at>
     rule: str
     line: str
-    severity: str  # high | medium
+    severity: str  # critical | warning (kg.plane.store.SEVERITIES)
     started_at: int  # first failed probe
     opened_at: int  # when the rule decided (the probe that met the threshold)
     closed_at: int | None
@@ -128,7 +128,7 @@ def outage_incidents(
                 key=f"{OUTAGE}:{line}:{open_['started_at']}",
                 rule=OUTAGE,
                 line=line,
-                severity="medium",
+                severity="warning",
                 started_at=open_["started_at"],
                 opened_at=open_["opened_at"],
                 closed_at=at,
@@ -177,7 +177,7 @@ def identity_incidents(
                 key=f"{IDENTITY}:{line}:{first}",
                 rule=IDENTITY,
                 line=line,
-                severity="high",
+                severity="critical",
                 started_at=first,
                 opened_at=first,
                 closed_at=at,

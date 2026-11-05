@@ -652,6 +652,48 @@ def eval_run(retriever: str) -> None:
     run_eval_run_command(retriever=retriever, console=console)
 
 
+@cli.group()
+def plane() -> None:
+    """本地管控面：采集器写状态库，异常规则开关事故（不调用模型）。"""
+
+
+@plane.command(name="collect")
+@click.argument("name")
+@click.option("--dry-run", is_flag=True, help="完整跑一遍再回滚：看会开关哪些事故，不写入")
+@click.option("--autoloop", is_flag=True, help="按 agent-autoloop 回执格式输出，事故开关时发出 plane.incident.* 事件")
+def plane_collect(name: str, dry_run: bool, autoloop: bool) -> None:
+    """运行一个采集器（如 services），写进 .kg/plane/state.db。"""
+    from kg.interfaces.cli.commands.plane import run_plane_collect_command
+
+    run_plane_collect_command(name=name, dry_run=dry_run, autoloop=autoloop, console=console)
+
+
+@plane.command(name="status")
+def plane_status() -> None:
+    """查看状态库：各采集器的资源和状态、未关闭的事故。"""
+    from kg.interfaces.cli.commands.plane import run_plane_status_command
+
+    run_plane_status_command(console=console)
+
+
+@plane.group(name="egress")
+def plane_egress() -> None:
+    """代理出口探活。"""
+
+
+@plane_egress.command(name="replay")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--expect", multiple=True, help="期望出口 IP（只放本地），可重复")
+@click.option("--pmset-log", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--interval", type=int, help="探测周期（秒），默认按记录推断")
+def plane_egress_replay(path: Path, expect: tuple[str, ...], pmset_log: Path | None, interval: int | None) -> None:
+    """回放探测记录，打印事故和可用性。"""
+    from kg.interfaces.cli.commands.egress import run_egress_replay_command
+
+    run_egress_replay_command(path=path, expect=tuple(expect), pmset_log=pmset_log,
+                              interval=interval, console=console)
+
+
 @cli.command()
 @click.option("--port", type=int, default=8765, help="API 服务器端口 (默认: 8765)")
 @click.option("--dev", is_flag=True, help="同时启动 Vite 开发服务器")

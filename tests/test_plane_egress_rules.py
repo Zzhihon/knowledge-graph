@@ -166,7 +166,7 @@ def test_exit_mismatch_alerts_within_one_minute() -> None:
     obs += [_up(BASE + 300 + i * 60, "exit-b") for i in range(3)]
     obs += [_up(BASE + 480, "exit-a")]
     (inc,) = replay(obs, expected_ips=["exit-a"]).incidents
-    assert inc.rule == IDENTITY and inc.severity == "high"
+    assert inc.rule == IDENTITY and inc.severity == "critical"
     changed_at = BASE + 300
     assert inc.opened_at - changed_at <= 60
     assert inc.closed_at == BASE + 480
