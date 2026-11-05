@@ -90,11 +90,40 @@ class EgressCollector:
 - `Collection.scopes` 写本轮**完整看过**的 id 前缀。某个数据源读失败时，不要把它的前缀写进去，再在 `notes` 里写原因。这样这部分资源不会被误记 `gone_at`。不写 `scopes`（`None`）表示这个采集器的全部资源都看过了。
 - 需要本地配置时，读 `<vault>/.kg/plane/config.yaml`，在仓库根目录的 `plane.yaml.example` 补模板。仓库是公开的，代码和模板里不写主机名、IP、账号、端口号、凭据。
 
-示例采集器 `services`（`kg/plane/collectors/services.py`）读 `launchctl list` 和 `lsof -nP -iTCP -sTCP:LISTEN -F pcn`：
+采集器 `services`（`kg/plane/collectors/services.py`，#3）只读本机：`launchctl list`、每个已加载任务的 `launchctl print gui/<uid>/<label>`（`runs` 启动次数、plist 路径）、`~/Library/LaunchAgents/*.plist`、`ps -axo pid=,ppid=,etime=`（启动时间、父进程）、`lsof -nP -iTCP -sTCP:LISTEN`，以及本人登记 `<vault>/.kg/plane/services.yaml`（模板 `services.yaml.example`）。
 
-- launchd 任务的 id 是 `service:launchd:<label>`。有 PID 记 `up`。没有 PID、上次退出码为 0 记 `asleep`（按需或定时任务的间隙）。上次被 SIGTERM / SIGKILL 结束的记 `unknown`（用户退出、注销、内存回收，单靠 `launchctl list` 判断不了该不该在跑）。其他情况记 `down`。
-- 监听端口的 id 是 `service:port:<端口>`，列出来就记 `up`。不再监听时记 `gone_at`。`attrs.exposed` 表示是否监听在回环地址以外。
-- 默认忽略 `com.apple.` 和 `application.`（应用实例，每次启动 label 都变）开头的 label。额外的前缀写在 `config.yaml` 的 `services.ignore_prefixes`。
+- launchd 任务的 id 是 `service:launchd:<label>`：已加载的、`~/Library/LaunchAgents` 里没加载的、登记了但哪里都找不到的，都各记一个。
+- 任务按 plist 分三种：`keepalive`（`KeepAlive` 为 true，必须常驻）、`scheduled`（`StartInterval` / `StartCalendarInterval`）、`ondemand`（其余，包括 `KeepAlive` 是条件字典的）。
+
+  | 情况 | 状态 |
+  |---|---|
+  | 有 PID | `up`；登记的端口不在、或健康检查失败时 `degraded` |
+  | 没 PID，上次被 SIGTERM / SIGKILL 结束 | `unknown`（用户退出、注销、内存回收，判断不了） |
+  | 没 PID，`keepalive` | `down`，退出码是 0 也算 |
+  | 没 PID，`scheduled` / `ondemand`，上次退出码 0 | `asleep` |
+  | 没 PID，`scheduled` / `ondemand`，上次退出码非 0 | `down`（定时任务上次跑失败） |
+  | 登记了但没加载 | `down` |
+  | 没登记、只有 plist、没加载 | `unknown` |
+
+- 监听端口的 id 是 `service:port:<端口>`。顺着父进程找到所属的 launchd 任务，记在 `attrs.owner`。没登记的端口不再监听时记 `gone_at`；登记成 `port:<n>` 的端口不在时照样上报，记 `down`。`attrs.exposed` 表示监听在回环地址以外。
+- 分组 `mine`（本人的）/ `tool`（工具的）/ `system`（系统的）：登记里写的 `group` 优先，其次 `groups` 里的 label 前缀；都没有时 `~/Library/LaunchAgents` 里的算 `tool`，其他算 `system`。端口跟所属任务同组；不属于任何任务、进程名是 node / python 之类的算 `mine`（`attrs.inferred`，多半是自己起的开发服务）。
+- 只有 `mine` 默认告警，登记里的 `alert` 可以单独打开或关掉。信号的 `detail.alert` 为 false 时所有规则都判"应该关"，所以关掉告警也会关掉它已经开着的事故。
+- 健康检查：登记了 `health` 的，每轮用 `curl --noproxy '*'` 打一次，只打 `127.0.0.1` / `[::1]`，记状态码和延迟（`value`，单位 ms）。2xx / 3xx 算健康，`expect` 里列的状态码也算（例如要钥匙的接口回 401）。
+- 默认忽略 `com.apple.` 和 `application.`（应用实例，每次启动 label 都变）开头的 label。额外的前缀写在 `services.yaml` 的 `ignore.labels`（`config.yaml` 的 `services.ignore_prefixes` 仍然有效）。登记过的 label 不受忽略前缀影响。
+
+服务的异常规则（都在 `services.py` 里，合成序列测试在 `tests/test_plane_services.py`）：
+
+| 规则 | 开 | 关 |
+|---|---|---|
+| `service.down` | 连续 2 次 `down`。`keepalive` 和端口是 critical，定时 / 按需任务是 warning | 一次 `up` 或 `degraded` |
+| `service.port_missing` | 进程在，登记的端口连续 2 次不在 | 端口回来 |
+| `service.health` | 进程在，健康检查连续 2 次失败 | 一次成功 |
+| `service.flapping` | `keepalive` 任务 10 分钟内退出 ≥ 3 次（按 `runs` 的增量，没有时按 PID 变化），"反复重启" | 最近 10 分钟（至少 5 分钟的读数）没再退出 |
+| `service.exposed` | `mine` 的端口监听在回环以外，且不在 `ignore.exposed` 里，安全提醒 | 改回只听本机，或加进忽略 |
+
+资源消失（`gone_at`）后不会再有信号，`run_collector` 会把它未关闭的事故一并关掉，`evidence.closed.reason` 记 `gone`。
+
+日志末尾：`GET /api/plane/services/{id}/log?lines=20` 只读这个任务 plist 里登记的 `StandardOutPath` / `StandardErrorPath`，每行先过 `kg/plane/redact.py`（基于 `kg/eval/retrieval.py` 的 `_SECRETISH`）再返回；只接受 Host 是本机的请求。
 
 ## 加一条异常规则
 
@@ -180,5 +209,7 @@ kg plane status                       # 每个采集器的资源数、各状态�
 | `GET /api/plane/resources/{id}` | | 单个资源；不存在时返回 404 |
 | `GET /api/plane/signals` | `resource`（必填）、`since`（默认 24 小时前）、`until`、`limit`（默认 2000） | 按时间从旧到新；条数超过 `limit` 时只返回最新的 `limit` 条 |
 | `GET /api/plane/incidents` | `open=1`、`resource`、`limit` | 按开的时间从新到旧 |
+| `GET /api/plane/services` | | 本地服务页用：`groups.mine/tool/system`，组内有事故的、状态更坏的排前面；端口挂在所属任务下面（`ports`），每项带未关闭事故、最近一次重启（`last_restart`）、健康检查 |
+| `GET /api/plane/services/{id}/log` | `lines`（默认 20，最多 200） | 日志末尾，已脱敏；路径只来自 plist（`agents/api_routes/services.py`） |
 
 还没有状态库时，所有列表都返回空，不会创建库文件。状态库路径由 `plane_db_path` 依赖提供，测试用 `app.dependency_overrides` 换成临时文件。

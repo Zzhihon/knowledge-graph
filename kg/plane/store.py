@@ -141,7 +141,9 @@ def connect(path: Path | str) -> sqlite3.Connection:
     memory = str(path) == ":memory:"
     if not memory:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(path), isolation_level=None, timeout=10)
+    # check_same_thread=False: FastAPI may open a request's connection in one worker thread and
+    # close it in another. A connection is still only ever used by one request at a time.
+    conn = sqlite3.connect(str(path), isolation_level=None, timeout=10, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA busy_timeout = 10000")
     if not memory:
