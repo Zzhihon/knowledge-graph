@@ -31,6 +31,7 @@ def test_questions_skip_secrets_links_and_instructions() -> None:
         "为什么副本顶满了负载却不高？\n"
         "deepseek: sk-abcdefghijklmnop1234 这个怎么配？\n"
         "文档在 https://example.com/x 吗\n"
+        "sudo 密码是 hunter2，你记一下怎么用\n"
         "继续\n"
         "帮我看一下为什么挂了"
     )

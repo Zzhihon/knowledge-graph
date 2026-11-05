@@ -32,7 +32,7 @@ _QUESTION = re.compile(
 _SECRETISH = re.compile(
     r"sk-[A-Za-z0-9_-]{12,}|ark-[0-9a-f-]{16,}|AKIA[0-9A-Z]{12,}|gh[pousr]_[A-Za-z0-9]{20,}|"
     r"xox[abp]-|eyJ[A-Za-z0-9_-]{16,}|\b[A-Fa-f0-9]{32,}\b|\b[A-Za-z0-9+/_-]{40,}\b|https?://|"
-    r"(?i:api[_ -]?key|secret|token|password|密钥)\s*[:：=]"
+    r"(?i:api[_ -]?key|secret|token|password|passwd|密钥|密码|口令)\s*(?:[:：=]|是|为)"
 )
 _NOT_QUESTION = re.compile(
     r"^(继续|好的|可以|执行|开始|嗯|ok|yes|no|对|是的|不用|行|帮我|请帮|你帮|给我|把|改|修|跑|运行|提交|commit|/)",
