@@ -1,0 +1,8 @@
+{
+  "_说明": "kg-web 的自动化页（/api/hub）怎么找到本机的 agent-autoloop。复制到 .kg/hub.json 再改；不写的项用默认值。环境变量 KG_HUB_CONFIG / KG_HUB_RULES / KG_HUB_CLI / KG_HUB_AUDIT 优先于这个文件。",
+  "config_file": "~/.agent-autoloop/config.json",
+  "rules_file": "~/.agent-autoloop/rules.json",
+  "cli": ["agent-autoloop"],
+  "audit_file": ".kg/plane/hub-audit.jsonl",
+  "timeout": 15
+}
