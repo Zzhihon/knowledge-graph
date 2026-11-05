@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "synced_at": "2026-11-06T09:00:00+08:00",
+  "items": [
+    {
+      "url": "https://claude.ai/artifact/00000000-0000-4000-8000-000000000000",
+      "title": "示例：迁移方案",
+      "updated_at": "2026-11-05T21:30:00+08:00",
+      "scope": "mine",
+      "visibility": "private",
+      "file": null,
+      "project": null,
+      "session": null
+    }
+  ]
+}
