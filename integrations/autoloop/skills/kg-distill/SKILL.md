@@ -41,6 +41,13 @@ description: 把 kg capture 读好的一批 Claude Code / Codex 会话摘录，�
    - Current State 整节换成最新状态；当天的进展合并进 `### YYYY-MM-DD` 小节（日期按会话时间，北京时间）；决策加进 Architecture Decisions 表；新沉淀的条目链接加到 Key Knowledge Refs。
 3. **每条都要有出处。** `source.type: agent-session`，`source.sessions` 写 `<source>:<会话编号前 8 位>`，正文关键结论后可以注明（会话 claude:7f3a9c1e，11-04）。会话里没验证过的写进正文时标明"未验证"，`confidence` 不高于 0.6。
 4. 双链用 `[[条目 id]]`，`related` 用列表，不写 `related_topics`。
+5. **该画图就画一张。** 条目讲的是一条链路、一串因果或几个组件怎么连，就在正文开头的结论后面放一张 mermaid 图（```mermaid 代码块，Obsidian 和面板都会画成图）：
+   - 排障：`flowchart LR` 画"现象 → 中间原因 → 根因 → 修法"，根因节点用 `:::root`、修法用 `:::fix` 标出来（文末写 `classDef root stroke-width:2px` 之类即可，颜色不用写死）。
+   - 架构 / 发布链：`flowchart` 画组件和数据流向，节点 8 个以内。
+   - 项目页的 Current State：有多条并行线时可以画一张 `flowchart` 或 `timeline`。
+   - 只有一两句话的结论、或者纯列表的经验，不画。一条最多一张图，节点文字用中文、每个不超过 12 字。
+
+   图用 mermaid 写，不要手写 SVG。
 
 ## 什么时候问本人
 
