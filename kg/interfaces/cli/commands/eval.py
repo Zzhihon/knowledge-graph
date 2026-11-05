@@ -10,11 +10,13 @@ from typing import TYPE_CHECKING
 
 from kg.capture.scan import TZ, load_capture_config
 from kg.eval.retrieval import (
+    LOCAL_RETRIEVERS,
     RETRIEVERS,
     bm25_retriever,
     current_retriever,
     eval_dir,
     load_cases,
+    local_retriever,
     mine,
     score,
 )
@@ -43,7 +45,12 @@ def run_eval_mine_command(*, days: int, limit: int, console: Console) -> None:
     )
 
 
-def run_eval_run_command(*, retriever: str, console: Console) -> None:
+def run_eval_run_command(*, retriever: str, console: Console, tag: str = "") -> None:
+    """Score one retriever (or "all") and write `report-<time>-<name>[-<tag>].json`.
+
+    An index that cannot be opened (missing, stale, model not cached) is reported as every
+    case erroring, with the reason, rather than aborting the run.
+    """
     vault = load_config().vault_path
     path = eval_dir(vault) / "retrieval.jsonl"
     if not path.exists():
@@ -56,6 +63,11 @@ def run_eval_run_command(*, retriever: str, console: Console) -> None:
         closer = None
         if name == "bm25":
             run, closer = bm25_retriever()
+        elif name in LOCAL_RETRIEVERS:
+            try:
+                run, closer = local_retriever(name)
+            except Exception as exc:  # the reason shows up once per case in the report
+                run = _failing(exc)
         else:
             run = current_retriever()
         try:
@@ -63,13 +75,21 @@ def run_eval_run_command(*, retriever: str, console: Console) -> None:
         finally:
             if closer:
                 closer()
-        report = eval_dir(vault) / f"report-{stamp}-{name}.json"
+        suffix = f"-{tag}" if tag else ""
+        report = eval_dir(vault) / f"report-{stamp}-{name}{suffix}.json"
         report.write_text(
             json.dumps(asdict(result), ensure_ascii=False, indent=1), encoding="utf-8"
         )
         console.print(
-            f"{name:8s} 题数 {result.cases}  hit@1 {result.hit1:.2f}  "
+            f"{name + suffix:14s} 题数 {result.cases}  hit@1 {result.hit1:.2f}  "
             f"recall@5 {result.recall5:.2f}  "
             f"recall@10 {result.recall10:.2f}  MRR@10 {result.mrr10:.2f}  出错 {result.errors}  "
             f"{result.seconds}s  → {report.name}"
         )
+
+
+def _failing(exc: Exception):  # type: ignore[no-untyped-def]
+    def run(q: str, k: int) -> list[str]:
+        raise exc
+
+    return run
