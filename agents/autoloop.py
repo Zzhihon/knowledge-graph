@@ -6,11 +6,14 @@ this module is scrubbed of it in case the hub ever echoes it back.
 
 Rules are edited as a file: each write is checked with `agent-autoloop check` first, backed up to
 `rules.json.bak-<time>`, then swapped in atomically; the hub picks the new file up by itself.
-The check runs with a throwaway AGENT_AUTOLOOP_HOME, because importing the hub's runtime (which
-`check` does) records the rules it reads into that home's log: run against the real home, a check
-of a candidate file would apply it to the running hub.
+A CLI whose help lists `check [文件]` checks the candidate file directly and touches no hub. An
+older one can only check its own RULES_FILE and, by importing the hub's runtime, records the rules
+it reads into that home's log; it runs with a throwaway AGENT_AUTOLOOP_HOME, or a check of a
+candidate would apply it to the running hub.
 
-Pausing and running a rule now have no implementation yet; see RuleControl.
+Pausing, resuming and running a rule now go through the hub's owner API (HubControl): they are
+facts in the hub's log, and rules.json is not touched. A hub too old to have that API answers 404
+"没有这个地址", which becomes ControlUnsupportedError instead of a server error.
 """
 
 from __future__ import annotations
@@ -26,6 +29,7 @@ import subprocess
 import tempfile
 import threading
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -178,25 +182,55 @@ class Checker(Protocol):
     def __call__(self, text: str) -> list[str]: ...
 
 
+# What the help of a CLI that can check any file says; older ones print `check   检查 rules.json`.
+_CHECKS_A_FILE = re.compile(r"agent-autoloop check \[")
+
+
 @dataclass
 class CliChecker:
-    """`agent-autoloop check` on a candidate file, in a throwaway home (see module docstring)."""
+    """`agent-autoloop check` on a candidate file (see module docstring for the two ways)."""
 
     cli: tuple[str, ...]
     timeout: float = 30.0
+    _direct: bool | None = field(default=None, repr=False)
+
+    def _env(self) -> dict[str, str]:
+        return {k: v for k, v in os.environ.items() if not k.startswith("AGENT_AUTOLOOP_")}
+
+    def checks_a_file(self) -> bool:
+        """Whether this CLI takes `check <file>`: asked once, from its help, which is harmless."""
+        if self._direct is None:
+            try:
+                done = subprocess.run(
+                    [*self.cli, "help"],
+                    env=self._env(),
+                    capture_output=True,
+                    text=True,
+                    timeout=self.timeout,
+                    check=False,
+                )
+                self._direct = bool(_CHECKS_A_FILE.search(done.stdout or ""))
+            except (OSError, subprocess.TimeoutExpired):
+                # Not found or stuck: the check below says so in its own words.
+                return False
+        return self._direct
 
     def __call__(self, text: str) -> list[str]:
+        direct = self.checks_a_file()
         with tempfile.TemporaryDirectory(prefix="kg-rules-check-") as tmp:
             candidate = Path(tmp) / "rules.json"
             candidate.write_text(text, encoding="utf-8")
-            env = {k: v for k, v in os.environ.items() if not k.startswith("AGENT_AUTOLOOP_")}
-            env |= {
-                "AGENT_AUTOLOOP_HOME": str(Path(tmp) / "home"),
-                "AGENT_AUTOLOOP_RULES": str(candidate),
-            }
+            env = self._env()
+            argv = [*self.cli, "check", str(candidate)]
+            if not direct:
+                env |= {
+                    "AGENT_AUTOLOOP_HOME": str(Path(tmp) / "home"),
+                    "AGENT_AUTOLOOP_RULES": str(candidate),
+                }
+                argv = [*self.cli, "check"]
             try:
                 done = subprocess.run(
-                    [*self.cli, "check"],
+                    argv,
                     env=env,
                     cwd=tmp,
                     capture_output=True,
@@ -220,6 +254,7 @@ class CliChecker:
         if re.search(r"^\s+at .+:\d+:\d+\)?$", out, re.M):
             raise CheckUnavailableError("校验程序出错了：" + (lines[0] if lines else "")[:300])
         lines = [ln for ln in lines if not ln.startswith("rules.json 有问题")]
+        lines = [ln.replace(str(candidate), "候选文件") for ln in lines]
         return lines or [f"校验没通过（退出码 {done.returncode}）"]
 
 
@@ -433,36 +468,81 @@ class RulesStore:
 # ── Pause / resume / run now ────────────────────────────────────────────────────────────────────
 
 
+class ControlUnsupportedError(Exception):
+    """The hub has no rule-control API: it is older than agent-autoloop's pause / resume / run."""
+
+
+UPGRADE = (
+    "中台版本不支持暂停 / 恢复 / 立即运行，需要升级 agent-autoloop"
+    "（agent-autoloop update 后重启中台）"
+)
+
+
 class RuleControl(Protocol):
-    """What pausing and running a rule now need, whichever way #8 decides to do them.
+    """Pause, resume and run now, for one rule or for every rule that requires a capability."""
 
-    `paused()` maps rule name → {"since": iso time, "by": who, "reason": text}.
-    """
-
-    available: bool
-
-    def paused(self) -> dict[str, dict[str, Any]]: ...
-    def pause(self, rule: str, reason: str = "") -> dict[str, Any]: ...
+    def pause(self, rule: str, reason: str = "", until: str | None = None) -> dict[str, Any]: ...
     def resume(self, rule: str) -> dict[str, Any]: ...
-    def run_now(self, rule: str) -> dict[str, Any]: ...
+    def run_now(self, rule: str, reason: str = "", subject: str = "") -> dict[str, Any]: ...
+    def pause_requires(
+        self, capability: str, reason: str = "", until: str | None = None
+    ) -> dict[str, Any]: ...
+    def resume_requires(self, capability: str) -> dict[str, Any]: ...
 
 
-class UndecidedControl:
-    """The placeholder until the owner picks an approach: everything says so instead of guessing."""
+def control_summary(state: dict[str, Any]) -> dict[str, Any]:
+    """What the page needs to know from /v1/state: whether control works, and rule → its pauses."""
+    if "pauses" not in state:
+        return {"available": False, "reason": UPGRADE, "paused": {}}
+    paused = {
+        line["name"]: line["paused"]
+        for line in state.get("lines") or []
+        if isinstance(line, dict) and line.get("paused")
+    }
+    return {"available": True, "reason": None, "paused": paused}
 
-    available = False
-    reason = (
-        "暂停 / 恢复 / 立即运行还没选定做法（上游加接口，还是 kg 侧暂停文件 + 孪生规则），见 #8"
-    )
 
-    def paused(self) -> dict[str, dict[str, Any]]:
-        return {}
+@dataclass
+class HubControl:
+    """Rule control through the hub's owner API, with the owner key kept in HubClient."""
 
-    def pause(self, rule: str, reason: str = "") -> dict[str, Any]:
-        raise NotImplementedError(self.reason)
+    client: HubClient
+
+    def _post(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
+        try:
+            return self.client.call("POST", path, body)
+        except HubError as exc:
+            # The hub's own 404 for an address it lacks; an unknown rule is a 404 in other words.
+            if exc.status == 404 and exc.message == "没有这个地址":
+                raise ControlUnsupportedError(UPGRADE) from None
+            raise
+
+    @staticmethod
+    def _seg(name: str) -> str:
+        return urllib.parse.quote(name, safe="")
+
+    @staticmethod
+    def _pause_body(reason: str, until: str | None) -> dict[str, Any]:
+        body: dict[str, Any] = {"reason": reason} if reason else {}
+        if until:
+            body["until"] = until
+        return body
+
+    def pause(self, rule: str, reason: str = "", until: str | None = None) -> dict[str, Any]:
+        return self._post(f"/v1/rules/{self._seg(rule)}/pause", self._pause_body(reason, until))
 
     def resume(self, rule: str) -> dict[str, Any]:
-        raise NotImplementedError(self.reason)
+        return self._post(f"/v1/rules/{self._seg(rule)}/resume", {})
 
-    def run_now(self, rule: str) -> dict[str, Any]:
-        raise NotImplementedError(self.reason)
+    def run_now(self, rule: str, reason: str = "", subject: str = "") -> dict[str, Any]:
+        body = {k: v for k, v in (("reason", reason), ("subject", subject)) if v}
+        return self._post(f"/v1/rules/{self._seg(rule)}/run", body)
+
+    def pause_requires(
+        self, capability: str, reason: str = "", until: str | None = None
+    ) -> dict[str, Any]:
+        path = f"/v1/requires/{self._seg(capability)}/pause"
+        return self._post(path, self._pause_body(reason, until))
+
+    def resume_requires(self, capability: str) -> dict[str, Any]:
+        return self._post(f"/v1/requires/{self._seg(capability)}/resume", {})
