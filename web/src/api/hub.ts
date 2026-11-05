@@ -42,6 +42,8 @@ export interface HubRun {
   session: string | null
   usage: Usage | null
   stopping: boolean
+  /** The owner asked for this run (hub with rule control). */
+  manual?: boolean
   events: RunEvent[]
 }
 
@@ -55,11 +57,17 @@ export interface HubLine {
   every: string | null
   next: string | null
   totals: Tally
+  /** Hub with rule control only: capabilities the rule requires, the pauses holding it, the last skipped time. */
+  requires?: string[]
+  paused?: Pause[]
+  skippedAt?: string | null
 }
 
 export interface Presence { id: string; name: string; seenAt: string | null; online: boolean }
 export interface HubAgent extends Presence { use: string; worker: string; totals: Tally }
-export interface Paused { since?: string; by?: string; reason?: string }
+/** One pause in the hub's log: of the rule itself, or of a capability it requires. */
+export interface Pause { kind: 'rule' | 'requires'; name: string; by: string; reason: string; since: string; until: string | null }
+export interface SkippedEvent { id: number; source: string; type: string; subject: string; summary: string; receivedAt: string; rules: string[] }
 
 export interface HubState {
   now: string
@@ -77,10 +85,13 @@ export interface HubState {
   hasMore: boolean
   nextBefore: number | null
   unrouted: unknown
+  /** Hub with rule control only: every pause in force, with the rules it holds, and events skipped while paused. */
+  pauses?: (Pause & { rules: string[] })[]
+  skipped?: SkippedEvent[]
   /** Added by kg-web: rule name → cron, read from rules.json. */
   schedules: Record<string, string>
-  /** Added by kg-web: whether pause / run now work yet, and what is paused. */
-  control: { available: boolean; paused: Record<string, Paused> }
+  /** Added by kg-web: whether the hub has rule control (reason says why not), and rule name → its pauses. */
+  control: { available: boolean; reason: string | null; paused: Record<string, Pause[]> }
 }
 
 export interface Fact { version?: number; seq: number; at: number; type: string; changes?: unknown[]; [k: string]: unknown }
@@ -96,6 +107,7 @@ export type Rule = {
   parallel?: number
   tell?: 'always' | 'needed' | 'never'
   emits?: { source: string; types: string[] }
+  requires?: string[]
   [k: string]: unknown
 }
 export interface RulesFile {
@@ -163,6 +175,9 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
   return data as T
 }
 
+export type ControlAction = 'pause' | 'resume' | 'run'
+export interface ControlOptions { scope?: 'rule' | 'requires'; reason?: string; until?: string; subject?: string }
+
 export const hub = {
   state: (before?: number) => call<HubState>('GET', before ? `/hub/state?before=${before}` : '/hub/state'),
   why: (run: number) => call<Fact[]>('GET', `/hub/runs/${run}/why`),
@@ -177,8 +192,8 @@ export const hub = {
     call<WriteResult>('POST', '/hub/rules/save', { original, rule, version }),
   saveText: (text: string, version: string) => call<WriteResult>('PUT', '/hub/rules/text', { text, version }),
   rollback: (version: string, backup?: string) => call<WriteResult>('POST', '/hub/rules/rollback', { version, backup }),
-  control: (name: string, action: 'pause' | 'resume' | 'run', reason = '') =>
-    call<unknown>('POST', '/hub/rules/control', { name, action, reason }),
+  control: (name: string, action: ControlAction, opts: ControlOptions = {}) =>
+    call<Record<string, unknown>>('POST', '/hub/rules/control', { name, action, ...opts }),
 }
 
 export interface EvalItem {

@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { History, Pause, Pencil, Play, Plus, RotateCcw } from 'lucide-react'
-import { hub, HubApiError, type AuditEntry, type Fact, type HubRun, type HubState, type Rule, type RulesDoc, type WriteResult } from '../api/hub'
 import {
-  EVENT, FACT, ago, cronInfo, dur, hm, money, namesOf, sameDay, stateInk, stateTone, tr, until, useHubState, when, STATE,
+  hub, HubApiError, type AuditEntry, type ControlAction, type ControlOptions, type Fact, type HubLine, type HubRun, type HubState,
+  type Pause as HubPause, type Rule, type RulesDoc, type WriteResult,
+} from '../api/hub'
+import {
+  BY, EVENT, FACT, ago, cronInfo, dur, hm, money, namesOf, sameDay, stateInk, stateTone, tr, until, useHubState, when, STATE,
 } from '../lib/hub'
-import { Drawer, KV, Live, Problem, Section, btn } from '../components/k/HubBits'
+import { Drawer, KV, Live, Problem, Section, btn, field } from '../components/k/HubBits'
 import RuleEditor from '../components/k/RuleEditor'
 import { Empty } from './DailyView'
 
@@ -19,6 +22,84 @@ const trigger = (s: HubState, name: string, types: string[], source: string) => 
 
 function Pill({ state }: { state: string }) {
   return <span className="k-chip" style={stateTone(state)}>{tr(STATE, state)}</span>
+}
+
+type OnControl = (name: string, action: ControlAction, opts?: ControlOptions) => void
+const pausesOf = (l: HubLine) => l.paused ?? []
+/** 你 · 今天 14:05 起 · 到 今天 18:00：单独暂停 / 能力 egress */
+const pauseWords = (p: HubPause) =>
+  [p.kind === 'rule' ? '单独暂停' : `能力 ${p.name} 暂停`, p.reason, `${tr(BY, p.by)} ${when(p.since)} 起`, p.until ? `到 ${when(p.until)}` : '']
+    .filter(Boolean).join(' · ')
+
+function PausedChip({ pauses }: { pauses: HubPause[] }) {
+  if (!pauses.length) return null
+  return <span className="k-chip shrink-0" style={stateTone('queued')} title={pauses.map(pauseWords).join('\n')}>已暂停</span>
+}
+
+const SPANS = [['', '一直到恢复'], ['1h', '1 小时'], ['4h', '4 小时'], ['today', '到今天结束']] as const
+function untilOf(span: string) {
+  if (!span) return undefined
+  if (span === 'today') { const d = new Date(); d.setHours(23, 59, 0, 0); return d.toISOString() }
+  return new Date(Date.now() + Number(span.slice(0, -1)) * 3600_000).toISOString()
+}
+
+/** Asks why and for how long before a pause: the reason is what the next reader of the page sees. */
+function PauseForm({ what, busy, onConfirm, onCancel }: {
+  what: string; busy: boolean; onConfirm: (opts: ControlOptions) => void; onCancel: () => void
+}) {
+  const [reason, setReason] = useState('')
+  const [span, setSpan] = useState('')
+  return (
+    <form className="mt-2 flex flex-wrap items-center gap-2 rounded-tile border border-k-line bg-k-sunk px-3 py-2.5"
+      onSubmit={(e) => { e.preventDefault(); onConfirm({ reason: reason.trim(), until: untilOf(span) }) }}>
+      <span className="text-[13px] text-k-ink3">暂停{what}：</span>
+      <input className={`${field} min-w-[160px] flex-1 py-1.5`} autoFocus maxLength={500} value={reason}
+        onChange={(e) => setReason(e.target.value)} placeholder="原因（会显示给看这页的人）" aria-label="暂停原因" />
+      <select className={`${field} w-auto py-1.5`} value={span} onChange={(e) => setSpan(e.target.value)} aria-label="暂停多久">
+        {SPANS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+      </select>
+      <button className={btn} type="submit" disabled={busy}><Pause className="h-3.5 w-3.5" />确认暂停</button>
+      <button className="px-1 text-[13px] text-k-ink4 hover:text-k-ink" type="button" onClick={onCancel}>取消</button>
+    </form>
+  )
+}
+
+/** Every capability some rule requires, paused or not, with a switch for all of its rules at once. */
+function Capabilities({ s, onControl, busy }: { s: HubState; onControl: OnControl; busy: string }) {
+  const [asking, setAsking] = useState('')
+  const caps = [...new Set(s.lines.flatMap((l) => l.requires ?? []))].sort()
+  if (!caps.length) {
+    return <p className="text-[13px] text-k-ink4">还没有规则写 requires。给依赖同一能力（比如连外网）的规则写上 <code className="k-mono">"requires": ["egress"]</code>，出问题时就能在这里一起暂停。</p>
+  }
+  return (
+    <div className="k-card divide-y divide-k-line-soft">
+      {caps.map((cap) => {
+        const pause = s.pauses?.find((p) => p.kind === 'requires' && p.name === cap)
+        const rules = s.lines.filter((l) => l.requires?.includes(cap)).map((l) => l.name)
+        const key = `requires:${cap}`
+        return (
+          <div key={cap} className="px-5 py-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <span className="k-mono text-[14px] font-medium text-k-ink">{cap}</span>
+              {pause ? <span className="k-chip" style={stateTone('queued')}>已暂停</span> : <span className="k-chip" style={stateTone('done')}>正常</span>}
+              <span className="min-w-0 truncate text-[12.5px] text-k-ink4">{rules.length} 条规则：{rules.join('、')}</span>
+              <span className="ml-auto flex gap-1.5">
+                {pause
+                  ? <button className={btn} disabled={busy === key} onClick={() => onControl(cap, 'resume', { scope: 'requires' })}><Play className="h-3.5 w-3.5" />恢复这项能力</button>
+                  : <button className={btn} disabled={busy === key || !s.control.available} onClick={() => setAsking(cap)}><Pause className="h-3.5 w-3.5" />一起暂停</button>}
+              </span>
+            </div>
+            {pause && <div className="mt-1 text-[12.5px] text-k-amber-ink">{pauseWords(pause)}</div>}
+            {asking === cap && !pause && (
+              <PauseForm what={`写了 ${cap} 的 ${rules.length} 条规则`} busy={busy === key}
+                onCancel={() => setAsking('')}
+                onConfirm={(opts) => { setAsking(''); onControl(cap, 'pause', { ...opts, scope: 'requires' }) }} />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 /** One lane per rule across today: the planned times as ticks, each run as a dot coloured by its outcome. */
@@ -36,13 +117,12 @@ function DayChart({ s, onRun }: { s: HubState; onRun: (id: number) => void }) {
         </div>
         {s.lines.map((l) => {
           const cron = s.schedules[l.name] ? cronInfo(s.schedules[l.name]) : null
-          const paused = s.control.paused[l.name]
           return (
             <div key={l.id} className="contents">
               <div className="min-w-0 pt-3 sm:py-2">
                 <div className="flex items-center gap-2 truncate text-[14px] font-medium text-k-ink">
                   <span className="truncate">{l.name}</span>
-                  {paused && <span className="k-chip" style={stateTone('queued')}>已暂停</span>}
+                  <PausedChip pauses={pausesOf(l)} />
                 </div>
                 <div className="truncate text-[12px] text-k-ink4">{trigger(s, l.name, l.types, l.source)}</div>
               </div>
@@ -76,12 +156,13 @@ function DayChart({ s, onRun }: { s: HubState; onRun: (id: number) => void }) {
 }
 
 function RulesList({ s, doc, onEdit, onControl, busy }: {
-  s: HubState; doc: RulesDoc | null; onEdit: (r: Rule) => void
-  onControl: (name: string, action: 'pause' | 'resume' | 'run') => void; busy: string
+  s: HubState; doc: RulesDoc | null; onEdit: (r: Rule) => void; onControl: OnControl; busy: string
 }) {
+  const [asking, setAsking] = useState('')
   const latest = (name: string) => s.runs.find((r) => r.rule === name)
   const ruleNamed = (name: string) => doc?.data?.rules.find((r) => r.name === name)
   const ready = s.control.available
+  const why = ready ? undefined : s.control.reason ?? undefined
   return (
     <div className="k-card divide-y divide-k-line-soft">
       <div className="hidden grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.3fr)_80px_340px] gap-4 px-5 py-2.5 text-[12.5px] text-k-ink4 lg:grid">
@@ -89,9 +170,11 @@ function RulesList({ s, doc, onEdit, onControl, busy }: {
       </div>
       {s.lines.map((l) => {
         const run = latest(l.name)
-        const paused = s.control.paused[l.name]
+        const pauses = pausesOf(l)
+        const own = pauses.find((p) => p.kind === 'rule')
         const rule = ruleNamed(l.name)
         const scheduled = !!s.schedules[l.name]
+        const requires = l.requires ?? rule?.requires ?? []
         return (
           <div key={l.id} className="grid grid-cols-1 gap-x-4 gap-y-1.5 px-5 py-3 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.3fr)_80px_340px] lg:items-center">
             <div className="min-w-0">
@@ -100,13 +183,21 @@ function RulesList({ s, doc, onEdit, onControl, busy }: {
                 <span className="k-chip plain shrink-0" style={scheduled ? undefined : { ['--c' as string]: 'var(--k-violet)', ['--cs' as string]: 'var(--k-violet-soft)' }}>
                   {scheduled ? '定时' : '事件'}
                 </span>
-                {paused && <span className="k-chip shrink-0" style={stateTone('queued')}>已暂停</span>}
+                <PausedChip pauses={pauses} />
               </div>
               <div className="truncate text-[12.5px] text-k-ink4">{trigger(s, l.name, l.types, l.source)} · {l.agent}</div>
+              {requires.length > 0 && (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {requires.map((c) => <span key={c} className="k-chip plain k-mono text-[11.5px]" title="这条规则依赖的能力（requires）">需要 {c}</span>)}
+                </div>
+              )}
+              {pauses.map((p) => <div key={`${p.kind}:${p.name}`} className="mt-1 text-[12.5px] text-k-amber-ink">{pauseWords(p)}</div>)}
             </div>
             <div className="text-[13.5px] text-k-ink2">
               <span className="text-k-ink4 lg:hidden">下次：</span>
-              {l.next ? <>{when(l.next)} <span className="text-k-ink4">（{until(l.next)}）</span></> : <span className="text-k-ink4">等事件</span>}
+              {pauses.length && l.next ? <span className="text-k-ink4">暂停中，到点跳过</span>
+                : l.next ? <>{when(l.next)} <span className="text-k-ink4">（{until(l.next)}）</span></>
+                  : <span className="text-k-ink4">{pauses.length ? '暂停中，事件不接' : '等事件'}</span>}
             </div>
             <div className="flex min-w-0 items-center gap-2 text-[13.5px]">
               <span className="text-k-ink4 lg:hidden">最近：</span>
@@ -117,17 +208,20 @@ function RulesList({ s, doc, onEdit, onControl, busy }: {
               <button className={btn} disabled={!rule} onClick={() => rule && onEdit(rule)} title={rule ? undefined : 'rules.json 里没找到这条'}>
                 <Pencil className="h-3.5 w-3.5" />编辑
               </button>
-              <button className={btn} disabled={busy === l.name} onClick={() => onControl(l.name, paused ? 'resume' : 'pause')}
-                title={ready ? undefined : '做法待定（#8），现在点了会显示原因'}>
-                <Pause className="h-3.5 w-3.5" />{paused ? '恢复' : '暂停'}{!ready && <sup className="text-[10px] text-k-ink4">待定</sup>}
+              {own
+                ? <button className={btn} disabled={busy === l.name} onClick={() => onControl(l.name, 'resume')} title="恢复后不补跑暂停期间错过的时间"><Play className="h-3.5 w-3.5" />恢复</button>
+                : <button className={btn} disabled={busy === l.name || !ready} onClick={() => setAsking(l.name)} title={why}><Pause className="h-3.5 w-3.5" />暂停</button>}
+              <button className={btn} disabled={busy === l.name || !ready || pauses.length > 0} onClick={() => onControl(l.name, 'run')}
+                title={why ?? (pauses.length ? '暂停中的规则不能立即运行，先恢复' : scheduled ? '现在跑一轮，照常排队' : '用一条手动事件跑一轮')}>
+                <Play className="h-3.5 w-3.5" />立即运行
               </button>
-              {scheduled && (
-                <button className={btn} disabled={busy === l.name} onClick={() => onControl(l.name, 'run')}
-                  title={ready ? undefined : '做法待定（#8），现在点了会显示原因'}>
-                  <Play className="h-3.5 w-3.5" />立即运行{!ready && <sup className="text-[10px] text-k-ink4">待定</sup>}
-                </button>
-              )}
             </div>
+            {asking === l.name && !own && (
+              <div className="lg:col-span-5">
+                <PauseForm what={`「${l.name}」`} busy={busy === l.name} onCancel={() => setAsking('')}
+                  onConfirm={(opts) => { setAsking(''); onControl(l.name, 'pause', opts) }} />
+              </div>
+            )}
           </div>
         )
       })}
@@ -145,7 +239,10 @@ function RunsList({ runs, onRun }: { runs: HubRun[]; onRun: (id: number) => void
           <button key={r.id} onClick={() => onRun(r.id)} className="grid w-full grid-cols-[40px_minmax(0,1fr)_auto] items-start gap-3 px-4 py-3 text-left hover:bg-k-sunk sm:px-5">
             <span className="k-mono pt-0.5 text-[12.5px] text-k-ink4">#{r.id}</span>
             <span className="min-w-0">
-              <span className="block truncate text-[14.5px] font-medium text-k-ink">{r.rule}</span>
+              <span className="flex items-center gap-2">
+                <span className="truncate text-[14.5px] font-medium text-k-ink">{r.rule}</span>
+                {r.manual && <span className="k-chip plain shrink-0 text-[11.5px]" title="本人点了立即运行">手动</span>}
+              </span>
               <span className={`line-clamp-2 text-[13px] ${r.error ? 'text-k-hot' : 'text-k-ink3'}`}>{text}</span>
             </span>
             <span className="flex flex-col items-end gap-1">
@@ -176,7 +273,7 @@ function RunDrawer({ id, s, onClose }: { id: number; s: HubState; onClose: () =>
       {r && (
         <>
           <KV rows={[
-            ['状态', <Pill state={r.state} />],
+            ['状态', <span className="inline-flex items-center gap-2"><Pill state={r.state} />{r.manual && <span className="k-chip plain">手动触发</span>}</span>],
             ['谁做的', names[r.agent] ?? r.agent],
             ['时间', <span className="k-num">{when(r.createdAt)}{r.finishedAt && ` → ${when(r.finishedAt)}（${dur(r.claimedAt, r.finishedAt)}）`}</span>],
             ['花费', r.usage?.cost ? money(r.usage.cost) : null],
@@ -305,11 +402,18 @@ export default function RulesRunsView() {
     loadDoc()
     setTimeout(refresh, 1500)
   }
-  const control = async (name: string, action: 'pause' | 'resume' | 'run') => {
-    setBusy(name)
+  const control: OnControl = async (name, action, opts = {}) => {
+    const cap = opts.scope === 'requires'
+    setBusy(cap ? `requires:${name}` : name)
     try {
-      await hub.control(name, action)
-      setNotice({ ok: true, text: action === 'run' ? `已触发「${name}」` : `已${action === 'pause' ? '暂停' : '恢复'}「${name}」` })
+      const r = await hub.control(name, action, opts)
+      const what = cap ? `能力 ${name}` : `「${name}」`
+      const still = (r.stillPaused as string[] | undefined)?.length ? `；还停着（单独暂停的）：${(r.stillPaused as string[]).join('、')}` : ''
+      const held = !cap && action === 'resume' && (r.paused as HubPause[] | undefined)?.length ? '；它还被能力暂停着' : ''
+      const text = action === 'run' ? `已排上「${name}」第 ${r.run} 轮（手动）`
+        : action === 'pause' ? `已暂停${what}${cap ? `（${(r.rules as string[]).join('、')}）` : ''}`
+          : `已恢复${what}，错过的不补跑${still}${held}`
+      setNotice({ ok: true, text })
       refresh()
     } catch (e) {
       const err = e instanceof HubApiError ? e : new HubApiError(0, String(e))
@@ -345,6 +449,10 @@ export default function RulesRunsView() {
         <DayChart s={s} onRun={setRun} />
       </Section>
 
+      {!s.control.available && s.control.reason && (
+        <div className="mt-5 rounded-tile border border-k-line px-4 py-2.5 text-[13.5px] text-k-ink3">{s.control.reason}</div>
+      )}
+
       <Section title="全部规则" aside={
         <span className="flex flex-wrap gap-2">
           <button className={btn} disabled={!doc?.data} onClick={() => setEditing({ rule: null })}><Plus className="h-3.5 w-3.5" />新建规则</button>
@@ -355,6 +463,13 @@ export default function RulesRunsView() {
         <RulesList s={s} doc={doc} onEdit={(rule) => setEditing({ rule })} onControl={control} busy={busy} />
         {s.elsewhere.length > 0 && (
           <p className="mt-2 text-[12.5px] text-k-ink4">别处定时跑的：{s.elsewhere.map((e) => `${e.name}（${e.where}，${e.every}）`).join('；')}</p>
+        )}
+      </Section>
+
+      <Section title="按能力暂停" aside="暂停一项能力，写了它的规则一起停；和单条暂停分开算，恢复能力不会恢复单独暂停的规则">
+        <Capabilities s={s} onControl={control} busy={busy} />
+        {!!s.skipped?.length && (
+          <p className="mt-2 text-[12.5px] text-k-ink4">暂停期间没接的事件（最近）：{s.skipped.slice(0, 5).map((e) => `${when(e.receivedAt)} ${tr(EVENT, e.type)} → ${e.rules.join('、')}`).join('；')}</p>
         )}
       </Section>
 
