@@ -628,6 +628,30 @@ def brief_collect(autoloop: bool, no_fetch: bool) -> None:
     run_brief_collect_command(autoloop=autoloop, no_fetch=no_fetch, console=console)
 
 
+@cli.group(name="eval")
+def eval_group() -> None:
+    """检索评测：从会话挖候选问题，按标注的评测集给检索打分。"""
+
+
+@eval_group.command(name="mine")
+@click.option("--days", type=int, default=60, show_default=True, help="只看最近 N 天的会话")
+@click.option("--limit", type=int, default=400, show_default=True, help="最多挖多少个候选问题")
+def eval_mine(days: int, limit: int) -> None:
+    """从白名单里的会话挖出像问题的用户发言，写到 .kg/eval/candidates.jsonl。"""
+    from kg.interfaces.cli.commands.eval import run_eval_mine_command
+
+    run_eval_mine_command(days=days, limit=limit, console=console)
+
+
+@eval_group.command(name="run")
+@click.option("--retriever", type=click.Choice(["current", "bm25", "all"]), default="all", show_default=True)
+def eval_run(retriever: str) -> None:
+    """按 .kg/eval/retrieval.jsonl 给检索打分：hit@1、recall@5/10、MRR@10。"""
+    from kg.interfaces.cli.commands.eval import run_eval_run_command
+
+    run_eval_run_command(retriever=retriever, console=console)
+
+
 @cli.command()
 @click.option("--port", type=int, default=8765, help="API 服务器端口 (默认: 8765)")
 @click.option("--dev", is_flag=True, help="同时启动 Vite 开发服务器")
