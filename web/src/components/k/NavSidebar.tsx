@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import {
   Zap, List, LayoutGrid, FlaskConical, Search, Share2, Boxes, GitMerge, LayoutDashboard, AlertTriangle, Rss,
   Play, Library, Briefcase, GraduationCap, Moon, Monitor, Sun, Plus, Trash2, MessageSquare,
+  Inbox, Workflow, ClipboardCheck,
 } from 'lucide-react'
 import type { ConversationListItem } from '../../types'
 import type { ThemeChoice } from '../../lib/theme'
@@ -13,6 +14,11 @@ const GROUPS: [string, Item[]][] = [
     { id: 'library', label: '知识库', icon: List },
     { id: 'projects', label: '项目', icon: LayoutGrid },
     { id: 'lab', label: '实验', icon: FlaskConical },
+    { id: 'eval', label: '评测', icon: ClipboardCheck },
+  ]],
+  ['自动化', [
+    { id: 'hub', label: '中台', icon: Inbox },
+    { id: 'rules', label: '规则与运行', icon: Workflow },
   ]],
   ['工具', [
     { id: 'ask', label: '探索与问答', icon: Search },

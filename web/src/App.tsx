@@ -3,6 +3,9 @@ import NavSidebar from './components/k/NavSidebar'
 import ReaderSheet from './components/k/ReaderSheet'
 import DailyView from './views/DailyView'
 import LibraryView from './views/LibraryView'
+import HubView from './views/HubView'
+import RulesRunsView from './views/RulesRunsView'
+import EvalLabelView from './views/EvalLabelView'
 import { ReaderContext, fetchOverview, type LibraryOverview } from './lib/library'
 import { useTheme } from './lib/theme'
 import Header from './components/Header'
@@ -31,7 +34,7 @@ import { get, post, del } from './api/client'
 import type { SyncResult, ConversationListItem, ExamPaper } from './types'
 
 // Reading pages use the AIHOT-derived design (styles/aihot.css); the older tool pages keep their dark shell.
-const READING_TABS = new Set(['daily', 'library', 'projects', 'lab'])
+const READING_TABS = new Set(['daily', 'library', 'projects', 'lab', 'hub', 'rules', 'eval'])
 
 export default function App() {
   // #library, #projects … opens that page; #read=<path> also opens an entry, so views can be bookmarked.
@@ -161,11 +164,14 @@ export default function App() {
 
       {READING_TABS.has(activeTab) ? (
         <main className="min-w-0 flex-1 overflow-y-auto">
-          <div className="px-10 pb-10 pt-8">
+          <div className="px-4 pb-10 pt-6 sm:px-10 sm:pt-8">
             {activeTab === 'daily' && <DailyView dailies={overview.dailies} />}
             {activeTab === 'library' && <LibraryView title="知识库" counts={overview.counts} />}
             {activeTab === 'projects' && <LibraryView title="项目" board="07-Projects" counts={overview.counts} />}
             {activeTab === 'lab' && <LibraryView title="实验" board="11-Experiments" counts={overview.counts} />}
+            {activeTab === 'hub' && <HubView onNavigate={setActiveTab} />}
+            {activeTab === 'rules' && <RulesRunsView />}
+            {activeTab === 'eval' && <EvalLabelView />}
           </div>
         </main>
       ) : (
