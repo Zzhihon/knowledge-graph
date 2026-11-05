@@ -10,9 +10,9 @@ interface Props {
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  easy: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-  medium: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-  hard: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+  easy: 'text-k-ok bg-k-ok/10 border-k-ok/20',
+  medium: 'text-k-amber-ink bg-k-amber/10 border-k-amber/20',
+  hard: 'text-k-hot bg-k-hot/10 border-k-hot/20',
 }
 
 export default function ProblemBankView({ onPreviewEntry, onStartExam, setActiveTab }: Props) {
@@ -84,7 +84,7 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
 
       // Simple toast notification (you can replace with a proper toast library)
       const toast = document.createElement('div')
-      toast.className = 'fixed top-4 right-4 px-4 py-3 bg-emerald-600 text-white rounded-lg shadow-lg z-50 animate-fade-in'
+      toast.className = 'fixed top-4 right-4 px-4 py-3 bg-k-ok text-white rounded-lg shadow-lg z-50 animate-fade-in'
       toast.textContent = message
       document.body.appendChild(toast)
       setTimeout(() => toast.remove(), 3000)
@@ -93,7 +93,7 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
     } catch (error) {
       // Show error notification
       const toast = document.createElement('div')
-      toast.className = 'fixed top-4 right-4 px-4 py-3 bg-rose-600 text-white rounded-lg shadow-lg z-50 animate-fade-in'
+      toast.className = 'fixed top-4 right-4 px-4 py-3 bg-k-hot text-white rounded-lg shadow-lg z-50 animate-fade-in'
       toast.textContent = `❌ 生成失败：${error instanceof Error ? error.message : '未知错误'}`
       document.body.appendChild(toast)
       setTimeout(() => toast.remove(), 4000)
@@ -125,7 +125,7 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
   if (loading && !stats) {
     return (
       <div className="h-[60vh] flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-k-ink4" />
       </div>
     )
   }
@@ -135,18 +135,18 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-violet-500/10 text-violet-400 rounded-lg">
+          <div className="p-2 bg-k-violet/10 text-k-violet rounded-lg">
             <Library className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-zinc-100">面试题库</h1>
-            <p className="text-sm text-zinc-500">管理算法模式与面试题目</p>
+            <h1 className="text-xl font-semibold text-k-ink">面试题库</h1>
+            <p className="text-sm text-k-ink4">管理算法模式与面试题目</p>
           </div>
         </div>
         <button
           onClick={handleGenerateExam}
           disabled={examLoading || !stats || stats.total_problems === 0}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-k-accent hover:bg-k-accent disabled:opacity-50 text-k-accent-contrast rounded-lg text-sm font-medium transition-colors"
         >
           {examLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
           模拟面试
@@ -168,17 +168,17 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
 
       {/* Pattern Coverage Grid */}
       <div>
-        <h2 className="text-sm font-medium text-zinc-400 mb-3">模式覆盖</h2>
+        <h2 className="text-sm font-medium text-k-ink3 mb-3">模式覆盖</h2>
         <div className="grid grid-cols-4 gap-3">
           {patterns.map((p) => (
             <div
               key={p.name}
               className={`p-3 rounded-xl border transition-colors ${
                 p.status === 'active'
-                  ? 'border-zinc-800 bg-zinc-900/40'
+                  ? 'border-k-line bg-k-surface/40'
                   : generating === p.name
-                  ? 'border-violet-500/50 bg-violet-500/5'
-                  : 'border-dashed border-zinc-700/50 bg-zinc-900/20 hover:border-violet-500/30 cursor-pointer'
+                  ? 'border-k-violet/50 bg-k-violet/5'
+                  : 'border-dashed border-k-line-strong/50 bg-k-surface/20 hover:border-k-violet/30 cursor-pointer'
               }`}
               onClick={() => {
                 if (p.status === 'pending' && !generating) {
@@ -187,18 +187,18 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
               }}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-zinc-200">{p.chinese_name}</span>
+                <span className="text-sm font-medium text-k-ink">{p.chinese_name}</span>
                 {p.status === 'active' ? (
-                  <span className="text-xs text-emerald-400">✓</span>
+                  <span className="text-xs text-k-ok">✓</span>
                 ) : generating === p.name ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-400" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-k-violet" />
                 ) : (
-                  <Sparkles className="w-3.5 h-3.5 text-zinc-600" />
+                  <Sparkles className="w-3.5 h-3.5 text-k-ink4" />
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-500">{p.name}</span>
-                <span className="text-xs text-zinc-500">
+                <span className="text-xs text-k-ink4">{p.name}</span>
+                <span className="text-xs text-k-ink4">
                   {p.status === 'active'
                     ? `${p.problem_count} 题`
                     : generating === p.name
@@ -207,7 +207,7 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
                 </span>
               </div>
               {generating === p.name && (
-                <div className="mt-2 text-xs text-violet-400">
+                <div className="mt-2 text-xs text-k-violet">
                   正在调用 Claude API 生成题目，预计 30-60 秒...
                 </div>
               )}
@@ -219,21 +219,21 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
       {/* Filters */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-k-ink4" />
           <input
             type="text"
             placeholder="搜索题目..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setPage(1) }}
-            className="w-full pl-10 pr-4 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-300 outline-none focus:border-indigo-500 placeholder:text-zinc-600"
+            className="w-full pl-10 pr-4 py-2 bg-k-bg border border-k-line rounded-lg text-sm text-k-ink2 outline-none focus:border-k-accent placeholder:text-k-ink4"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-zinc-500" />
+          <Filter className="w-4 h-4 text-k-ink4" />
           <select
             value={filterPattern}
             onChange={(e) => { setFilterPattern(e.target.value); setPage(1) }}
-            className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-300 outline-none focus:border-indigo-500"
+            className="bg-k-bg border border-k-line rounded-lg px-3 py-2 text-sm text-k-ink2 outline-none focus:border-k-accent"
           >
             <option value="">所有模式</option>
             {patterns.filter(p => p.status === 'active').map(p => (
@@ -243,7 +243,7 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
           <select
             value={filterDifficulty}
             onChange={(e) => { setFilterDifficulty(e.target.value); setPage(1) }}
-            className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-300 outline-none focus:border-indigo-500"
+            className="bg-k-bg border border-k-line rounded-lg px-3 py-2 text-sm text-k-ink2 outline-none focus:border-k-accent"
           >
             <option value="">所有难度</option>
             <option value="easy">Easy</option>
@@ -254,22 +254,22 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
       </div>
 
       {/* Problem Table */}
-      <div className="border border-zinc-800/80 rounded-xl overflow-hidden">
+      <div className="border border-k-line/80 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800/80 bg-zinc-900/40">
-              <th className="text-left px-4 py-3 text-zinc-500 font-medium w-16">LC-ID</th>
-              <th className="text-left px-4 py-3 text-zinc-500 font-medium">标题</th>
-              <th className="text-left px-4 py-3 text-zinc-500 font-medium w-20">难度</th>
-              <th className="text-left px-4 py-3 text-zinc-500 font-medium w-32">模式</th>
-              <th className="text-left px-4 py-3 text-zinc-500 font-medium w-32">公司</th>
-              <th className="text-right px-4 py-3 text-zinc-500 font-medium w-20">置信度</th>
+            <tr className="border-b border-k-line/80 bg-k-surface/40">
+              <th className="text-left px-4 py-3 text-k-ink4 font-medium w-16">LC-ID</th>
+              <th className="text-left px-4 py-3 text-k-ink4 font-medium">标题</th>
+              <th className="text-left px-4 py-3 text-k-ink4 font-medium w-20">难度</th>
+              <th className="text-left px-4 py-3 text-k-ink4 font-medium w-32">模式</th>
+              <th className="text-left px-4 py-3 text-k-ink4 font-medium w-32">公司</th>
+              <th className="text-right px-4 py-3 text-k-ink4 font-medium w-20">置信度</th>
             </tr>
           </thead>
           <tbody>
             {problems.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-12 text-zinc-600">
+                <td colSpan={6} className="text-center py-12 text-k-ink4">
                   {loading ? '加载中...' : '暂无题目'}
                 </td>
               </tr>
@@ -277,28 +277,28 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
               problems.map((p) => (
                 <tr
                   key={p.id}
-                  className="border-b border-zinc-800/40 hover:bg-zinc-900/40 cursor-pointer transition-colors"
+                  className="border-b border-k-line/40 hover:bg-k-surface/40 cursor-pointer transition-colors"
                   onClick={() => onPreviewEntry?.(p.id)}
                 >
-                  <td className="px-4 py-3 font-mono text-zinc-400">
+                  <td className="px-4 py-3 font-mono text-k-ink3">
                     {p.leetcode_id ?? '—'}
                   </td>
-                  <td className="px-4 py-3 text-zinc-200">{p.title}</td>
+                  <td className="px-4 py-3 text-k-ink">{p.title}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 text-xs rounded-md border ${DIFFICULTY_COLORS[p.difficulty] || 'text-zinc-400'}`}>
+                    <span className={`px-2 py-0.5 text-xs rounded-md border ${DIFFICULTY_COLORS[p.difficulty] || 'text-k-ink3'}`}>
                       {p.difficulty}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       {(p.pattern || []).map((pat) => (
-                        <span key={pat} className="px-1.5 py-0.5 text-xs bg-zinc-800 text-zinc-400 rounded">
+                        <span key={pat} className="px-1.5 py-0.5 text-xs bg-k-sunk text-k-ink3 rounded">
                           {pat}
                         </span>
                       ))}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-500 truncate max-w-[120px]">
+                  <td className="px-4 py-3 text-xs text-k-ink4 truncate max-w-[120px]">
                     {(p.companies || []).slice(0, 2).join(', ')}
                     {(p.companies || []).length > 2 && '...'}
                   </td>
@@ -315,20 +315,20 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-sm">
-          <span className="text-zinc-500">共 {total} 题</span>
+          <span className="text-k-ink4">共 {total} 题</span>
           <div className="flex items-center gap-2">
             <button
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
-              className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 disabled:opacity-30 hover:bg-zinc-800 transition-colors"
+              className="p-1.5 rounded-lg bg-k-surface border border-k-line disabled:opacity-30 hover:bg-k-sunk transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-zinc-400 px-2">{page} / {totalPages}</span>
+            <span className="text-k-ink3 px-2">{page} / {totalPages}</span>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage(p => p + 1)}
-              className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 disabled:opacity-30 hover:bg-zinc-800 transition-colors"
+              className="p-1.5 rounded-lg bg-k-surface border border-k-line disabled:opacity-30 hover:bg-k-sunk transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -341,9 +341,9 @@ export default function ProblemBankView({ onPreviewEntry, onStartExam, setActive
 
 function StatCard({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
   return (
-    <div className="p-4 rounded-xl border border-zinc-800/80 bg-zinc-900/40">
-      <div className="text-xs text-zinc-500 mb-1">{label}</div>
-      <div className={`text-lg font-semibold ${accent ? 'text-amber-400' : 'text-zinc-100'}`}>
+    <div className="p-4 rounded-xl border border-k-line/80 bg-k-surface/40">
+      <div className="text-xs text-k-ink4 mb-1">{label}</div>
+      <div className={`text-lg font-semibold ${accent ? 'text-k-amber-ink' : 'text-k-ink'}`}>
         {value}
       </div>
     </div>
@@ -351,8 +351,8 @@ function StatCard({ label, value, accent }: { label: string; value: string | num
 }
 
 function ConfidenceBadge({ value }: { value: number | null }) {
-  if (value === null || value === undefined) return <span className="text-zinc-600">—</span>
+  if (value === null || value === undefined) return <span className="text-k-ink4">—</span>
   const pct = Math.round(value * 100)
-  const color = pct >= 80 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-400' : 'text-rose-400'
+  const color = pct >= 80 ? 'text-k-ok' : pct >= 50 ? 'text-k-amber-ink' : 'text-k-hot'
   return <span className={`text-xs font-mono ${color}`}>{pct}%</span>
 }

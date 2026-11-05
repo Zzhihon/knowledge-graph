@@ -169,7 +169,7 @@ export default function App() {
           </div>
         </main>
       ) : (
-      <main className="flex-1 flex flex-col relative min-w-0 bg-[#09090b] text-zinc-300 font-sans selection:bg-indigo-500/30">
+      <main className="flex-1 flex flex-col relative min-w-0 bg-k-bg text-k-ink2 font-sans selection:bg-k-accent/30">
         <Header
           activeTab={activeTab}
           isSyncing={isSyncing}
@@ -182,31 +182,31 @@ export default function App() {
 
         {/* Sync result notification bar */}
         {syncResult && (
-          <div className="px-6 py-2.5 bg-emerald-950/40 border-b border-emerald-800/30 flex items-center justify-between animate-fade-in">
+          <div className="px-6 py-2.5 bg-k-ok-soft border-b border-k-ok/30 flex items-center justify-between animate-fade-in">
             <div className="flex items-center gap-4 text-sm">
-              <span className="text-emerald-400 font-medium">✓ 同步完成</span>
-              <span className="text-zinc-400">
-                新增 <span className="text-emerald-400">{syncResult.new}</span>
-                {' · '}更新 <span className="text-amber-400">{syncResult.changed}</span>
-                {' · '}删除 <span className="text-rose-400">{syncResult.deleted}</span>
-                {' · '}未变 <span className="text-zinc-500">{syncResult.unchanged}</span>
-                {' · '}向量 <span className="text-indigo-400">{syncResult.vector_upserted}</span>
+              <span className="text-k-ok font-medium">✓ 同步完成</span>
+              <span className="text-k-ink3">
+                新增 <span className="text-k-ok">{syncResult.new}</span>
+                {' · '}更新 <span className="text-k-amber-ink">{syncResult.changed}</span>
+                {' · '}删除 <span className="text-k-hot">{syncResult.deleted}</span>
+                {' · '}未变 <span className="text-k-ink4">{syncResult.unchanged}</span>
+                {' · '}向量 <span className="text-k-accent">{syncResult.vector_upserted}</span>
               </span>
             </div>
             <button
               onClick={() => setSyncResult(null)}
-              className="text-zinc-500 hover:text-zinc-300 text-xs"
+              className="text-k-ink4 hover:text-k-ink2 text-xs"
             >
               关闭
             </button>
           </div>
         )}
         {syncError && (
-          <div className="px-6 py-2.5 bg-rose-950/40 border-b border-rose-800/30 flex items-center justify-between animate-fade-in">
-            <span className="text-sm text-rose-400">✗ 同步失败：{syncError}</span>
+          <div className="px-6 py-2.5 bg-k-hot-soft border-b border-k-hot/30 flex items-center justify-between animate-fade-in">
+            <span className="text-sm text-k-hot">✗ 同步失败：{syncError}</span>
             <button
               onClick={() => setSyncError(null)}
-              className="text-zinc-500 hover:text-zinc-300 text-xs"
+              className="text-k-ink4 hover:text-k-ink2 text-xs"
             >
               关闭
             </button>

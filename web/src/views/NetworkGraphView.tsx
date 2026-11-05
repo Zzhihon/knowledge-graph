@@ -92,7 +92,7 @@ export default function NetworkGraphView({ onPreviewEntry }: Props) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="flex flex-col items-center gap-3 text-zinc-500">
+        <div className="flex flex-col items-center gap-3 text-k-ink4">
           <Loader2 className="w-6 h-6 animate-spin" />
           <span className="text-sm">正在加载知识网络…</span>
         </div>
@@ -103,7 +103,7 @@ export default function NetworkGraphView({ onPreviewEntry }: Props) {
   if (error || !data) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-sm text-red-400">{error || '数据为空'}</div>
+        <div className="text-sm text-k-hot">{error || '数据为空'}</div>
       </div>
     )
   }
@@ -120,10 +120,10 @@ export default function NetworkGraphView({ onPreviewEntry }: Props) {
       />
 
       {/* Stats badge (top-left) */}
-      <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-zinc-900/90 border border-zinc-800/50 rounded-lg text-xs text-zinc-400 backdrop-blur-sm">
-        <span className="text-zinc-100 font-medium">{data.meta.node_count}</span> 节点
-        <span className="text-zinc-600">·</span>
-        <span className="text-zinc-100 font-medium">{data.meta.edge_count}</span> 边
+      <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-k-surface/90 border border-k-line/50 rounded-lg text-xs text-k-ink3 backdrop-blur-sm">
+        <span className="text-k-ink font-medium">{data.meta.node_count}</span> 节点
+        <span className="text-k-ink4">·</span>
+        <span className="text-k-ink font-medium">{data.meta.edge_count}</span> 边
       </div>
 
       {/* Controls (top-right) */}
@@ -132,8 +132,8 @@ export default function NetworkGraphView({ onPreviewEntry }: Props) {
           onClick={() => setShowFilters(!showFilters)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors backdrop-blur-sm border ${
             showFilters
-              ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
-              : 'bg-zinc-900/90 text-zinc-400 border-zinc-800/50 hover:text-zinc-200'
+              ? 'bg-k-accent/20 text-k-accent border-k-accent/30'
+              : 'bg-k-surface/90 text-k-ink3 border-k-line/50 hover:text-k-ink'
           }`}
         >
           <Filter className="w-3.5 h-3.5" />
@@ -141,7 +141,7 @@ export default function NetworkGraphView({ onPreviewEntry }: Props) {
         </button>
         <button
           onClick={toggleFullscreen}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs bg-zinc-900/90 text-zinc-400 border border-zinc-800/50 hover:text-zinc-200 transition-colors backdrop-blur-sm"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs bg-k-surface/90 text-k-ink3 border border-k-line/50 hover:text-k-ink transition-colors backdrop-blur-sm"
         >
           {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
         </button>
@@ -149,12 +149,12 @@ export default function NetworkGraphView({ onPreviewEntry }: Props) {
 
       {/* Filter panel (slide-in) */}
       {showFilters && (
-        <div className="absolute top-14 right-4 w-64 bg-zinc-900/95 border border-zinc-800/50 rounded-xl shadow-2xl backdrop-blur-md overflow-hidden">
+        <div className="absolute top-14 right-4 w-64 bg-k-surface/95 border border-k-line/50 rounded-xl shadow-2xl backdrop-blur-md overflow-hidden">
           {/* Domain filters */}
-          <div className="p-3 border-b border-zinc-800/50">
+          <div className="p-3 border-b border-k-line/50">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-zinc-400">领域过滤</span>
-              <button onClick={toggleAllDomains} className="text-xs text-indigo-400 hover:text-indigo-300">
+              <span className="text-xs font-medium text-k-ink3">领域过滤</span>
+              <button onClick={toggleAllDomains} className="text-xs text-k-accent hover:text-k-accent">
                 {enabledDomains.size === data.meta.domains.length ? '取消全选' : '全选'}
               </button>
             </div>
@@ -165,13 +165,13 @@ export default function NetworkGraphView({ onPreviewEntry }: Props) {
                   onClick={() => toggleDomain(d.name)}
                   className={`w-full flex items-center gap-2 px-2 py-1 rounded text-xs transition-colors ${
                     enabledDomains.has(d.name)
-                      ? 'text-zinc-200'
-                      : 'text-zinc-600'
+                      ? 'text-k-ink'
+                      : 'text-k-ink4'
                   }`}
                 >
                   {enabledDomains.has(d.name)
-                    ? <Eye className="w-3 h-3 text-zinc-500" />
-                    : <EyeOff className="w-3 h-3 text-zinc-700" />
+                    ? <Eye className="w-3 h-3 text-k-ink4" />
+                    : <EyeOff className="w-3 h-3 text-k-line-strong" />
                   }
                   <span
                     className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -185,7 +185,7 @@ export default function NetworkGraphView({ onPreviewEntry }: Props) {
 
           {/* Edge type filters */}
           <div className="p-3">
-            <span className="text-xs font-medium text-zinc-400 block mb-2">边类型</span>
+            <span className="text-xs font-medium text-k-ink3 block mb-2">边类型</span>
             <div className="space-y-1">
               {data.meta.edge_types.map((et) => (
                 <button
@@ -193,13 +193,13 @@ export default function NetworkGraphView({ onPreviewEntry }: Props) {
                   onClick={() => toggleEdgeType(et)}
                   className={`w-full flex items-center gap-2 px-2 py-1 rounded text-xs transition-colors ${
                     enabledEdgeTypes.has(et)
-                      ? 'text-zinc-200'
-                      : 'text-zinc-600'
+                      ? 'text-k-ink'
+                      : 'text-k-ink4'
                   }`}
                 >
                   {enabledEdgeTypes.has(et)
-                    ? <Eye className="w-3 h-3 text-zinc-500" />
-                    : <EyeOff className="w-3 h-3 text-zinc-700" />
+                    ? <Eye className="w-3 h-3 text-k-ink4" />
+                    : <EyeOff className="w-3 h-3 text-k-line-strong" />
                   }
                   <span
                     className="w-5 h-0.5 rounded shrink-0"
@@ -217,20 +217,20 @@ export default function NetworkGraphView({ onPreviewEntry }: Props) {
       )}
 
       {/* Legend (bottom-left) */}
-      <div className="absolute bottom-4 left-4 flex flex-wrap gap-x-3 gap-y-1 px-3 py-2 bg-zinc-900/90 border border-zinc-800/50 rounded-lg backdrop-blur-sm max-w-sm">
+      <div className="absolute bottom-4 left-4 flex flex-wrap gap-x-3 gap-y-1 px-3 py-2 bg-k-surface/90 border border-k-line/50 rounded-lg backdrop-blur-sm max-w-sm">
         {domainChips.slice(0, 8).map((d) => (
-          <div key={d.name} className="flex items-center gap-1.5 text-[10px] text-zinc-400">
+          <div key={d.name} className="flex items-center gap-1.5 text-[10px] text-k-ink3">
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
             {d.name}
           </div>
         ))}
         {domainChips.length > 8 && (
-          <span className="text-[10px] text-zinc-600">+{domainChips.length - 8}</span>
+          <span className="text-[10px] text-k-ink4">+{domainChips.length - 8}</span>
         )}
       </div>
 
       {/* Usage hint (bottom-right) */}
-      <div className="absolute bottom-4 right-4 text-[10px] text-zinc-600 bg-zinc-900/80 px-2 py-1 rounded border border-zinc-800/30 backdrop-blur-sm">
+      <div className="absolute bottom-4 right-4 text-[10px] text-k-ink4 bg-k-surface/80 px-2 py-1 rounded border border-k-line/30 backdrop-blur-sm">
         滚轮缩放 · 拖拽平移 · 点击查看详情 · Hover 高亮邻居
       </div>
     </div>

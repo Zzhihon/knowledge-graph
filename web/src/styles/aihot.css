@@ -22,6 +22,7 @@
   --k-accent: #176b75;
   --k-accent-ink: #145f68;
   --k-accent-soft: rgba(23, 107, 117, 0.08);
+  --k-accent-contrast: #ffffff;
   --k-note: #526f72;
   --k-hot: #b3402a;
   --k-hot-soft: rgba(179, 64, 42, 0.08);
@@ -62,6 +63,7 @@
   --k-accent: #12ccd8;
   --k-accent-ink: #2ce2e8;
   --k-accent-soft: rgba(18, 204, 216, 0.12);
+  --k-accent-contrast: #000000;
   --k-note: #8fb8a8;
   --k-hot: #d86a52;
   --k-hot-soft: rgba(216, 106, 82, 0.12);

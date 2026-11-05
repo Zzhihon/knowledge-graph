@@ -9,11 +9,11 @@ interface Props {
 
 const phaseIcon = (phase: string) => {
   switch (phase) {
-    case 'route': return <Route className="w-3 h-3 text-blue-400" />
-    case 'interview': return <Sparkles className="w-3 h-3 text-amber-400" />
-    case 'moc': return <BookOpen className="w-3 h-3 text-emerald-400" />
-    case 'relations': return <Link2 className="w-3 h-3 text-indigo-400" />
-    default: return <Loader2 className="w-3 h-3 text-zinc-400" />
+    case 'route': return <Route className="w-3 h-3 text-k-accent" />
+    case 'interview': return <Sparkles className="w-3 h-3 text-k-amber-ink" />
+    case 'moc': return <BookOpen className="w-3 h-3 text-k-ok" />
+    case 'relations': return <Link2 className="w-3 h-3 text-k-accent" />
+    default: return <Loader2 className="w-3 h-3 text-k-ink3" />
   }
 }
 
@@ -22,8 +22,8 @@ function EventItem({ evt }: { evt: IntegrateEvent }) {
     case 'route_done':
       return (
         <div className="flex items-center gap-2 text-xs">
-          <Route className="w-3 h-3 text-blue-400 shrink-0" />
-          <span className="text-zinc-400 truncate">
+          <Route className="w-3 h-3 text-k-accent shrink-0" />
+          <span className="text-k-ink3 truncate">
             {evt.entry_id}: {evt.changed ? `${evt.original_domain} → ${evt.domain}` : '域未变'}
           </span>
         </div>
@@ -31,8 +31,8 @@ function EventItem({ evt }: { evt: IntegrateEvent }) {
     case 'interview_linked':
       return (
         <div className="flex items-center gap-2 text-xs">
-          <GitMerge className="w-3 h-3 text-amber-400 shrink-0" />
-          <span className="text-zinc-400 truncate">
+          <GitMerge className="w-3 h-3 text-k-amber-ink shrink-0" />
+          <span className="text-k-ink3 truncate">
             关联 {(evt.linked as Array<{title: string}>)?.length ?? 0} 个面试题
           </span>
         </div>
@@ -40,8 +40,8 @@ function EventItem({ evt }: { evt: IntegrateEvent }) {
     case 'interview_generated':
       return (
         <div className="flex items-center gap-2 text-xs">
-          <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
-          <span className="text-amber-300/80 truncate">
+          <Sparkles className="w-3 h-3 text-k-amber-ink shrink-0" />
+          <span className="text-k-amber-ink/80 truncate">
             生成: {evt.title as string}
           </span>
         </div>
@@ -49,15 +49,15 @@ function EventItem({ evt }: { evt: IntegrateEvent }) {
     case 'interview_skipped':
       return (
         <div className="flex items-center gap-2 text-xs">
-          <Sparkles className="w-3 h-3 text-zinc-600 shrink-0" />
-          <span className="text-zinc-600 truncate">无面试价值</span>
+          <Sparkles className="w-3 h-3 text-k-ink4 shrink-0" />
+          <span className="text-k-ink4 truncate">无面试价值</span>
         </div>
       )
     case 'moc_updated':
       return (
         <div className="flex items-center gap-2 text-xs">
-          <BookOpen className="w-3 h-3 text-emerald-400 shrink-0" />
-          <span className="text-zinc-400 truncate">
+          <BookOpen className="w-3 h-3 text-k-ok shrink-0" />
+          <span className="text-k-ink3 truncate">
             {evt.domain as string}: {evt.action as string}
           </span>
         </div>
@@ -65,8 +65,8 @@ function EventItem({ evt }: { evt: IntegrateEvent }) {
     case 'relations_done':
       return (
         <div className="flex items-center gap-2 text-xs">
-          <Link2 className="w-3 h-3 text-indigo-400 shrink-0" />
-          <span className="text-zinc-400 truncate">
+          <Link2 className="w-3 h-3 text-k-accent shrink-0" />
+          <span className="text-k-ink3 truncate">
             补全 {(evt.relations as unknown[])?.length ?? 0} 个关联
           </span>
         </div>
@@ -74,8 +74,8 @@ function EventItem({ evt }: { evt: IntegrateEvent }) {
     case 'entry_done':
       return (
         <div className="flex items-center gap-2 text-xs">
-          <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0" />
-          <span className="text-emerald-400/80 font-medium">
+          <CheckCircle className="w-3 h-3 text-k-ok shrink-0" />
+          <span className="text-k-ok/80 font-medium">
             {evt.entry_id} 完成 ({evt.index as number}/{evt.total as number})
           </span>
         </div>
@@ -94,23 +94,23 @@ export default function IntegrationPanel({ state, actions, onClose }: Props) {
   )
 
   return (
-    <div className="fixed right-0 top-0 h-full w-96 z-40 bg-zinc-950 border-l border-zinc-800 shadow-2xl flex flex-col">
+    <div className="fixed right-0 top-0 h-full w-96 z-40 bg-k-bg border-l border-k-line shadow-2xl flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-zinc-800/80">
+      <div className="flex items-center justify-between p-4 border-b border-k-line/80">
         <div className="flex items-center gap-2">
-          {phase === 'running' && <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />}
-          {phase === 'complete' && <CheckCircle className="w-4 h-4 text-emerald-400" />}
-          <h3 className="text-sm font-medium text-zinc-200">智能整合网关</h3>
+          {phase === 'running' && <Loader2 className="w-4 h-4 text-k-accent animate-spin" />}
+          {phase === 'complete' && <CheckCircle className="w-4 h-4 text-k-ok" />}
+          <h3 className="text-sm font-medium text-k-ink">智能整合网关</h3>
         </div>
-        <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300">
+        <button onClick={onClose} className="text-k-ink4 hover:text-k-ink2">
           <X className="w-4 h-4" />
         </button>
       </div>
 
       {/* Progress */}
       {phase === 'running' && (
-        <div className="px-4 py-3 border-b border-zinc-800/50 space-y-2">
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
+        <div className="px-4 py-3 border-b border-k-line/50 space-y-2">
+          <div className="flex items-center gap-2 text-xs text-k-ink3">
             {currentMessage && phaseIcon(currentMessage.includes('语义') ? 'route' :
               currentMessage.includes('面试') ? 'interview' :
               currentMessage.includes('主题') ? 'moc' :
@@ -119,13 +119,13 @@ export default function IntegrationPanel({ state, actions, onClose }: Props) {
           </div>
           {totalEntries > 0 && (
             <div className="space-y-1">
-              <div className="flex justify-between text-[10px] text-zinc-600">
+              <div className="flex justify-between text-[10px] text-k-ink4">
                 <span>条目进度</span>
                 <span>{processedEntries}/{totalEntries}</span>
               </div>
-              <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-1 bg-k-sunk rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-500/60 rounded-full transition-all duration-500"
+                  className="h-full bg-k-accent/60 rounded-full transition-all duration-500"
                   style={{ width: `${totalEntries ? (processedEntries / totalEntries) * 100 : 0}%` }}
                 />
               </div>
@@ -136,23 +136,23 @@ export default function IntegrationPanel({ state, actions, onClose }: Props) {
 
       {/* Summary */}
       {summary && (
-        <div className="px-4 py-3 border-b border-zinc-800/50">
+        <div className="px-4 py-3 border-b border-k-line/50">
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="flex items-center gap-1.5">
-              <Route className="w-3 h-3 text-blue-400" />
-              <span className="text-zinc-400">条目: <span className="text-zinc-200">{summary.total_entries}</span></span>
+              <Route className="w-3 h-3 text-k-accent" />
+              <span className="text-k-ink3">条目: <span className="text-k-ink">{summary.total_entries}</span></span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-amber-400" />
-              <span className="text-zinc-400">面试题: <span className="text-amber-300">+{summary.interview_generated}</span></span>
+              <Sparkles className="w-3 h-3 text-k-amber-ink" />
+              <span className="text-k-ink3">面试题: <span className="text-k-amber-ink">+{summary.interview_generated}</span></span>
             </div>
             <div className="flex items-center gap-1.5">
-              <BookOpen className="w-3 h-3 text-emerald-400" />
-              <span className="text-zinc-400">MOC: <span className="text-emerald-300">{summary.moc_updated}</span></span>
+              <BookOpen className="w-3 h-3 text-k-ok" />
+              <span className="text-k-ink3">MOC: <span className="text-k-ok">{summary.moc_updated}</span></span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Link2 className="w-3 h-3 text-indigo-400" />
-              <span className="text-zinc-400">关联: <span className="text-indigo-300">+{summary.relations_added}</span></span>
+              <Link2 className="w-3 h-3 text-k-accent" />
+              <span className="text-k-ink3">关联: <span className="text-k-accent">+{summary.relations_added}</span></span>
             </div>
           </div>
         </div>
@@ -164,27 +164,27 @@ export default function IntegrationPanel({ state, actions, onClose }: Props) {
           <EventItem key={i} evt={evt} />
         ))}
         {displayEvents.length === 0 && phase === 'running' && (
-          <p className="text-xs text-zinc-600 text-center py-4">等待事件...</p>
+          <p className="text-xs text-k-ink4 text-center py-4">等待事件...</p>
         )}
       </div>
 
       {/* Errors */}
       {errors.length > 0 && (
-        <div className="px-4 py-2 border-t border-rose-800/30 bg-rose-950/20">
+        <div className="px-4 py-2 border-t border-k-hot/30 bg-k-hot-soft">
           {errors.map((err, i) => (
-            <p key={i} className="text-xs text-rose-400 truncate">{err}</p>
+            <p key={i} className="text-xs text-k-hot truncate">{err}</p>
           ))}
         </div>
       )}
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-zinc-800/80 flex justify-between items-center">
+      <div className="px-4 py-3 border-t border-k-line/80 flex justify-between items-center">
         {phase === 'idle' && (
           <>
-            <span className="text-[10px] text-zinc-600">对全部 ke-* 条目执行整合</span>
+            <span className="text-[10px] text-k-ink4">对全部 ke-* 条目执行整合</span>
             <button
               onClick={() => actions.startAll({ skipInterview: false })}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-k-accent/20 text-k-accent hover:bg-k-accent/30 rounded-lg transition-colors"
             >
               <Play className="w-3 h-3" />
               全量整合
@@ -196,7 +196,7 @@ export default function IntegrationPanel({ state, actions, onClose }: Props) {
             <span />
             <button
               onClick={actions.stop}
-              className="px-3 py-1.5 text-xs text-rose-400 hover:text-rose-300 transition-colors"
+              className="px-3 py-1.5 text-xs text-k-hot hover:text-k-hot transition-colors"
             >
               取消
             </button>
@@ -207,7 +207,7 @@ export default function IntegrationPanel({ state, actions, onClose }: Props) {
             <span />
             <button
               onClick={() => { actions.dismiss(); onClose() }}
-              className="px-3 py-1.5 text-xs bg-zinc-800 text-zinc-300 hover:bg-zinc-700 rounded-lg transition-colors"
+              className="px-3 py-1.5 text-xs bg-k-sunk text-k-ink2 hover:bg-k-muted rounded-lg transition-colors"
             >
               关闭
             </button>

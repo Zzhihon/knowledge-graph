@@ -13,65 +13,65 @@ const domainThemes: Record<string, {
   text: string
 }> = {
   'cloud-native': {
-    icon: 'bg-purple-500/10 border-purple-500/20',
-    ring: 'stroke-purple-500',
-    glow: 'bg-purple-500',
-    text: 'text-purple-400'
+    icon: 'bg-k-violet/10 border-k-violet/20',
+    ring: 'stroke-k-violet',
+    glow: 'bg-k-violet',
+    text: 'text-k-violet'
   },
   'networking': {
-    icon: 'bg-zinc-500/10 border-zinc-500/20',
-    ring: 'stroke-zinc-400',
-    glow: 'bg-zinc-400',
-    text: 'text-zinc-300'
+    icon: 'bg-k-ink4/10 border-k-ink4/20',
+    ring: 'stroke-k-ink3',
+    glow: 'bg-k-ink',
+    text: 'text-k-ink2'
   },
   'ai-agent': {
-    icon: 'bg-emerald-500/10 border-emerald-500/20',
-    ring: 'stroke-emerald-500',
-    glow: 'bg-emerald-500',
-    text: 'text-emerald-400'
+    icon: 'bg-k-ok/10 border-k-ok/20',
+    ring: 'stroke-k-ok',
+    glow: 'bg-k-ok',
+    text: 'text-k-ok'
   },
   'algorithm': {
-    icon: 'bg-orange-500/10 border-orange-500/20',
-    ring: 'stroke-orange-500',
-    glow: 'bg-orange-500',
-    text: 'text-orange-400'
+    icon: 'bg-k-amber/10 border-k-amber/20',
+    ring: 'stroke-k-amber',
+    glow: 'bg-k-amber',
+    text: 'text-k-amber-ink'
   },
   'databases': {
-    icon: 'bg-blue-500/10 border-blue-500/20',
-    ring: 'stroke-blue-500',
-    glow: 'bg-blue-500',
-    text: 'text-blue-400'
+    icon: 'bg-k-accent/10 border-k-accent/20',
+    ring: 'stroke-k-accent',
+    glow: 'bg-k-accent',
+    text: 'text-k-accent'
   },
   'golang': {
-    icon: 'bg-cyan-500/10 border-cyan-500/20',
-    ring: 'stroke-cyan-500',
-    glow: 'bg-cyan-500',
-    text: 'text-cyan-400'
+    icon: 'bg-k-accent/10 border-k-accent/20',
+    ring: 'stroke-k-accent',
+    glow: 'bg-k-accent',
+    text: 'text-k-accent'
   },
   'distributed-systems': {
-    icon: 'bg-violet-500/10 border-violet-500/20',
-    ring: 'stroke-violet-500',
-    glow: 'bg-violet-500',
-    text: 'text-violet-400'
+    icon: 'bg-k-violet/10 border-k-violet/20',
+    ring: 'stroke-k-violet',
+    glow: 'bg-k-violet',
+    text: 'text-k-violet'
   },
   'frontend': {
-    icon: 'bg-pink-500/10 border-pink-500/20',
-    ring: 'stroke-pink-500',
-    glow: 'bg-pink-500',
-    text: 'text-pink-400'
+    icon: 'bg-k-hot/10 border-k-hot/20',
+    ring: 'stroke-k-hot',
+    glow: 'bg-k-hot',
+    text: 'text-k-hot'
   },
   'ai-infra': {
-    icon: 'bg-teal-500/10 border-teal-500/20',
-    ring: 'stroke-teal-500',
-    glow: 'bg-teal-500',
-    text: 'text-teal-400'
+    icon: 'bg-k-accent/10 border-k-accent/20',
+    ring: 'stroke-k-accent',
+    glow: 'bg-k-accent',
+    text: 'text-k-accent'
   }
 }
 
 const getMetricColor = (value: number): string => {
-  if (value >= 0.7) return 'bg-zinc-400'
-  if (value >= 0.4) return 'bg-zinc-500'
-  return 'bg-rose-500'
+  if (value >= 0.7) return 'bg-k-ink'
+  if (value >= 0.4) return 'bg-k-ink4'
+  return 'bg-k-hot'
 }
 
 export default function DomainCard({ domain, onClick }: DomainCardProps) {
@@ -96,7 +96,7 @@ export default function DomainCard({ domain, onClick }: DomainCardProps) {
   return (
     <button
       onClick={onClick}
-      className="group relative overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-950/50 p-6 transition-all duration-300 hover:border-zinc-700/50 hover:bg-zinc-900/50 text-left w-full"
+      className="group relative overflow-hidden rounded-2xl border border-k-line/60 bg-k-bg/50 p-6 transition-all duration-300 hover:border-k-line-strong/50 hover:bg-k-surface/50 text-left w-full"
     >
       {/* Ambient glow on hover */}
       <div className={`absolute -right-20 -top-20 w-40 h-40 rounded-full blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity duration-500 ${theme.glow}`}></div>
@@ -108,12 +108,12 @@ export default function DomainCard({ domain, onClick }: DomainCardProps) {
             <span className="text-2xl">{domain.icon}</span>
           </div>
           <div>
-            <h3 className="text-base font-semibold text-zinc-100 tracking-tight group-hover:text-white transition-colors">
+            <h3 className="text-base font-semibold text-k-ink tracking-tight group-hover:text-white transition-colors">
               {domain.label}
             </h3>
-            <p className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+            <p className="mt-1 flex items-center gap-2 text-xs text-k-ink4">
               <span>{domain.metrics.total_entries} Nodes</span>
-              <span className="h-1 w-1 rounded-full bg-zinc-700"></span>
+              <span className="h-1 w-1 rounded-full bg-k-muted"></span>
               <span>{domain.sub_domains.length} Subs</span>
             </p>
 
@@ -122,13 +122,13 @@ export default function DomainCard({ domain, onClick }: DomainCardProps) {
               {visibleSubDomains.map(subDomain => (
                 <span
                   key={subDomain}
-                  className="px-2 py-0.5 text-[10px] font-medium text-zinc-400 bg-zinc-800/50 rounded-md border border-zinc-800/80"
+                  className="px-2 py-0.5 text-[10px] font-medium text-k-ink3 bg-k-sunk/50 rounded-md border border-k-line/80"
                 >
                   {subDomain}
                 </span>
               ))}
               {remainingCount > 0 && (
-                <span className="px-2 py-0.5 text-[10px] font-medium text-zinc-500 bg-transparent rounded-md border border-zinc-800/80 border-dashed">
+                <span className="px-2 py-0.5 text-[10px] font-medium text-k-ink4 bg-transparent rounded-md border border-k-line/80 border-dashed">
                   +{remainingCount}
                 </span>
               )}
@@ -147,7 +147,7 @@ export default function DomainCard({ domain, onClick }: DomainCardProps) {
                 stroke="currentColor"
                 strokeWidth="4"
                 fill="transparent"
-                className="text-zinc-800/80"
+                className="text-k-line-strong/80"
               />
               <circle
                 cx="30"
@@ -172,22 +172,22 @@ export default function DomainCard({ domain, onClick }: DomainCardProps) {
       </div>
 
       {/* Bottom: Mini metrics grid */}
-      <div className="mt-6 pt-5 border-t border-zinc-800/50 grid grid-cols-4 gap-2">
+      <div className="mt-6 pt-5 border-t border-k-line/50 grid grid-cols-4 gap-2">
         {metrics.map(({ key, label, value }) => {
           const isWarning = value < 0.6
           return (
             <div key={key} className="flex flex-col gap-1">
-              <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
+              <span className="text-[10px] font-medium text-k-ink4 uppercase tracking-wider">
                 {label}
               </span>
               <div className="flex items-center gap-1.5">
-                <div className="flex-1 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="flex-1 h-1 bg-k-sunk rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full ${isWarning ? 'bg-rose-500/80' : getMetricColor(value)}`}
+                    className={`h-full rounded-full ${isWarning ? 'bg-k-hot/80' : getMetricColor(value)}`}
                     style={{ width: `${value * 100}%` }}
                   ></div>
                 </div>
-                <span className={`text-xs font-mono ${isWarning ? 'text-rose-400' : 'text-zinc-400'}`}>
+                <span className={`text-xs font-mono ${isWarning ? 'text-k-hot' : 'text-k-ink3'}`}>
                   {(value * 100).toFixed(0)}
                 </span>
               </div>

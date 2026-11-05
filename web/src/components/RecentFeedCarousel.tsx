@@ -9,19 +9,19 @@ interface Props {
 }
 
 const DOMAIN_COLORS: Record<string, string> = {
-  'cloud-native': 'bg-sky-500/20 text-sky-400',
-  'golang': 'bg-cyan-500/20 text-cyan-400',
-  'kubernetes': 'bg-blue-500/20 text-blue-400',
-  'architecture': 'bg-violet-500/20 text-violet-400',
-  'security': 'bg-red-500/20 text-red-400',
-  'ai-agent': 'bg-fuchsia-500/20 text-fuchsia-400',
-  'devops': 'bg-orange-500/20 text-orange-400',
-  'distributed-systems': 'bg-amber-500/20 text-amber-400',
-  'frontend': 'bg-emerald-500/20 text-emerald-400',
-  'database': 'bg-yellow-500/20 text-yellow-400',
+  'cloud-native': 'bg-k-accent/20 text-k-accent',
+  'golang': 'bg-k-accent/20 text-k-accent',
+  'kubernetes': 'bg-k-accent/20 text-k-accent',
+  'architecture': 'bg-k-violet/20 text-k-violet',
+  'security': 'bg-k-hot/20 text-k-hot',
+  'ai-agent': 'bg-k-violet/20 text-k-violet',
+  'devops': 'bg-k-amber/20 text-k-amber-ink',
+  'distributed-systems': 'bg-k-amber/20 text-k-amber-ink',
+  'frontend': 'bg-k-ok/20 text-k-ok',
+  'database': 'bg-k-amber/20 text-k-amber-ink',
 }
 
-const DEFAULT_COLOR = 'bg-zinc-500/20 text-zinc-400'
+const DEFAULT_COLOR = 'bg-k-ink4/20 text-k-ink3'
 
 function formatRelativeDate(dateStr: string): string {
   if (!dateStr) return ''
@@ -85,13 +85,13 @@ export default function RecentFeedCarousel({ onPreviewEntry, setActiveTab }: Pro
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Rss className="w-4 h-4 text-orange-400" />
-            <h2 className="text-sm font-medium text-zinc-400">最近知识摄入</h2>
+            <Rss className="w-4 h-4 text-k-amber-ink" />
+            <h2 className="text-sm font-medium text-k-ink3">最近知识摄入</h2>
           </div>
         </div>
         <div className="flex gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="w-[280px] h-[140px] shrink-0 rounded-xl bg-zinc-800/30 animate-pulse" />
+            <div key={i} className="w-[280px] h-[140px] shrink-0 rounded-xl bg-k-sunk/30 animate-pulse" />
           ))}
         </div>
       </div>
@@ -102,11 +102,11 @@ export default function RecentFeedCarousel({ onPreviewEntry, setActiveTab }: Pro
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Rss className="w-4 h-4 text-orange-400" />
-          <h2 className="text-sm font-medium text-zinc-400">最近知识摄入</h2>
+          <Rss className="w-4 h-4 text-k-amber-ink" />
+          <h2 className="text-sm font-medium text-k-ink3">最近知识摄入</h2>
         </div>
-        <div className="border border-dashed border-zinc-700 rounded-xl p-8 text-center">
-          <p className="text-zinc-500 text-sm">暂无最近摄入，运行 <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded font-mono text-zinc-400">kg pull rss</code> 开始拉取</p>
+        <div className="border border-dashed border-k-line-strong rounded-xl p-8 text-center">
+          <p className="text-k-ink4 text-sm">暂无最近摄入，运行 <code className="text-xs bg-k-sunk px-1.5 py-0.5 rounded font-mono text-k-ink3">kg pull rss</code> 开始拉取</p>
         </div>
       </div>
     )
@@ -116,12 +116,12 @@ export default function RecentFeedCarousel({ onPreviewEntry, setActiveTab }: Pro
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Rss className="w-4 h-4 text-orange-400" />
-          <h2 className="text-sm font-medium text-zinc-400">最近知识摄入</h2>
+          <Rss className="w-4 h-4 text-k-amber-ink" />
+          <h2 className="text-sm font-medium text-k-ink3">最近知识摄入</h2>
         </div>
         <button
           onClick={() => setActiveTab('rss')}
-          className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+          className="flex items-center gap-1 text-xs text-k-ink4 hover:text-k-ink2 transition-colors"
         >
           查看全部 <ChevronRight className="w-3 h-3" />
         </button>
@@ -137,18 +137,18 @@ export default function RecentFeedCarousel({ onPreviewEntry, setActiveTab }: Pro
           <div
             key={item.id}
             onClick={() => onPreviewEntry(item.id)}
-            className="w-[280px] shrink-0 snap-start p-4 border border-zinc-800/80 bg-zinc-900/40 rounded-xl hover:border-orange-500/40 hover:bg-orange-500/5 cursor-pointer transition-all group"
+            className="w-[280px] shrink-0 snap-start p-4 border border-k-line/80 bg-k-surface/40 rounded-xl hover:border-k-amber/40 hover:bg-k-amber/5 cursor-pointer transition-all group"
           >
             <div className="flex items-center justify-between mb-3">
               <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${getDomainColor(item.domain)}`}>
                 {getDomainLabel(item.domain)}
               </span>
-              <span className="text-[11px] text-zinc-600">{formatRelativeDate(item.created)}</span>
+              <span className="text-[11px] text-k-ink4">{formatRelativeDate(item.created)}</span>
             </div>
-            <h3 className="text-sm text-zinc-200 font-medium leading-snug line-clamp-2 mb-3 group-hover:text-orange-200 transition-colors">
+            <h3 className="text-sm text-k-ink font-medium leading-snug line-clamp-2 mb-3 group-hover:text-k-amber-ink transition-colors">
               {item.title}
             </h3>
-            <div className="text-[11px] text-zinc-600 truncate">
+            <div className="text-[11px] text-k-ink4 truncate">
               {item.feed_name || item.type}
             </div>
           </div>
