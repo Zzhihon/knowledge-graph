@@ -1,0 +1,53 @@
+# 本地服务登记。复制到 <vault>/.kg/plane/services.yaml（.kg/ 不进 git）。
+# 不写这个文件也能跑：所有 LaunchAgent 和监听端口照样列出，标"未登记"，但不告警。
+# kg plane collect services 每轮都会重新读这个文件，改完不用重启。
+
+# 分组：mine（本人的）/ tool（工具的）/ system（系统的），也可以写 本人 / 工具 / 系统。
+# 没在 services 里单独写 group 的 launchd 任务按 label 前缀归组；都不匹配时，
+# ~/Library/LaunchAgents 里的算 tool，其他（应用自带的、/Library 下的）算 system。
+# 只有 mine 默认告警。
+groups:
+  mine: [com.example.]
+  tool: [homebrew.mxcl.]
+  # 没登记、也不属于任何 launchd 任务的监听端口，进程名以这些开头的算 mine
+  # （多半是自己起的开发服务），监听在 0.0.0.0 / * 上时会出安全提醒。写 [] 关掉推断。
+  mine_commands: [node, python, Python, ruby, deno, bun, java, uvicorn, php, go, cargo]
+
+ignore:
+  # 不记成资源的 label 前缀。com.apple. 和 application.（每次启动 label 都变的应用实例）
+  # 已经默认忽略。
+  labels: [com.example.noisy-helper]
+  # 允许监听在回环地址以外、不出安全提醒的服务：写 label 或 port:<端口>。
+  exposed: [port:5000]
+
+# 关心的服务。键是 launchd label；不是 launchd 任务的进程写 port:<端口>。
+services:
+  kg-web:
+    about: 知识库网页和 API（kg serve）
+    group: mine
+    repo: knowledge-graph
+    port: 8765             # 进程在、端口不在 → 连续 2 次出事故
+    # 健康检查只打 127.0.0.1 或 [::1]。2xx / 3xx 算健康；timeout 默认 3 秒。
+    health: {url: "http://127.0.0.1:8765/api/plane/incidents?limit=1", timeout: 5}
+
+  agent-autoloop:
+    about: 自动化中台
+    group: mine
+    repo: agent-autoloop
+    port: 3350
+    # 要钥匙的接口回 401 也说明它活着：expect 里写的状态码也算健康。
+    health: {url: "http://127.0.0.1:3350/v1/state", expect: [401]}
+
+  com.example.nightly-report:
+    about: 每天早上生成日报（定时任务：上次退出码非 0 才算异常）
+    group: mine
+    repo: example-reports
+
+  homebrew.mxcl.postgresql@14:
+    about: 本地数据库
+    alert: true            # 工具默认不告警，这个挂了也要知道
+
+  port:3000:
+    about: 前端开发服务（不是 launchd 任务）
+    group: mine
+    alert: false           # 只展示；端口不在也不出事故
