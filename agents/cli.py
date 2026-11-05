@@ -631,7 +631,9 @@ def brief_collect(autoloop: bool, no_fetch: bool) -> None:
 @cli.command()
 @click.option("--port", type=int, default=8765, help="API 服务器端口 (默认: 8765)")
 @click.option("--dev", is_flag=True, help="同时启动 Vite 开发服务器")
-def serve(port: int, dev: bool) -> None:
+@click.option("--host", default="127.0.0.1", show_default=True,
+              help="监听地址；要让局域网访问再写 0.0.0.0（知识库内容会对局域网可读）")
+def serve(port: int, dev: bool, host: str) -> None:
     """启动 Knowledge Graph Web UI。
 
     生产模式: uvicorn 直接服务 FastAPI + 静态前端。
@@ -639,7 +641,7 @@ def serve(port: int, dev: bool) -> None:
     """
     from kg.interfaces.cli.commands.serve import run_serve_command
 
-    run_serve_command(port=port, dev=dev, console=console)
+    run_serve_command(port=port, dev=dev, console=console, host=host)
 
 
 @cli.command(name="cross-domain")

@@ -1,5 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
-import Sidebar from './components/Sidebar'
+import NavSidebar from './components/k/NavSidebar'
+import ReaderSheet from './components/k/ReaderSheet'
+import DailyView from './views/DailyView'
+import LibraryView from './views/LibraryView'
+import { ReaderContext, fetchOverview, type LibraryOverview } from './lib/library'
+import { useTheme } from './lib/theme'
 import Header from './components/Header'
 import ExportModal from './components/ExportModal'
 import IngestModal from './components/IngestModal'
@@ -25,8 +30,20 @@ import { useIntegrate } from './hooks/useIntegrate'
 import { get, post, del } from './api/client'
 import type { SyncResult, ConversationListItem, ExamPaper } from './types'
 
+// Reading pages use the AIHOT-derived design (styles/aihot.css); the older tool pages keep their dark shell.
+const READING_TABS = new Set(['daily', 'library', 'projects', 'lab'])
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard')
+  // #library, #projects … opens that page; #read=<path> also opens an entry, so views can be bookmarked.
+  const [activeTab, setActiveTab] = useState(() => location.hash.slice(1).split('&')[0].replace(/^read=.*/, '') || 'daily')
+  const [theme, setTheme] = useTheme()
+  const [overview, setOverview] = useState<LibraryOverview>({ counts: {}, index: {}, dailies: [] })
+  const [readerPath, setReaderPath] = useState<string | null>(() => decodeURIComponent(location.hash.match(/read=([^&]+)/)?.[1] ?? '') || null)
+
+  useEffect(() => {
+    const hash = [activeTab, readerPath && `read=${encodeURIComponent(readerPath)}`].filter(Boolean).join('&')
+    history.replaceState(null, '', `#${hash}`)
+  }, [activeTab, readerPath])
   const [isExportOpen, setIsExportOpen] = useState(false)
   const [isIngestOpen, setIsIngestOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -62,6 +79,10 @@ export default function App() {
   useEffect(() => {
     refreshConversations()
   }, [refreshConversations])
+
+  useEffect(() => {
+    if (READING_TABS.has(activeTab)) fetchOverview().then(setOverview).catch(() => {})
+  }, [activeTab])
 
   // Global Cmd+K / Ctrl+K shortcut to toggle search overlay
   useEffect(() => {
@@ -120,11 +141,17 @@ export default function App() {
     }
   }
 
+  const reader = { index: overview.index, open: setReaderPath }
+
   return (
-    <div className="flex h-screen bg-[#09090b] text-zinc-300 font-sans selection:bg-indigo-500/30">
-      <Sidebar
+    <ReaderContext.Provider value={reader}>
+    <div className="k-app flex h-screen">
+      <NavSidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        theme={theme}
+        setTheme={setTheme}
+        onOpenSearch={() => setIsSearchOpen(true)}
         conversations={conversations}
         currentConversationId={currentConversationId}
         onSelectConversation={handleSelectConversation}
@@ -132,7 +159,17 @@ export default function App() {
         onDeleteConversation={handleDeleteConversation}
       />
 
-      <main className="flex-1 flex flex-col relative border-l border-zinc-800/50 bg-zinc-950/50">
+      {READING_TABS.has(activeTab) ? (
+        <main className="min-w-0 flex-1 overflow-y-auto">
+          <div className="px-10 pb-10 pt-8">
+            {activeTab === 'daily' && <DailyView dailies={overview.dailies} />}
+            {activeTab === 'library' && <LibraryView title="知识库" counts={overview.counts} />}
+            {activeTab === 'projects' && <LibraryView title="项目" board="07-Projects" counts={overview.counts} />}
+            {activeTab === 'lab' && <LibraryView title="实验" board="11-Experiments" counts={overview.counts} />}
+          </div>
+        </main>
+      ) : (
+      <main className="flex-1 flex flex-col relative min-w-0 bg-[#09090b] text-zinc-300 font-sans selection:bg-indigo-500/30">
         <Header
           activeTab={activeTab}
           isSyncing={isSyncing}
@@ -228,6 +265,7 @@ export default function App() {
           </div>
         )}
       </main>
+      )}
 
       {isExportOpen && <ExportModal onClose={() => setIsExportOpen(false)} />}
       {isIngestOpen && (
@@ -260,6 +298,8 @@ export default function App() {
           onClose={() => setIsIntegratePanelOpen(false)}
         />
       )}
+      {readerPath && <ReaderSheet path={readerPath} onClose={() => setReaderPath(null)} />}
     </div>
+    </ReaderContext.Provider>
   )
 }

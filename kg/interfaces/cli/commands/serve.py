@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from rich.console import Console
 
 
-def run_serve_command(*, port: int, dev: bool, console: Console) -> None:
+def run_serve_command(*, port: int, dev: bool, console: Console, host: str = "127.0.0.1") -> None:
     """Execute the `kg serve` CLI behavior without Click wiring."""
     import subprocess
 
@@ -40,7 +40,7 @@ def run_serve_command(*, port: int, dev: bool, console: Console) -> None:
         )
 
         try:
-            uvicorn.run("agents.api:app", host="0.0.0.0", port=port, reload=True)
+            uvicorn.run("agents.api:app", host=host, port=port, reload=True)
         finally:
             vite_proc.terminate()
             vite_proc.wait()
@@ -55,4 +55,4 @@ def run_serve_command(*, port: int, dev: bool, console: Console) -> None:
     console.print("[bold green]Knowledge Graph Web UI[/]")
     console.print(f"  访问: http://localhost:{port}")
     console.print()
-    uvicorn.run("agents.api:app", host="0.0.0.0", port=port)
+    uvicorn.run("agents.api:app", host=host, port=port)

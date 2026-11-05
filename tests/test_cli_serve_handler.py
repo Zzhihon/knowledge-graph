@@ -54,7 +54,7 @@ def test_serve_handler_production_mode_runs_uvicorn(tmp_path) -> None:
 
     mock_uvicorn_run.assert_called_once_with(
         "agents.api:app",
-        host="0.0.0.0",
+        host="127.0.0.1",
         port=8765,
     )
     assert "Knowledge Graph Web UI" in console.export_text()

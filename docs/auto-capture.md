@@ -45,3 +45,13 @@ AIHOT 读取失败只记录原因，不影响其余部分。
 ## 在 agent-autoloop 里接上
 
 规则在 `~/.agent-autoloop/rules.json`。两个 Skill 的源文件在 `integrations/autoloop/skills/`，软链到后台 Claude 配置目录的 `skills/` 下。后台用哪个 Claude 账号、走哪个代理，由 `~/.agent-autoloop/agent-env.sh` 决定。
+
+## 在网页里看
+
+`kg serve` 启动后打开 http://127.0.0.1:8765 ，默认是日报页。
+
+- **日报**：一句话总结、数字栏、"今天要你动手"、今日图解，下面按时间线排项目进展、新沉淀、实验和外部简报。
+- **知识库 / 项目 / 实验**：按板块筛选和全文搜索（按 `/` 聚焦搜索框），按更新日期分组。点开条目，在右侧阅读：Obsidian 提示框、`[[双链]]`、mermaid 图解都会画出来，底部可以一键在 Obsidian 里打开。
+- 地址可以收藏：`#library`、`#projects`、`#read=<条目路径>`。
+
+界面配色和组件借用了 [AIHOT](https://github.com/KKKKhazix/AIHOT) 的设计（MIT），变量在 `web/src/styles/aihot.css`。`kg serve` 默认只监听本机；要让局域网访问，用 `--host 0.0.0.0`，但这样同一局域网里的设备都能读到知识库内容。

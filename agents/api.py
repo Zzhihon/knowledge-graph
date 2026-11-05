@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from agents.api_routes import stats, search, quiz, health, graph, export, ingest, sync, conversations, entries, distill, problems, rss, domains, interview, course_knowledge, url_ingest, integrate
+from agents.api_routes import stats, search, quiz, health, graph, export, ingest, sync, conversations, entries, distill, problems, rss, domains, interview, course_knowledge, url_ingest, integrate, library
 
 app = FastAPI(title="Knowledge Graph API", version="0.1.0")
 
@@ -43,6 +43,7 @@ app.include_router(interview.router, prefix="/api")
 app.include_router(course_knowledge.router, prefix="/api")
 app.include_router(url_ingest.router, prefix="/api")
 app.include_router(integrate.router, prefix="/api")
+app.include_router(library.router, prefix="/api")
 
 # Serve built frontend in production (must be last so /api routes take priority)
 _static_dir = Path(__file__).parent / "static"
