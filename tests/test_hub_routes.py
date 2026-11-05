@@ -394,7 +394,7 @@ def test_whole_file_edit_runs_through_the_check(env) -> None:
 
 def test_rollback_without_backups_is_refused(env) -> None:
     r = env["client"].post("/api/hub/rules/rollback", json={"version": _version(env)}, headers=SAME)
-    assert r.status_code == 422 and "还没有备份" in r.json()["issues"][0]
+    assert r.status_code == 422 and "还没有网页保存时留下的备份" in r.json()["issues"][0]
 
 
 def test_rollback_to_an_invalid_backup_is_refused(env) -> None:
@@ -550,3 +550,17 @@ def test_example_settings_file_loads(tmp_path: Path) -> None:
     (tmp_path / ".kg").mkdir()
     shutil.copy(example, tmp_path / ".kg" / "hub.json")
     assert load_settings(tmp_path).cli == ("agent-autoloop",)
+
+
+def test_previous_version_ignores_hand_made_backups(env) -> None:
+    client, rules = env["client"], env["rules"]
+    original = rules.read_bytes()
+    rule = {**RULES["rules"][0], "prompt": "改过"}
+    body = {"original": "晨报", "rule": rule, "version": _version(env)}
+    assert client.post("/api/hub/rules/save", json=body, headers=SAME).status_code == 200
+    # Someone keeps a copy by hand afterwards; its name sorts after the timestamps.
+    (rules.parent / "rules.json.bak-test").write_text('{"rules": []}')
+    names = [b["name"] for b in env["store"].backups()]
+    assert names[-1] == "rules.json.bak-test"
+    r = client.post("/api/hub/rules/rollback", json={"version": _version(env)}, headers=SAME)
+    assert r.status_code == 200 and rules.read_bytes() == original

@@ -34,6 +34,7 @@ from typing import Any, Protocol
 
 HOME = Path("~/.agent-autoloop")
 BACKUP_PREFIX = ".bak-"
+_STAMP = re.compile(r"\d{8}-\d{6}(-\d+)?")
 _LOCAL_SETTINGS = Path(".kg") / "hub.json"
 _ENV = {
     "config_file": "KG_HUB_CONFIG",
@@ -291,10 +292,22 @@ class RulesStore:
         }
 
     def backups(self, limit: int = 30) -> list[dict[str, Any]]:
+        """Backups this page made (newest first), then any other `rules.json.bak-*` by mtime."""
         folder, base = self.rules_file.parent, self.rules_file.name + BACKUP_PREFIX
         found = [p for p in folder.glob(base + "*") if p.is_file()]
-        found.sort(key=lambda p: p.name, reverse=True)
-        return [{"name": p.name, "size": p.stat().st_size} for p in found[:limit]]
+        ours = sorted((p for p in found if _STAMP.fullmatch(p.name[len(base) :])), reverse=True)
+        others = sorted(
+            (p for p in found if p not in ours), key=lambda p: p.stat().st_mtime, reverse=True
+        )
+        return [
+            {
+                "name": p.name,
+                "size": p.stat().st_size,
+                "mtime": p.stat().st_mtime,
+                "ours": p in ours,
+            }
+            for p in [*ours, *others][:limit]
+        ]
 
     def audit(self, limit: int = 100) -> list[dict[str, Any]]:
         if not self.audit_file.is_file():
@@ -381,10 +394,14 @@ class RulesStore:
             return {"version": entry["after"], "backup": backup.name, "audit": entry}
 
     def rollback(self, version: str, backup: str | None = None) -> dict[str, Any]:
-        names = [b["name"] for b in self.backups(limit=10_000)]
-        if not names:
-            raise RulesInvalidError(["还没有备份，没法回滚"])
-        name = backup or names[0]
+        known = self.backups(limit=10_000)
+        names = [b["name"] for b in known]
+        ours = [b["name"] for b in known if b["ours"]]
+        if not backup and not ours:
+            raise RulesInvalidError(
+                ["还没有网页保存时留下的备份，没法自动回滚；可以在列表里选一个备份"]
+            )
+        name = backup or ours[0]
         if name not in names:
             raise RulesInvalidError([f"没有这个备份：{name}"])
         text = (self.rules_file.parent / name).read_text(encoding="utf-8")
