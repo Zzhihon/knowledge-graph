@@ -182,3 +182,14 @@ kg plane status                       # 每个采集器的资源数、各状态�
 | `GET /api/plane/incidents` | `open=1`、`resource`、`limit` | 按开的时间从新到旧 |
 
 还没有状态库时，所有列表都返回空，不会创建库文件。状态库路径由 `plane_db_path` 依赖提供，测试用 `app.dependency_overrides` 换成临时文件。
+
+## 出口采集器（egress）
+
+配置 `.kg/plane/egress.yaml`（模板 `egress.yaml.example`）。每分钟对每条线路做分段探测：本地代理端口 TCP → 代理内核控制接口（当前节点、节点延迟）→ 经代理请求 trace（出口 IP / 地区 / 机房）→ 经代理对目标 API 域名做无凭据 HEAD。每次探测是 `egress:<线路>` 的一条 signal，`detail` 里是整个观测，规则据此重建观测再判断，所以逐次采集和 `kg plane egress replay` 整段回放开、关事故的时间一致（`tests/test_plane_egress_live.py` 验证）。
+
+- 探测请求只经 `kg/plane/egress_probe.py` 的 `curl_argv` 发出：`curl -q`（不读 ~/.curlrc）、干净环境变量、除固定 User-Agent 外不带任何请求头。控制接口的密钥只发给回环地址。
+- 休眠：和上次探测的空档超过 2.5 个周期，或 `kern.waketime` 显示刚醒，这次失败就是"唤醒后"。唤醒后的第一次失败在本轮内隔 `recheck_delay_s`（默认 75 秒）再探一次，两次都写 signal，规则据此判断是唤醒首包还是断线的开始。
+- 规则：`egress.outage`（warning，1 分钟周期下连续 3 分钟失败）、`egress.identity`（critical，第一次出口不符就开）、`egress.purity`（info，纯净度检查变差时提醒）。
+- 纯净度（每小时 + 出口 IP 变化时）写在 `egress:<线路>:purity`：IP 画像、DNS 泄漏、直连泄漏抽样、时区 / 语言提示；出口 IP 24 小时稳定性由接口从探测 signal 计算。每项带 `checked_at`。
+- 旧探测记录：`kg plane egress import <file.ndjson> [--db 路径] [--line 名字]`，导入后逐条跑状态库规则，并和整段回放比对，不一致时退出码 1。
+- 接口：`GET /api/plane/egress?hours=24[&now=Unix秒]`。看板"出口"页（`web/src/views/EgressView.tsx`）。
