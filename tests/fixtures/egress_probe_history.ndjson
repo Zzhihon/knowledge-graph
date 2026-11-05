@@ -1,0 +1,126 @@
+{"ts": "2026-11-05T12:07:54+0800", "status": "up", "tls_ms": 233, "total_ms": 409, "ip_ok": true}
+{"ts": "2026-11-05T12:12:55+0800", "status": "up", "tls_ms": 242, "total_ms": 431, "ip_ok": true}
+{"ts": "2026-11-05T12:17:55+0800", "status": "up", "tls_ms": 206, "total_ms": 406, "ip_ok": true}
+{"ts": "2026-11-05T12:59:46+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T13:04:50+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T13:09:52+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T13:14:55+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T13:19:59+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T13:25:02+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T13:30:05+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T13:35:08+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T13:40:12+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T13:45:15+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T13:50:19+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T13:55:22+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T14:00:25+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T14:05:27+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T14:10:30+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T14:15:33+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T14:20:36+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T14:25:40+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T14:30:43+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T14:55:37+0800", "status": "down", "curl_rc": 28}
+{"ts": "2026-11-05T15:00:52+0800", "status": "up", "tls_ms": 255, "total_ms": 468, "ip_ok": true}
+{"ts": "2026-11-05T15:05:53+0800", "status": "up", "tls_ms": 491, "total_ms": 790, "ip_ok": true}
+{"ts": "2026-11-05T15:10:54+0800", "status": "up", "tls_ms": 317, "total_ms": 578, "ip_ok": true}
+{"ts": "2026-11-05T15:15:55+0800", "status": "up", "tls_ms": 435, "total_ms": 743, "ip_ok": true}
+{"ts": "2026-11-05T15:20:56+0800", "status": "up", "tls_ms": 362, "total_ms": 663, "ip_ok": true}
+{"ts": "2026-11-05T15:25:57+0800", "status": "up", "tls_ms": 357, "total_ms": 661, "ip_ok": true}
+{"ts": "2026-11-05T15:30:58+0800", "status": "up", "tls_ms": 361, "total_ms": 668, "ip_ok": true}
+{"ts": "2026-11-05T15:35:58+0800", "status": "up", "tls_ms": 307, "total_ms": 591, "ip_ok": true}
+{"ts": "2026-11-05T15:40:59+0800", "status": "up", "tls_ms": 285, "total_ms": 563, "ip_ok": true}
+{"ts": "2026-11-05T15:46:00+0800", "status": "up", "tls_ms": 350, "total_ms": 641, "ip_ok": true}
+{"ts": "2026-11-05T15:51:01+0800", "status": "up", "tls_ms": 350, "total_ms": 649, "ip_ok": true}
+{"ts": "2026-11-05T15:56:02+0800", "status": "up", "tls_ms": 345, "total_ms": 638, "ip_ok": true}
+{"ts": "2026-11-05T16:01:03+0800", "status": "up", "tls_ms": 338, "total_ms": 972, "ip_ok": true}
+{"ts": "2026-11-05T16:06:04+0800", "status": "up", "tls_ms": 305, "total_ms": 543, "ip_ok": true}
+{"ts": "2026-11-05T16:11:05+0800", "status": "up", "tls_ms": 502, "total_ms": 818, "ip_ok": true}
+{"ts": "2026-11-05T16:16:06+0800", "status": "up", "tls_ms": 322, "total_ms": 981, "ip_ok": true}
+{"ts": "2026-11-05T16:21:07+0800", "status": "up", "tls_ms": 351, "total_ms": 661, "ip_ok": true}
+{"ts": "2026-11-05T16:26:08+0800", "status": "up", "tls_ms": 287, "total_ms": 568, "ip_ok": true}
+{"ts": "2026-11-05T16:31:09+0800", "status": "up", "tls_ms": 338, "total_ms": 611, "ip_ok": true}
+{"ts": "2026-11-05T16:36:09+0800", "status": "up", "tls_ms": 354, "total_ms": 951, "ip_ok": true}
+{"ts": "2026-11-05T16:41:11+0800", "status": "up", "tls_ms": 324, "total_ms": 622, "ip_ok": true}
+{"ts": "2026-11-05T16:46:11+0800", "status": "up", "tls_ms": 266, "total_ms": 519, "ip_ok": true}
+{"ts": "2026-11-05T16:51:12+0800", "status": "up", "tls_ms": 317, "total_ms": 578, "ip_ok": true}
+{"ts": "2026-11-05T16:56:13+0800", "status": "up", "tls_ms": 327, "total_ms": 632, "ip_ok": true}
+{"ts": "2026-11-05T17:01:14+0800", "status": "up", "tls_ms": 336, "total_ms": 654, "ip_ok": true}
+{"ts": "2026-11-05T17:06:15+0800", "status": "up", "tls_ms": 362, "total_ms": 664, "ip_ok": true}
+{"ts": "2026-11-05T17:11:16+0800", "status": "up", "tls_ms": 333, "total_ms": 661, "ip_ok": true}
+{"ts": "2026-11-05T17:16:16+0800", "status": "up", "tls_ms": 322, "total_ms": 592, "ip_ok": true}
+{"ts": "2026-11-05T17:21:17+0800", "status": "up", "tls_ms": 358, "total_ms": 631, "ip_ok": true}
+{"ts": "2026-11-05T17:26:18+0800", "status": "up", "tls_ms": 949, "total_ms": 1848, "ip_ok": true}
+{"ts": "2026-11-05T17:31:20+0800", "status": "up", "tls_ms": 289, "total_ms": 558, "ip_ok": true}
+{"ts": "2026-11-05T17:36:21+0800", "status": "up", "tls_ms": 330, "total_ms": 600, "ip_ok": true}
+{"ts": "2026-11-05T17:41:22+0800", "status": "up", "tls_ms": 314, "total_ms": 585, "ip_ok": true}
+{"ts": "2026-11-05T17:46:22+0800", "status": "up", "tls_ms": 355, "total_ms": 626, "ip_ok": true}
+{"ts": "2026-11-05T17:51:23+0800", "status": "up", "tls_ms": 338, "total_ms": 627, "ip_ok": true}
+{"ts": "2026-11-05T17:56:24+0800", "status": "up", "tls_ms": 279, "total_ms": 524, "ip_ok": true}
+{"ts": "2026-11-05T18:01:25+0800", "status": "up", "tls_ms": 251, "total_ms": 453, "ip_ok": true}
+{"ts": "2026-11-05T18:06:26+0800", "status": "up", "tls_ms": 337, "total_ms": 601, "ip_ok": true}
+{"ts": "2026-11-05T18:11:26+0800", "status": "up", "tls_ms": 264, "total_ms": 476, "ip_ok": true}
+{"ts": "2026-11-05T18:16:27+0800", "status": "up", "tls_ms": 261, "total_ms": 477, "ip_ok": true}
+{"ts": "2026-11-05T18:21:28+0800", "status": "up", "tls_ms": 263, "total_ms": 486, "ip_ok": true}
+{"ts": "2026-11-05T18:26:28+0800", "status": "up", "tls_ms": 235, "total_ms": 432, "ip_ok": true}
+{"ts": "2026-11-05T18:31:29+0800", "status": "up", "tls_ms": 263, "total_ms": 457, "ip_ok": true}
+{"ts": "2026-11-05T18:36:30+0800", "status": "up", "tls_ms": 256, "total_ms": 464, "ip_ok": true}
+{"ts": "2026-11-05T18:41:30+0800", "status": "up", "tls_ms": 241, "total_ms": 418, "ip_ok": true}
+{"ts": "2026-11-05T18:46:31+0800", "status": "up", "tls_ms": 217, "total_ms": 394, "ip_ok": true}
+{"ts": "2026-11-05T18:51:32+0800", "status": "up", "tls_ms": 314, "total_ms": 492, "ip_ok": true}
+{"ts": "2026-11-05T18:56:33+0800", "status": "up", "tls_ms": 240, "total_ms": 417, "ip_ok": true}
+{"ts": "2026-11-05T19:01:34+0800", "status": "up", "tls_ms": 248, "total_ms": 465, "ip_ok": true}
+{"ts": "2026-11-05T19:06:34+0800", "status": "up", "tls_ms": 233, "total_ms": 416, "ip_ok": true}
+{"ts": "2026-11-05T19:11:35+0800", "status": "up", "tls_ms": 220, "total_ms": 405, "ip_ok": true}
+{"ts": "2026-11-05T19:16:36+0800", "status": "up", "tls_ms": 220, "total_ms": 404, "ip_ok": true}
+{"ts": "2026-11-05T19:21:36+0800", "status": "up", "tls_ms": 224, "total_ms": 402, "ip_ok": true}
+{"ts": "2026-11-05T19:26:37+0800", "status": "up", "tls_ms": 231, "total_ms": 442, "ip_ok": true}
+{"ts": "2026-11-05T19:31:37+0800", "status": "up", "tls_ms": 230, "total_ms": 407, "ip_ok": true}
+{"ts": "2026-11-05T19:36:38+0800", "status": "up", "tls_ms": 210, "total_ms": 384, "ip_ok": true}
+{"ts": "2026-11-05T19:41:39+0800", "status": "up", "tls_ms": 232, "total_ms": 429, "ip_ok": true}
+{"ts": "2026-11-05T19:46:39+0800", "status": "up", "tls_ms": 224, "total_ms": 411, "ip_ok": true}
+{"ts": "2026-11-05T19:51:40+0800", "status": "up", "tls_ms": 252, "total_ms": 464, "ip_ok": true}
+{"ts": "2026-11-05T20:33:54+0800", "status": "down", "curl_rc": 35}
+{"ts": "2026-11-05T22:45:08+0800", "status": "down", "curl_rc": 28}
+{"ts": "2026-11-05T22:50:24+0800", "status": "up", "tls_ms": 240, "total_ms": 423, "ip_ok": true}
+{"ts": "2026-11-05T22:55:24+0800", "status": "up", "tls_ms": 232, "total_ms": 410, "ip_ok": true}
+{"ts": "2026-11-05T23:00:25+0800", "status": "up", "tls_ms": 232, "total_ms": 433, "ip_ok": true}
+{"ts": "2026-11-05T23:05:26+0800", "status": "up", "tls_ms": 223, "total_ms": 406, "ip_ok": true}
+{"ts": "2026-11-05T23:10:26+0800", "status": "up", "tls_ms": 217, "total_ms": 405, "ip_ok": true}
+{"ts": "2026-11-05T23:15:27+0800", "status": "up", "tls_ms": 244, "total_ms": 426, "ip_ok": true}
+{"ts": "2026-11-05T23:20:28+0800", "status": "up", "tls_ms": 209, "total_ms": 391, "ip_ok": true}
+{"ts": "2026-11-05T23:25:29+0800", "status": "up", "tls_ms": 255, "total_ms": 435, "ip_ok": true}
+{"ts": "2026-11-05T23:30:30+0800", "status": "up", "tls_ms": 205, "total_ms": 391, "ip_ok": true}
+{"ts": "2026-11-05T23:35:31+0800", "status": "up", "tls_ms": 226, "total_ms": 410, "ip_ok": true}
+{"ts": "2026-11-05T23:40:31+0800", "status": "up", "tls_ms": 535, "total_ms": 721, "ip_ok": true}
+{"ts": "2026-11-05T23:45:33+0800", "status": "up", "tls_ms": 257, "total_ms": 441, "ip_ok": true}
+{"ts": "2026-11-05T23:50:34+0800", "status": "up", "tls_ms": 216, "total_ms": 395, "ip_ok": true}
+{"ts": "2026-11-05T23:55:35+0800", "status": "up", "tls_ms": 269, "total_ms": 451, "ip_ok": true}
+{"ts": "2026-11-06T00:00:36+0800", "status": "up", "tls_ms": 420, "total_ms": 751, "ip_ok": true}
+{"ts": "2026-11-06T00:05:38+0800", "status": "up", "tls_ms": 263, "total_ms": 452, "ip_ok": true}
+{"ts": "2026-11-06T00:10:38+0800", "status": "up", "tls_ms": 217, "total_ms": 407, "ip_ok": true}
+{"ts": "2026-11-06T00:15:39+0800", "status": "up", "tls_ms": 449, "total_ms": 702, "ip_ok": true}
+{"ts": "2026-11-06T00:20:42+0800", "status": "up", "tls_ms": 268, "total_ms": 448, "ip_ok": true}
+{"ts": "2026-11-06T00:25:42+0800", "status": "up", "tls_ms": 212, "total_ms": 412, "ip_ok": true}
+{"ts": "2026-11-06T00:30:43+0800", "status": "up", "tls_ms": 226, "total_ms": 410, "ip_ok": true}
+{"ts": "2026-11-06T00:35:44+0800", "status": "up", "tls_ms": 222, "total_ms": 403, "ip_ok": true}
+{"ts": "2026-11-06T00:40:44+0800", "status": "up", "tls_ms": 218, "total_ms": 398, "ip_ok": true}
+{"ts": "2026-11-06T00:45:45+0800", "status": "up", "tls_ms": 217, "total_ms": 399, "ip_ok": true}
+{"ts": "2026-11-06T00:50:46+0800", "status": "up", "tls_ms": 220, "total_ms": 404, "ip_ok": true}
+{"ts": "2026-11-06T00:55:46+0800", "status": "up", "tls_ms": 232, "total_ms": 410, "ip_ok": true}
+{"ts": "2026-11-06T01:00:47+0800", "status": "up", "tls_ms": 274, "total_ms": 461, "ip_ok": true}
+{"ts": "2026-11-06T01:05:48+0800", "status": "up", "tls_ms": 369, "total_ms": 548, "ip_ok": true}
+{"ts": "2026-11-06T01:10:49+0800", "status": "up", "tls_ms": 222, "total_ms": 398, "ip_ok": true}
+{"ts": "2026-11-06T01:15:50+0800", "status": "up", "tls_ms": 222, "total_ms": 401, "ip_ok": true}
+{"ts": "2026-11-06T01:20:50+0800", "status": "up", "tls_ms": 273, "total_ms": 461, "ip_ok": true}
+{"ts": "2026-11-06T01:25:51+0800", "status": "up", "tls_ms": 222, "total_ms": 407, "ip_ok": true}
+{"ts": "2026-11-06T01:30:52+0800", "status": "up", "tls_ms": 216, "total_ms": 405, "ip_ok": true}
+{"ts": "2026-11-06T01:35:52+0800", "status": "up", "tls_ms": 220, "total_ms": 403, "ip_ok": true}
+{"ts": "2026-11-06T01:40:53+0800", "status": "up", "tls_ms": 233, "total_ms": 415, "ip_ok": true}
+{"ts": "2026-11-06T01:45:53+0800", "status": "up", "tls_ms": 645, "total_ms": 829, "ip_ok": true}
+{"ts": "2026-11-06T01:50:54+0800", "status": "up", "tls_ms": 228, "total_ms": 409, "ip_ok": true}
+{"ts": "2026-11-06T01:55:55+0800", "status": "up", "tls_ms": 209, "total_ms": 389, "ip_ok": true}
+{"ts": "2026-11-06T02:00:56+0800", "status": "up", "tls_ms": 221, "total_ms": 402, "ip_ok": true}
+{"ts": "2026-11-06T02:05:56+0800", "status": "up", "tls_ms": 218, "total_ms": 401, "ip_ok": true}
+{"ts": "2026-11-06T02:10:57+0800", "status": "up", "tls_ms": 222, "total_ms": 403, "ip_ok": true}
+{"ts": "2026-11-06T02:15:58+0800", "status": "up", "tls_ms": 318, "total_ms": 596, "ip_ok": true}
