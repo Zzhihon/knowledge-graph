@@ -33,7 +33,7 @@
 │   └───────────┘  └───────────┘  └───────────┘   │
 │                                                  │
 ├──────────┬──────────┬───────────┬────────────────┤
-│  Qdrant  │ SurrealDB│   SM-2    │   Claude API   │
+│  Weaviate  │ SurrealDB│   SM-2    │   Claude API   │
 │ 语义搜索  │ 关系图谱  │ 间隔重复   │  知识提取      │
 └──────────┴──────────┴───────────┴────────────────┘
 │                                                  │
@@ -63,7 +63,7 @@
      ↓
 Hook 自动识别算法学习意图
      ↓
-Qdrant 语义检索匹配模式模板 + 5 道相关题
+Weaviate 语义检索匹配模式模板 + 5 道相关题
      ↓
 Claude 读取模板 → 呈现结构化学习面板
      ↓
@@ -96,7 +96,7 @@ Claude 读取模板 → 呈现结构化学习面板
 
 | 引擎 | 擅长 | 示例 |
 |------|------|------|
-| **Qdrant 向量搜索** | 语义相近的概念 | 搜"滑动窗口"也能找到"双指针"相关条目 |
+| **Weaviate 向量搜索** | 语义相近的概念 | 搜"滑动窗口"也能找到"双指针"相关条目 |
 | **SurrealDB 图搜索** | 依赖关系和前置知识 | 查"LC-76"自动关联到滑动窗口模式模板 |
 | **BM25 关键词** | 精确术语匹配 | 搜"goroutine"不会返回"coroutine" |
 
@@ -148,14 +148,14 @@ Claude 自动从技术对话中识别有价值的知识点，生成结构化条�
 | 组件 | 选型 | 理由 |
 |------|------|------|
 | **知识源** | Obsidian Markdown | 人类可读、Git 可控、永不锁定 |
-| **向量数据库** | Qdrant (本地磁盘模式) | 语义搜索，零云端依赖 |
+| **向量数据库** | Weaviate (本地磁盘模式) | 语义搜索，零云端依赖 |
 | **图数据库** | SurrealDB (SurrealKV) | 关系发现，本地运行 |
-| **嵌入模型** | all-MiniLM-L6-v2 (384d) | 离线推理，无 API 调用 |
+| **嵌入模型** | Gemini Embedding / all-MiniLM-L6-v2 | 可选在线高质量 embedding 或本地离线推理 |
 | **AI 引擎** | Claude API | 知识提取、导出生成 |
 | **交互层** | Claude Code CLI | Hook + Slash 命令，零切换成本 |
 | **间隔重复** | SM-2 算法 | 经典有效，参数可调 |
 
-**核心原则：Markdown 是唯一真相源。** 数据库是可重建的索引，不是数据本体。你可以随时删除 Qdrant 和 SurrealDB，从 Markdown 文件完整重建。
+**核心原则：Markdown 是唯一真相源。** 数据库是可重建的索引，不是数据本体。你可以随时删除 Weaviate 和 SurrealDB，从 Markdown 文件完整重建。
 
 ---
 
@@ -180,7 +180,7 @@ Claude 自动从技术对话中识别有价值的知识点，生成结构化条�
 你：复习滑动窗口
 
 [系统自动]
-→ Hook 检测意图 → Qdrant 语义搜索
+→ Hook 检测意图 → Weaviate 语义搜索
 → 加载模式模板 + 5 道相关题
 
 Claude：
@@ -277,7 +277,7 @@ kg init
 # 增量同步（只处理新增/修改/删除的条目）
 kg sync
 
-# 强制全量重建 Qdrant + SurrealDB 索引
+# 强制全量重建 Weaviate + SurrealDB 索引
 kg sync --full
 ```
 
@@ -416,4 +416,4 @@ kg stats                             # 全库统计
 
 ---
 
-*Built with Obsidian + Qdrant + SurrealDB + Claude Code*
+*Built with Obsidian + Weaviate + SurrealDB + Claude Code*

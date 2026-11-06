@@ -38,8 +38,8 @@ personas: []
    - Generate a review-note entry in the vault using the review-note template
 
 ## Key Paths
-- Vault root: `/Users/bt1q/Github-Projects/knowledge-graph/`
-- CLI: Run via `cd /Users/bt1q/Github-Projects/knowledge-graph && .venv/bin/kg review`
+- Vault root: `<repo>/`
+- CLI: Run via `cd <repo> && .venv/bin/kg review`
 - Review notes: Write to vault root as `review-YYYY-MM-DD.md`
 
 ## Examples

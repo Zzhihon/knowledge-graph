@@ -32,12 +32,12 @@ personas: []
    - Use Grep to find entries where `domain` frontmatter matches `--domain`
    - If `--depth` is specified, further filter by `depth` frontmatter field
    - Search across:
-     - `/Users/bt1q/Github-Projects/knowledge-graph/01-Principles/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/02-Patterns/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/03-Debug/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/04-Architecture/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/05-Research/`
-     - `/Users/bt1q/Github-Projects/knowledge-graph/06-Team/` (only for `onboarding` format)
+     - `<repo>/01-Principles/`
+     - `<repo>/02-Patterns/`
+     - `<repo>/03-Debug/`
+     - `<repo>/04-Architecture/`
+     - `<repo>/05-Research/`
+     - `<repo>/06-Team/` (only for `onboarding` format)
    - Read all matching entries fully
 
 2. **Generate Document**: Based on `--format`, apply the corresponding generation strategy:
@@ -177,7 +177,7 @@ Generate a team onboarding document from team entries and relevant technical ent
    - Report summary: number of entries used, domains covered, total word count
 
 ## Key Paths
-- Vault root: `/Users/bt1q/Github-Projects/knowledge-graph/`
+- Vault root: `<repo>/`
 - Knowledge dirs: `01-Principles/`, `02-Patterns/`, `03-Debug/`, `04-Architecture/`, `05-Research/`, `06-Team/`
 
 ## Examples
@@ -198,7 +198,7 @@ Generate a team onboarding document from team entries and relevant technical ent
 
 ### Generate onboarding doc and save to file
 ```
-/sc:kg-export --format onboarding --domain cloud-native --output /Users/bt1q/Github-Projects/knowledge-graph/exports/onboarding-cloud-native.md
+/sc:kg-export --format onboarding --domain cloud-native --output <repo>/exports/onboarding-cloud-native.md
 # Creates team onboarding doc from team + technical entries
 # Writes to specified output path
 ```

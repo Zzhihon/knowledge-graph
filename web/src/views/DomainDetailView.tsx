@@ -12,15 +12,15 @@ interface DomainDetailViewProps {
 }
 
 const getMetricColor = (value: number): string => {
-  if (value >= 0.7) return 'bg-emerald-500'
-  if (value >= 0.4) return 'bg-amber-500'
-  return 'bg-rose-500'
+  if (value >= 0.7) return 'bg-k-ok'
+  if (value >= 0.4) return 'bg-k-amber'
+  return 'bg-k-hot'
 }
 
 const getMetricTextColor = (value: number): string => {
-  if (value >= 0.7) return 'text-emerald-400'
-  if (value >= 0.4) return 'text-amber-400'
-  return 'text-rose-400'
+  if (value >= 0.7) return 'text-k-ok'
+  if (value >= 0.4) return 'text-k-amber-ink'
+  return 'text-k-hot'
 }
 
 export default function DomainDetailView({ domainKey, onBack }: DomainDetailViewProps) {
@@ -82,16 +82,16 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
   }
 
   const SortIcon = ({ k }: { k: SortKey }) => {
-    if (sortKey !== k) return <ArrowUpDown className="w-3 h-3 text-zinc-600" />
+    if (sortKey !== k) return <ArrowUpDown className="w-3 h-3 text-k-ink4" />
     return sortDir === 'desc'
-      ? <ArrowDown className="w-3 h-3 text-indigo-400" />
-      : <ArrowUp className="w-3 h-3 text-indigo-400" />
+      ? <ArrowDown className="w-3 h-3 text-k-accent" />
+      : <ArrowUp className="w-3 h-3 text-k-accent" />
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-zinc-400">加载中...</div>
+        <div className="text-k-ink3">加载中...</div>
       </div>
     )
   }
@@ -99,7 +99,7 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
   if (!domain) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-rose-400">域不存在</div>
+        <div className="text-k-hot">域不存在</div>
       </div>
     )
   }
@@ -126,7 +126,7 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
       <div className="mb-6">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-zinc-400 hover:text-zinc-300 transition-colors mb-4"
+          className="flex items-center gap-2 text-k-ink3 hover:text-k-ink2 transition-colors mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm">返回主题总览</span>
@@ -135,8 +135,8 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
         <div className="flex items-center gap-4">
           <span className="text-5xl">{domain.icon}</span>
           <div>
-            <h1 className="text-3xl font-bold text-zinc-100">{domain.label}</h1>
-            <p className="text-zinc-500 mt-1">
+            <h1 className="text-3xl font-bold text-k-ink">{domain.label}</h1>
+            <p className="text-k-ink4 mt-1">
               {domain.metrics.total_entries} 条目 · {domain.sub_domains.length} 子域
             </p>
           </div>
@@ -146,12 +146,12 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
       {/* Metrics overview */}
       <div className="mb-6 grid grid-cols-4 gap-4">
         {metrics.map(({ key, label, value }) => (
-          <div key={key} className="bg-zinc-900/40 backdrop-blur-sm rounded-xl border border-zinc-800/50 p-4">
-            <div className="text-sm text-zinc-500 mb-2">{label}</div>
+          <div key={key} className="bg-k-surface/40 backdrop-blur-sm rounded-xl border border-k-line/50 p-4">
+            <div className="text-sm text-k-ink4 mb-2">{label}</div>
             <div className={`text-3xl font-bold ${getMetricTextColor(value)} mb-3`}>
               {(value * 100).toFixed(0)}
             </div>
-            <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+            <div className="h-2 bg-k-sunk rounded-full overflow-hidden">
               <div
                 className={`h-full ${getMetricColor(value)} transition-all duration-300`}
                 style={{ width: `${value * 100}%` }}
@@ -163,8 +163,8 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
 
       {/* Sub-domains */}
       {domain.sub_domains.length > 0 && (
-        <div className="mb-6 bg-zinc-900/40 backdrop-blur-sm rounded-xl border border-zinc-800/50 p-5">
-          <h2 className="text-sm font-medium text-zinc-400 mb-3">子域覆盖</h2>
+        <div className="mb-6 bg-k-surface/40 backdrop-blur-sm rounded-xl border border-k-line/50 p-5">
+          <h2 className="text-sm font-medium text-k-ink3 mb-3">子域覆盖</h2>
           <div className="flex flex-wrap gap-2">
             {domain.sub_domains.map(subDomain => {
               const isCovered = coveredSubDomains.has(subDomain)
@@ -173,8 +173,8 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
                   key={subDomain}
                   className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                     isCovered
-                      ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                      : 'bg-zinc-800/50 text-zinc-500 border border-zinc-700/50'
+                      ? 'bg-k-accent/20 text-k-accent border border-k-accent/30'
+                      : 'bg-k-sunk/50 text-k-ink4 border border-k-line-strong/50'
                   }`}
                 >
                   {subDomain}
@@ -187,27 +187,27 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
 
       {/* Search */}
       <div className="mb-4 relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-k-ink4" />
         <input
           type="text"
           placeholder="搜索条目..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 border border-zinc-800/50 rounded-lg bg-zinc-900/40 backdrop-blur-sm text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+          className="w-full pl-10 pr-4 py-2.5 border border-k-line/50 rounded-lg bg-k-surface/40 backdrop-blur-sm text-k-ink placeholder-k-ink4 focus:ring-2 focus:ring-k-accent/50 focus:border-k-accent/50 transition-all"
         />
       </div>
 
       {/* Entries list */}
-      <div className="bg-zinc-900/40 backdrop-blur-sm rounded-xl border border-zinc-800/50 overflow-hidden">
-        <div className="p-4 border-b border-zinc-800/50 flex items-center justify-between">
-          <h2 className="text-sm font-medium text-zinc-400">
+      <div className="bg-k-surface/40 backdrop-blur-sm rounded-xl border border-k-line/50 overflow-hidden">
+        <div className="p-4 border-b border-k-line/50 flex items-center justify-between">
+          <h2 className="text-sm font-medium text-k-ink3">
             条目列表 ({sortedEntries.length})
           </h2>
           <div className="flex items-center gap-1">
             <button
               onClick={() => toggleSort('date')}
               className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${
-                sortKey === 'date' ? 'bg-indigo-500/15 text-indigo-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+                sortKey === 'date' ? 'bg-k-accent/15 text-k-accent' : 'text-k-ink4 hover:text-k-ink2 hover:bg-k-sunk/50'
               }`}
             >
               日期 <SortIcon k="date" />
@@ -215,7 +215,7 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
             <button
               onClick={() => toggleSort('confidence')}
               className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${
-                sortKey === 'confidence' ? 'bg-indigo-500/15 text-indigo-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+                sortKey === 'confidence' ? 'bg-k-accent/15 text-k-accent' : 'text-k-ink4 hover:text-k-ink2 hover:bg-k-sunk/50'
               }`}
             >
               置信度 <SortIcon k="confidence" />
@@ -223,16 +223,16 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
             <button
               onClick={() => toggleSort('title')}
               className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${
-                sortKey === 'title' ? 'bg-indigo-500/15 text-indigo-400' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+                sortKey === 'title' ? 'bg-k-accent/15 text-k-accent' : 'text-k-ink4 hover:text-k-ink2 hover:bg-k-sunk/50'
               }`}
             >
               名称 <SortIcon k="title" />
             </button>
           </div>
         </div>
-        <div className="divide-y divide-zinc-800/50">
+        <div className="divide-y divide-k-line/50">
           {sortedEntries.length === 0 ? (
-            <div className="p-8 text-center text-zinc-500">
+            <div className="p-8 text-center text-k-ink4">
               {searchQuery ? '未找到匹配的条目' : '暂无条目'}
             </div>
           ) : (
@@ -240,24 +240,24 @@ export default function DomainDetailView({ domainKey, onBack }: DomainDetailView
               <button
                 key={entry.id}
                 onClick={() => setSelectedEntry(entry)}
-                className="w-full text-left px-5 py-3.5 hover:bg-zinc-800/30 transition-colors group"
+                className="w-full text-left px-5 py-3.5 hover:bg-k-sunk/30 transition-colors group"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm text-zinc-200 group-hover:text-zinc-100">
+                    <span className="text-sm text-k-ink group-hover:text-k-ink">
                       {entry.title}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
                     {entry.created && (
-                      <span className="text-xs text-zinc-600 font-mono tabular-nums">
+                      <span className="text-xs text-k-ink4 font-mono tabular-nums">
                         {entry.created}
                       </span>
                     )}
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-zinc-800/50 text-zinc-400 border border-zinc-700/50">
+                    <span className="text-xs px-2 py-0.5 rounded-md bg-k-sunk/50 text-k-ink3 border border-k-line-strong/50">
                       {entry.type}
                     </span>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-zinc-800/50 text-zinc-500 border border-zinc-700/50">
+                    <span className="text-xs px-2 py-0.5 rounded-md bg-k-sunk/50 text-k-ink4 border border-k-line-strong/50">
                       {entry.depth}
                     </span>
                     {entry.confidence !== null && (

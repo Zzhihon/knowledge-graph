@@ -64,7 +64,7 @@ Location: `~/.claude/settings.json`
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/bt1q/Github-Projects/knowledge-graph/scripts/session-kg-load.sh",
+            "command": "<repo>/scripts/session-kg-load.sh",
             "timeout": 5
           }
         ]
@@ -85,7 +85,7 @@ Location: `~/.claude/settings.json`
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/bt1q/Github-Projects/knowledge-graph/scripts/post-write-hook.sh"
+            "command": "<repo>/scripts/post-write-hook.sh"
           }
         ]
       }

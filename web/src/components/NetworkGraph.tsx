@@ -2,6 +2,9 @@ import { useRef, useEffect, useCallback } from 'react'
 import * as d3 from 'd3'
 import type { NetworkNode, NetworkEdge } from '../types'
 
+/** A colour token from styles/aihot.css, read when the graph is drawn so it follows the theme. */
+const themeVar = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+
 // Domain → color mapping (consistent hues for the dark theme)
 const DOMAIN_COLORS: Record<string, string> = {
   golang: '#00ADD8',
@@ -85,8 +88,8 @@ export default function NetworkGraph({
     const tip = tooltipRef.current
     if (!tip) return
     tip.innerHTML = `
-      <div class="font-medium text-zinc-100 text-sm mb-1 truncate max-w-[240px]">${node.title}</div>
-      <div class="text-xs text-zinc-400 space-y-0.5">
+      <div class="font-medium text-k-ink text-sm mb-1 truncate max-w-[240px]">${node.title}</div>
+      <div class="text-xs text-k-ink3 space-y-0.5">
         <div>领域: ${node.domain.join(', ') || '—'}</div>
         <div>连接: ${node.linkCount}</div>
         ${node.confidence != null ? `<div>置信度: ${(node.confidence * 100).toFixed(0)}%</div>` : ''}
@@ -155,7 +158,7 @@ export default function NetworkGraph({
       .selectAll<SVGLineElement, SimLink>('line')
       .data(simLinks)
       .join('line')
-      .attr('stroke', (d) => EDGE_COLORS[d.type] || '#334155')
+      .attr('stroke', (d) => EDGE_COLORS[d.type] || themeVar('--k-ink-4'))
       .attr('stroke-width', 0.5)
       .attr('stroke-opacity', 0.3)
 
@@ -167,7 +170,7 @@ export default function NetworkGraph({
       .join('circle')
       .attr('r', (d) => Math.max(3, Math.min(12, 3 + d.linkCount * 0.5)))
       .attr('fill', (d) => getDomainColor(d.domain))
-      .attr('stroke', '#09090b')
+      .attr('stroke', themeVar('--k-bg'))
       .attr('stroke-width', 0.5)
       .attr('cursor', 'pointer')
 
@@ -302,7 +305,7 @@ export default function NetworkGraph({
   }, [])
 
   return (
-    <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-[#09090b]">
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-k-bg">
       <svg
         ref={svgRef}
         className="w-full h-full"
@@ -310,7 +313,7 @@ export default function NetworkGraph({
       />
       <div
         ref={tooltipRef}
-        className="absolute z-50 px-3 py-2 bg-zinc-900 border border-zinc-700/50 rounded-lg shadow-xl opacity-0 transition-opacity duration-150 pointer-events-none"
+        className="absolute z-50 px-3 py-2 bg-k-surface border border-k-line-strong/50 rounded-lg shadow-xl opacity-0 transition-opacity duration-150 pointer-events-none"
         style={{ maxWidth: 280 }}
       />
     </div>

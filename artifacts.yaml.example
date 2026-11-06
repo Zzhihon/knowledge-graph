@@ -1,0 +1,34 @@
+# 工件中心（kg plane collect artifacts）的本地配置。复制到 <vault>/.kg/plane/artifacts.yaml
+# （.kg/ 不进 git）。不写这个文件也能跑：默认读 answer-me-with-html 的页面目录、Orca 工件
+# 和 .kg/plane/claude-artifacts.json。
+
+# 本地 HTML / Markdown 页所在的目录。这些目录也是预览接口唯一允许读的地方。
+local:
+  - path: "~/.answer-me-with-html/pages"
+    origin: answer-me-with-html   # 卡片上显示的来源
+    glob: ["*.html"]
+  # - path: "~/some/reports"
+  #   origin: reports
+  #   glob: ["*.html", "**/*.md"]
+
+orca:
+  enabled: true
+  # Orca 记录"哪个本地文件分享成了哪个链接"的文件。只读路径和 slug，不读里面的编辑令牌。
+  shares:
+    - "~/Library/Application Support/orca/profiles/*/artifact-shares.json"
+
+claude:
+  # 每天一次的只读 Claude 任务写的工件清单，相对路径相对 <vault>/.kg/plane/。
+  import: claude-artifacts.json
+
+sensitive:
+  # 额外算作"内网主机"的域名后缀（公司内网域名写在这里，不要写进仓库）。
+  # .internal、.corp、.lan、.cluster.local 等通用后缀已经默认算上。
+  internal_domains:
+    - intra.test
+
+# 除 local 目录外，预览接口还允许读的目录（例如 Orca 分享的源文件所在的仓库）。
+preview_roots: []
+
+# 扫描敏感内容和导出检索文档时，每个文件最多读多少字节。
+max_bytes: 2000000

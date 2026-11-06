@@ -29,11 +29,49 @@ export interface SearchResult {
   metadata: Record<string, unknown>
 }
 
+export interface TypeaheadResult {
+  id: string
+  title: string
+  domain: string | string[]
+  type: string
+  depth: string
+  tags: string[]
+  confidence: number | null
+  score: number
+}
+
+export interface TypeaheadResponse {
+  results: TypeaheadResult[]
+  total: number
+  query: string
+}
+
+/** /api/typeahead?kind=artifact: an artifact page (#6) whose indexed, masked text matched. */
+export interface ArtifactSearchHit {
+  id: string
+  title: string
+  kind: 'artifact'
+  url: string | null
+  local_file: string
+  snippet: string
+  sensitive: boolean
+  score: number
+}
+
+export interface ArtifactSearchResponse {
+  results: ArtifactSearchHit[]
+  query: string
+  error?: { code: string; message: string; hint?: string }
+}
+
 export interface Source {
   id: string
   title: string
   domain: string
   score: number
+  /** 'artifact' for an artifact page added to the context (#6); entries leave it out or say 'entry'. */
+  kind?: 'entry' | 'artifact'
+  url?: string | null
 }
 
 export interface QuizEntry {
@@ -240,7 +278,7 @@ export interface SyncResult {
   changed: number
   deleted: number
   unchanged: number
-  qdrant_upserted: number
+  vector_upserted: number
   graph_upserted: number
   edges_created: number
 }

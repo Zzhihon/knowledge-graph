@@ -47,7 +47,7 @@ def discover_cross_domain(
 
     Algorithm:
       1. Load all entries, group by domain
-      2. For each entry, search Qdrant excluding its own domain(s)
+      2. For each entry, search Weaviate excluding its own domain(s)
       3. Deduplicate bidirectional pairs (A↔B == B↔A)
       4. Sort by similarity, take top N
       5. Optionally generate Claude descriptions for connections

@@ -1,27 +1,28 @@
-"""Qdrant vector store wrapper for knowledge graph semantic search.
+"""Weaviate vector store wrapper for knowledge graph semantic search.
 
-Provides a thin abstraction over qdrant_client for upserting,
+Provides a thin abstraction over weaviate-client for upserting,
 searching, and managing knowledge entry embeddings with local
-disk persistence.  Supports filtered search by domain, type,
-depth, status, and other metadata fields.
+embedded persistence.  Supports filtered search by domain, type,
+depth, status, and other metadata fields.  Includes native hybrid
+search combining BM25 keyword and vector similarity.
 """
 
 from __future__ import annotations
 
-import hashlib
 import logging
-import sys
+import uuid
 from pathlib import Path
 from typing import Any
 
-from qdrant_client import QdrantClient
-from qdrant_client import models
+import weaviate
+import weaviate.classes as wvc
+from weaviate.classes.query import Filter, HybridFusion, MetadataQuery
 
-from agents.config import ProjectConfig, load_config
+from agents.config import AgentConfig, ProjectConfig, load_config
 
 logger = logging.getLogger(__name__)
 
-_COLLECTION_NAME = "knowledge_entries"
+_COLLECTION_NAME = "KnowledgeEntries"
 _BATCH_SIZE = 100
 
 
@@ -37,51 +38,125 @@ def _get_vector_dim() -> int:
 _VECTOR_DIM = _get_vector_dim()
 
 
-def _entry_id_to_point_id(entry_id: str) -> int:
-    """将 entry_id 转换为 Qdrant 所需的 int64 类型 point ID.
+def _entry_id_to_uuid(entry_id: str) -> str:
+    """将 entry_id 转换为确定性 UUID.
 
-    使用 SHA-256 哈希的前 15 个十六进制字符（60 bit）生成稳定的
-    整数标识符，确保同一 entry_id 始终映射到同一 point ID.
+    使用 uuid5(NAMESPACE_DNS, entry_id) 生成稳定的 UUID，
+    确保同一 entry_id 始终映射到同一 UUID.
 
     Args:
         entry_id: 知识条目 ID，如 'ke-20260226-goroutine-scheduling'.
 
     Returns:
-        适用于 Qdrant point ID 的正整数.
+        UUID 字符串.
     """
-    return int(hashlib.sha256(entry_id.encode()).hexdigest()[:15], 16)
+    return str(uuid.uuid5(uuid.NAMESPACE_DNS, entry_id))
+
+
+def _build_collection_properties() -> list[wvc.config.Property]:
+    """构建知识条目的 Weaviate 属性 schema."""
+    return [
+        wvc.config.Property(
+            name="entry_id",
+            data_type=wvc.config.DataType.TEXT,
+            skip_vectorization=True,
+            tokenization=wvc.config.Tokenization.FIELD,
+        ),
+        wvc.config.Property(
+            name="title",
+            data_type=wvc.config.DataType.TEXT,
+        ),
+        wvc.config.Property(
+            name="domain",
+            data_type=wvc.config.DataType.TEXT_ARRAY,
+        ),
+        wvc.config.Property(
+            name="tags",
+            data_type=wvc.config.DataType.TEXT_ARRAY,
+        ),
+        wvc.config.Property(
+            name="type",
+            data_type=wvc.config.DataType.TEXT,
+            skip_vectorization=True,
+            tokenization=wvc.config.Tokenization.FIELD,
+        ),
+        wvc.config.Property(
+            name="depth",
+            data_type=wvc.config.DataType.TEXT,
+            skip_vectorization=True,
+            tokenization=wvc.config.Tokenization.FIELD,
+        ),
+        wvc.config.Property(
+            name="status",
+            data_type=wvc.config.DataType.TEXT,
+            skip_vectorization=True,
+            tokenization=wvc.config.Tokenization.FIELD,
+        ),
+        wvc.config.Property(
+            name="confidence",
+            data_type=wvc.config.DataType.NUMBER,
+        ),
+        wvc.config.Property(
+            name="file_path",
+            data_type=wvc.config.DataType.TEXT,
+            skip_vectorization=True,
+            tokenization=wvc.config.Tokenization.FIELD,
+        ),
+        wvc.config.Property(
+            name="content_hash",
+            data_type=wvc.config.DataType.TEXT,
+            skip_vectorization=True,
+            tokenization=wvc.config.Tokenization.FIELD,
+        ),
+        wvc.config.Property(
+            name="content",
+            data_type=wvc.config.DataType.TEXT,
+        ),
+    ]
 
 
 class VectorStore:
-    """Qdrant 向量数据库封装，提供知识条目的向量存储与检索能力.
+    """Weaviate 向量数据库封装，提供知识条目的向量存储与检索能力.
 
-    支持本地磁盘持久化，基于余弦相似度的向量搜索，以及按
-    domain / type / depth / status 等元数据字段的过滤查询.
+    支持本地嵌入式持久化，基于余弦相似度的向量搜索，原生混合搜索
+    （BM25 + 向量），以及按 domain / type / depth / status 等元数据
+    字段的过滤查询.
 
     典型用法::
 
-        with VectorStore("/path/to/qdrant_db") as store:
+        with VectorStore("/path/to/weaviate_db") as store:
             store.init_collection()
             store.upsert_entries(entries, embeddings)
             results = store.search(query_vec, top_k=5)
     """
 
-    def __init__(self, db_path: str) -> None:
-        """初始化本地 Qdrant 客户端.
+    def __init__(self, db_path: str, config: AgentConfig | None = None) -> None:
+        """初始化嵌入式 Weaviate 客户端.
 
         Args:
-            db_path: Qdrant 数据库在磁盘上的存储路径.
+            db_path: Weaviate 数据库在磁盘上的存储路径.
+            config: Agent 配置，用于读取端口等参数.
         """
         self._db_path = db_path
         Path(db_path).mkdir(parents=True, exist_ok=True)
-        self._client: QdrantClient = QdrantClient(path=db_path)
+
+        port = config.weaviate_port if config else 8079
+        grpc_port = config.weaviate_grpc_port if config else 50050
+
+        self._client = weaviate.connect_to_embedded(
+            persistence_data_path=db_path,
+            port=port,
+            grpc_port=grpc_port,
+        )
+        self._collection = None  # lazily resolved
+        self._config = config
 
     # ------------------------------------------------------------------
     # Context manager
     # ------------------------------------------------------------------
 
     def close(self) -> None:
-        """关闭 Qdrant 客户端连接，释放底层资源."""
+        """关闭 Weaviate 客户端连接，释放底层资源."""
         if self._client is not None:
             self._client.close()
             self._client = None  # type: ignore[assignment]
@@ -93,31 +168,50 @@ class VectorStore:
         self.close()
 
     # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _get_collection(self):
+        """获取 collection 引用（懒加载）."""
+        if self._collection is None:
+            self._collection = self._client.collections.get(_COLLECTION_NAME)
+        return self._collection
+
+    # ------------------------------------------------------------------
     # Collection management
     # ------------------------------------------------------------------
 
-    def init_collection(self) -> None:
+    def init_collection(self, config: AgentConfig | None = None) -> None:
         """创建或重建向量集合.
 
-        若同名集合已存在则先删除，随后以 384 维余弦距离重新创建.
+        若同名集合已存在则先删除，随后重新创建.
         适用于全量重建索引的场景.
         """
-        # 若集合已存在则先删除，保证干净重建
-        if self._client.collection_exists(_COLLECTION_NAME):
-            self._client.delete_collection(_COLLECTION_NAME)
+        cfg = config or self._config
+
+        if self._client.collections.exists(_COLLECTION_NAME):
+            self._client.collections.delete(_COLLECTION_NAME)
             logger.info("已删除旧集合: %s", _COLLECTION_NAME)
 
-        self._client.create_collection(
-            collection_name=_COLLECTION_NAME,
-            vectors_config=models.VectorParams(
-                size=_VECTOR_DIM,
-                distance=models.Distance.COSINE,
+        bm25_b = cfg.bm25_b if cfg else 0.75
+        bm25_k1 = cfg.bm25_k1 if cfg else 1.5
+
+        self._client.collections.create(
+            name=_COLLECTION_NAME,
+            vectorizer_config=wvc.config.Configure.Vectorizer.none(),
+            vector_index_config=wvc.config.Configure.VectorIndex.hnsw(
+                distance_metric=wvc.config.VectorDistances.COSINE,
             ),
+            inverted_index_config=wvc.config.Configure.inverted_index(
+                bm25_b=bm25_b,
+                bm25_k1=bm25_k1,
+            ),
+            properties=_build_collection_properties(),
         )
+        self._collection = None  # force re-fetch
         logger.info(
-            "已创建集合: %s (维度=%d, 距离=Cosine)",
-            _COLLECTION_NAME,
-            _VECTOR_DIM,
+            "已创建集合: %s (维度=%d, 距离=Cosine, BM25 b=%.2f k1=%.2f)",
+            _COLLECTION_NAME, _VECTOR_DIM, bm25_b, bm25_k1,
         )
 
     def ensure_collection(self) -> bool:
@@ -126,18 +220,11 @@ class VectorStore:
         Returns:
             True 表示集合已存在（增量模式可用），False 表示新创建.
         """
-        if self._client.collection_exists(_COLLECTION_NAME):
+        if self._client.collections.exists(_COLLECTION_NAME):
             logger.info("集合已存在: %s", _COLLECTION_NAME)
             return True
 
-        self._client.create_collection(
-            collection_name=_COLLECTION_NAME,
-            vectors_config=models.VectorParams(
-                size=_VECTOR_DIM,
-                distance=models.Distance.COSINE,
-            ),
-        )
-        logger.info("已创建新集合: %s", _COLLECTION_NAME)
+        self.init_collection()
         return False
 
     # ------------------------------------------------------------------
@@ -149,7 +236,7 @@ class VectorStore:
         entries: list[dict[str, Any]],
         embeddings: list[list[float]],
     ) -> int:
-        """批量写入知识条目及其向量到 Qdrant.
+        """批量写入知识条目及其向量到 Weaviate.
 
         每个条目包含 ``metadata`` 字典（含 id / title / domain / tags
         等字段）和 ``content`` 正文.  向量与条目按下标一一对应.
@@ -157,11 +244,10 @@ class VectorStore:
         Args:
             entries: 条目列表，每项包含 ``metadata`` (dict) 和
                      ``content`` (str).
-            embeddings: 与 entries 等长的嵌入向量列表，每条为
-                        384 维浮点数列表.
+            embeddings: 与 entries 等长的嵌入向量列表.
 
         Returns:
-            成功写入的 point 数量.
+            成功写入的 object 数量.
 
         Raises:
             ValueError: entries 与 embeddings 长度不匹配时抛出.
@@ -174,15 +260,15 @@ class VectorStore:
         if not entries:
             return 0
 
-        points: list[models.PointStruct] = []
-        for entry, vector in zip(entries, embeddings):
+        collection = self._get_collection()
+        objects: list[wvc.data.DataObject] = []
+
+        for entry, vector in zip(entries, embeddings, strict=True):
             meta = entry.get("metadata", {})
             entry_id = str(meta.get("id", ""))
             if not entry_id:
                 logger.warning("跳过缺少 id 的条目: %s", meta.get("title", "?"))
                 continue
-
-            point_id = _entry_id_to_point_id(entry_id)
 
             # 将 domain 规整为列表
             raw_domain = meta.get("domain", [])
@@ -202,7 +288,7 @@ class VectorStore:
             else:
                 tags_list = [str(raw_tags)] if raw_tags else []
 
-            payload: dict[str, Any] = {
+            properties = {
                 "entry_id": entry_id,
                 "title": str(meta.get("title", "")),
                 "domain": domain_list,
@@ -210,31 +296,32 @@ class VectorStore:
                 "type": str(meta.get("type", "")),
                 "depth": str(meta.get("depth", "")),
                 "status": str(meta.get("status", "")),
-                "confidence": float(meta.get("confidence", 0.0)),
+                "confidence": float(meta.get("confidence") or 0.0),
                 "file_path": str(meta.get("file_path", "")),
                 "content_hash": str(meta.get("content_hash", "")),
+                "content": entry.get("content", ""),
             }
 
-            points.append(
-                models.PointStruct(
-                    id=point_id,
+            objects.append(
+                wvc.data.DataObject(
+                    uuid=_entry_id_to_uuid(entry_id),
+                    properties=properties,
                     vector=vector,
-                    payload=payload,
                 )
             )
 
-        # 分批 upsert，避免单次请求过大
+        # 分批 upsert
         upserted = 0
-        for i in range(0, len(points), _BATCH_SIZE):
-            batch = points[i : i + _BATCH_SIZE]
-            self._client.upsert(
-                collection_name=_COLLECTION_NAME,
-                points=batch,
-            )
+        for i in range(0, len(objects), _BATCH_SIZE):
+            batch = objects[i: i + _BATCH_SIZE]
+            collection.data.insert_many(batch)
             upserted += len(batch)
-            logger.debug("已写入第 %d-%d 条 (共 %d)", i + 1, i + len(batch), len(points))
+            logger.debug(
+                "已写入第 %d-%d 条 (共 %d)",
+                i + 1, i + len(batch), len(objects),
+            )
 
-        logger.info("upsert 完成: %d 个 point 已写入", upserted)
+        logger.info("upsert 完成: %d 个 object 已写入", upserted)
         return upserted
 
     # ------------------------------------------------------------------
@@ -242,60 +329,48 @@ class VectorStore:
     # ------------------------------------------------------------------
 
     def get_all_payloads(self) -> dict[str, dict[str, Any]]:
-        """Scroll 所有 point 的 payload（不加载 vector）.
+        """遍历所有 object 的属性（不加载 vector）.
 
         Returns:
-            {entry_id: payload_dict} 映射.
+            {entry_id: properties_dict} 映射.
         """
         result: dict[str, dict[str, Any]] = {}
-        offset = None
+        collection = self._get_collection()
 
-        while True:
-            scroll_kwargs: dict[str, Any] = {
-                "collection_name": _COLLECTION_NAME,
-                "limit": _BATCH_SIZE,
-                "with_payload": True,
-                "with_vectors": False,
-            }
-            if offset is not None:
-                scroll_kwargs["offset"] = offset
-
-            points, next_offset = self._client.scroll(**scroll_kwargs)
-
-            for point in points:
-                payload = point.payload or {}
-                eid = payload.get("entry_id", "")
-                if eid:
-                    result[eid] = payload
-
-            if next_offset is None:
-                break
-            offset = next_offset
+        for item in collection.iterator(include_vector=False):
+            props = item.properties
+            eid = props.get("entry_id", "")
+            if eid:
+                result[eid] = props
 
         return result
 
     def delete_points(self, entry_ids: list[str]) -> int:
-        """按 entry_id 批量删除 point.
+        """按 entry_id 批量删除 object.
 
         Args:
             entry_ids: 要删除的条目 ID 列表.
 
         Returns:
-            删除的 point 数量.
+            删除的 object 数量.
         """
         if not entry_ids:
             return 0
 
-        point_ids = [_entry_id_to_point_id(eid) for eid in entry_ids]
-        self._client.delete(
-            collection_name=_COLLECTION_NAME,
-            points_selector=models.PointIdsList(points=point_ids),
-        )
-        logger.info("已删除 %d 个 point", len(point_ids))
-        return len(point_ids)
+        collection = self._get_collection()
+        # 按 UUID 批量删除
+        uuids = [_entry_id_to_uuid(eid) for eid in entry_ids]
+        for uid in uuids:
+            try:
+                collection.data.delete_by_id(uid)
+            except Exception:
+                logger.debug("删除 %s 时出错（可能已不存在）", uid)
+
+        logger.info("已删除 %d 个 object", len(entry_ids))
+        return len(entry_ids)
 
     # ------------------------------------------------------------------
-    # Search
+    # Search — vector only
     # ------------------------------------------------------------------
 
     def search(
@@ -307,37 +382,91 @@ class VectorStore:
         """基于向量相似度搜索知识条目，支持元数据过滤.
 
         Args:
-            query_embedding: 查询文本的嵌入向量 (384 维).
+            query_embedding: 查询文本的嵌入向量.
             top_k: 返回的最大结果数.
-            filters: 可选的元数据过滤条件，键为字段名、值为
-                     目标值.  例如 ``{"domain": "golang", "type":
-                     "principle"}``.  domain 字段使用 MatchAny
-                     语义（因 domain 在 payload 中为列表）.
+            filters: 可选的元数据过滤条件.
 
         Returns:
             结果列表，每项包含 entry_id / title / score / metadata.
         """
-        query_filter = self._build_filter(filters) if filters else None
+        collection = self._get_collection()
+        weaviate_filter = self._build_filter(filters) if filters else None
 
-        hits = self._client.query_points(
-            collection_name=_COLLECTION_NAME,
-            query=query_embedding,
+        response = collection.query.near_vector(
+            near_vector=query_embedding,
+            filters=weaviate_filter,
             limit=top_k,
-            query_filter=query_filter,
-            with_payload=True,
-        ).points
+            return_metadata=MetadataQuery(distance=True),
+        )
 
         results: list[dict[str, Any]] = []
-        for hit in hits:
-            payload = hit.payload or {}
+        for obj in response.objects:
+            props = obj.properties
+            # Weaviate cosine distance → similarity: 1 - distance
+            score = 1.0 - (obj.metadata.distance or 0.0)
             results.append({
-                "entry_id": payload.get("entry_id", ""),
-                "title": payload.get("title", ""),
-                "score": hit.score,
-                "metadata": payload,
+                "entry_id": props.get("entry_id", ""),
+                "title": props.get("title", ""),
+                "score": score,
+                "metadata": props,
             })
 
         return results
+
+    # ------------------------------------------------------------------
+    # Hybrid search — Weaviate native
+    # ------------------------------------------------------------------
+
+    def hybrid_search(
+        self,
+        query: str,
+        query_embedding: list[float],
+        alpha: float = 0.7,
+        top_k: int = 5,
+        filters: dict[str, str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Weaviate 原生混合搜索：BM25 关键词 + 向量语义.
+
+        Args:
+            query: 原始查询文本（用于 BM25）.
+            query_embedding: 查询文本的嵌入向量.
+            alpha: 向量权重 (0.0=纯BM25, 1.0=纯向量).
+            top_k: 返回的最大结果数.
+            filters: 可选的元数据过滤条件.
+
+        Returns:
+            结果列表，每项包含 entry_id / title / score / metadata.
+        """
+        collection = self._get_collection()
+        weaviate_filter = self._build_filter(filters) if filters else None
+
+        response = collection.query.hybrid(
+            query=query,
+            vector=query_embedding,
+            alpha=alpha,
+            query_properties=["title^3", "tags^2", "content"],
+            fusion_type=HybridFusion.RELATIVE_SCORE,
+            filters=weaviate_filter,
+            limit=top_k,
+            return_metadata=MetadataQuery(score=True, explain_score=True),
+        )
+
+        results: list[dict[str, Any]] = []
+        for obj in response.objects:
+            props = obj.properties
+            results.append({
+                "entry_id": props.get("entry_id", ""),
+                "title": props.get("title", ""),
+                "score": obj.metadata.score or 0.0,
+                "explain_score": obj.metadata.explain_score or "",
+                "metadata": props,
+            })
+
+        return results
+
+    # ------------------------------------------------------------------
+    # Similarity search
+    # ------------------------------------------------------------------
 
     def search_similar_to(
         self,
@@ -346,53 +475,50 @@ class VectorStore:
     ) -> list[dict[str, Any]]:
         """查找与指定条目相似的其他知识条目.
 
-        先通过 entry_id 检索该条目的向量，再执行相似搜索并排除
-        自身.
-
         Args:
-            entry_id: 目标条目的 ID，如 'ke-20260226-goroutine-scheduling'.
+            entry_id: 目标条目的 ID.
             top_k: 返回的最大结果数.
 
         Returns:
-            结果列表，每项包含 entry_id / title / score.  若目标
-            条目不存在则返回空列表.
+            结果列表，每项包含 entry_id / title / score.
         """
-        point_id = _entry_id_to_point_id(entry_id)
+        collection = self._get_collection()
+        obj_uuid = _entry_id_to_uuid(entry_id)
 
-        # 读取该 point 的向量
-        retrieved = self._client.retrieve(
-            collection_name=_COLLECTION_NAME,
-            ids=[point_id],
-            with_vectors=True,
-        )
-
-        if not retrieved:
-            logger.warning("未找到条目: %s (point_id=%d)", entry_id, point_id)
+        try:
+            obj = collection.query.fetch_object_by_id(
+                obj_uuid, include_vector=True,
+            )
+        except Exception:
+            logger.warning("未找到条目: %s", entry_id)
             return []
 
-        source_vector = retrieved[0].vector
-        if source_vector is None:
+        if obj is None or obj.vector is None:
             logger.warning("条目 %s 缺少向量数据", entry_id)
             return []
 
-        # 搜索 top_k + 1 条结果，排除自身后保留 top_k 条
-        hits = self._client.query_points(
-            collection_name=_COLLECTION_NAME,
-            query=source_vector,
+        # 获取向量（可能是 dict 或 list）
+        source_vector = obj.vector
+        if isinstance(source_vector, dict):
+            source_vector = source_vector.get("default", [])
+
+        response = collection.query.near_vector(
+            near_vector=source_vector,
             limit=top_k + 1,
-            with_payload=True,
-        ).points
+            return_metadata=MetadataQuery(distance=True),
+        )
 
         results: list[dict[str, Any]] = []
-        for hit in hits:
-            payload = hit.payload or {}
-            hit_entry_id = payload.get("entry_id", "")
-            if hit_entry_id == entry_id:
+        for r in response.objects:
+            props = r.properties
+            hit_id = props.get("entry_id", "")
+            if hit_id == entry_id:
                 continue
+            score = 1.0 - (r.metadata.distance or 0.0)
             results.append({
-                "entry_id": hit_entry_id,
-                "title": payload.get("title", ""),
-                "score": hit.score,
+                "entry_id": hit_id,
+                "title": props.get("title", ""),
+                "score": score,
             })
             if len(results) >= top_k:
                 break
@@ -411,43 +537,40 @@ class VectorStore:
     ) -> list[dict[str, Any]]:
         """Search for similar entries excluding specified domains.
 
-        Uses Qdrant ``must_not`` filter to exclude entries whose domain
-        list overlaps with ``exclude_domains``.
+        Over-fetches and post-filters since Weaviate TEXT_ARRAY
+        negation support is limited.
 
         Args:
-            query_embedding: The query vector (384 dims).
+            query_embedding: The query vector.
             exclude_domains: Domain keys to exclude from results.
             top_k: Maximum number of results.
 
         Returns:
             List of result dicts with entry_id, title, score, metadata.
         """
-        must_not_conditions = [
-            models.FieldCondition(
-                key="domain",
-                match=models.MatchAny(any=exclude_domains),
-            )
-        ]
+        collection = self._get_collection()
 
-        query_filter = models.Filter(must_not=must_not_conditions)
-
-        hits = self._client.query_points(
-            collection_name=_COLLECTION_NAME,
-            query=query_embedding,
-            limit=top_k,
-            query_filter=query_filter,
-            with_payload=True,
-        ).points
+        response = collection.query.near_vector(
+            near_vector=query_embedding,
+            limit=top_k * 3,  # over-fetch to compensate for filtering
+            return_metadata=MetadataQuery(distance=True),
+        )
 
         results: list[dict[str, Any]] = []
-        for hit in hits:
-            payload = hit.payload or {}
+        for obj in response.objects:
+            props = obj.properties
+            obj_domains = props.get("domain", [])
+            if any(d in exclude_domains for d in obj_domains):
+                continue
+            score = 1.0 - (obj.metadata.distance or 0.0)
             results.append({
-                "entry_id": payload.get("entry_id", ""),
-                "title": payload.get("title", ""),
-                "score": hit.score,
-                "metadata": payload,
+                "entry_id": props.get("entry_id", ""),
+                "title": props.get("title", ""),
+                "score": score,
+                "metadata": props,
             })
+            if len(results) >= top_k:
+                break
 
         return results
 
@@ -459,22 +582,21 @@ class VectorStore:
         """返回集合统计信息.
 
         Returns:
-            包含 points_count / vectors_count / status 等键的字典.
-            若集合不存在则返回空统计.
+            包含 points_count / status 等键的字典.
         """
-        if not self._client.collection_exists(_COLLECTION_NAME):
+        if not self._client.collections.exists(_COLLECTION_NAME):
             return {
                 "collection": _COLLECTION_NAME,
                 "exists": False,
                 "points_count": 0,
             }
 
-        info = self._client.get_collection(_COLLECTION_NAME)
+        collection = self._get_collection()
+        agg = collection.aggregate.over_all(total_count=True)
         return {
             "collection": _COLLECTION_NAME,
             "exists": True,
-            "points_count": info.points_count,
-            "status": str(info.status),
+            "points_count": agg.total_count,
             "vector_dim": _VECTOR_DIM,
             "distance": "Cosine",
         }
@@ -486,49 +608,38 @@ class VectorStore:
     @staticmethod
     def _build_filter(
         filters: dict[str, str],
-    ) -> models.Filter:
-        """将 {field: value} 字典转换为 Qdrant Filter 对象.
+    ) -> Filter:
+        """将 {field: value} 字典转换为 Weaviate Filter 对象.
 
-        domain 字段使用 MatchAny（因为 payload 中 domain 为列表），
-        其余字段使用 MatchValue 精确匹配.
-
-        Args:
-            filters: 字段名到目标值的映射.
-
-        Returns:
-            构建好的 Qdrant Filter 实例.
+        domain / tags 字段使用 contains_any（因为属性为数组），
+        其余字段使用 equal 精确匹配.
         """
-        conditions: list[models.FieldCondition] = []
+        conditions: list[Filter] = []
 
         for field_name, value in filters.items():
             if not value:
                 continue
 
-            if field_name == "domain":
-                # domain 在 payload 中是列表，使用 MatchAny
+            if field_name in ("domain", "tags"):
                 conditions.append(
-                    models.FieldCondition(
-                        key="domain",
-                        match=models.MatchAny(any=[value]),
-                    )
-                )
-            elif field_name == "tags":
-                # tags 同样是列表字段
-                conditions.append(
-                    models.FieldCondition(
-                        key="tags",
-                        match=models.MatchAny(any=[value]),
-                    )
+                    Filter.by_property(field_name).contains_any([value])
                 )
             else:
                 conditions.append(
-                    models.FieldCondition(
-                        key=field_name,
-                        match=models.MatchValue(value=value),
-                    )
+                    Filter.by_property(field_name).equal(value)
                 )
 
-        return models.Filter(must=conditions)
+        if not conditions:
+            return None  # type: ignore[return-value]
+
+        if len(conditions) == 1:
+            return conditions[0]
+
+        # AND all conditions together
+        result = conditions[0]
+        for c in conditions[1:]:
+            result = result & c
+        return result
 
 
 # ======================================================================
@@ -538,9 +649,6 @@ class VectorStore:
 
 def get_vector_store(config: ProjectConfig | None = None) -> VectorStore:
     """工厂函数: 根据项目配置创建 VectorStore 实例.
-
-    从 config.yaml 的 ``agent.vector_db_path`` 读取数据库路径;
-    若为相对路径则基于项目根目录解析.
 
     Args:
         config: 项目配置.  为 None 时自动加载 config.yaml.
@@ -556,9 +664,11 @@ def get_vector_store(config: ProjectConfig | None = None) -> VectorStore:
     if not db_path.is_absolute():
         db_path = config.root_path / db_path
 
-    # 将 chroma 路径替换为 qdrant 路径（兼容旧配置）
+    # 兼容旧路径名
     db_path_str = str(db_path)
     if "chroma" in db_path_str:
-        db_path = Path(db_path_str.replace("chroma", "qdrant"))
+        db_path = Path(db_path_str.replace("chroma", "weaviate"))
+    if "qdrant" in db_path_str:
+        db_path = Path(db_path_str.replace("qdrant", "weaviate"))
 
-    return VectorStore(str(db_path))
+    return VectorStore(str(db_path), config=config.agent)

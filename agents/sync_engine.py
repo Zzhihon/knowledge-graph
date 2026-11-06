@@ -33,10 +33,7 @@ def _entry_to_text(entry: dict[str, Any]) -> str:
     meta = entry["metadata"]
     title = meta.get("title", "")
     tags = meta.get("tags", [])
-    if isinstance(tags, list):
-        tags_str = ", ".join(str(t) for t in tags)
-    else:
-        tags_str = str(tags)
+    tags_str = ", ".join(str(t) for t in tags) if isinstance(tags, list) else str(tags)
     return f"{title}\n{tags_str}\n\n{entry['content']}"
 
 
@@ -58,7 +55,7 @@ def full_sync(
 
     texts = [_entry_to_text(e) for e in valid_entries]
 
-    # Qdrant
+    # Weaviate
     embeddings = embed_texts(texts)
     with get_vector_store(config) as store:
         store.init_collection()
@@ -74,7 +71,7 @@ def full_sync(
         "changed": 0,
         "deleted": 0,
         "unchanged": 0,
-        "qdrant_upserted": vec_count,
+        "vector_upserted": vec_count,
         "graph_upserted": graph_result["entries_synced"],
         "edges_created": graph_result["edges_created"],
     }
@@ -141,12 +138,12 @@ def incremental_sync(
                 "changed": 0,
                 "deleted": 0,
                 "unchanged": len(unchanged_ids),
-                "qdrant_upserted": 0,
+                "vector_upserted": 0,
                 "graph_upserted": 0,
                 "edges_created": 0,
             }
 
-        # Qdrant upsert
+        # Weaviate upsert
         to_process_ids = new_ids | changed_ids
         to_process = [disk_map[eid] for eid in to_process_ids]
         vec_upserted = 0
@@ -204,7 +201,7 @@ def incremental_sync(
         "changed": len(changed_ids),
         "deleted": len(deleted_ids),
         "unchanged": len(unchanged_ids),
-        "qdrant_upserted": vec_upserted,
+        "vector_upserted": vec_upserted,
         "graph_upserted": graph_result["entries_upserted"],
         "edges_created": graph_result["edges_created"],
     }

@@ -2,7 +2,7 @@
 # kg-algo-auto-load.sh
 # UserPromptSubmit hook: detect algorithm study/review intent → semantic search → inject context
 #
-# Uses kg query (Qdrant vector search) for topic detection and entry retrieval.
+# Uses kg query (Weaviate hybrid search) for topic detection and entry retrieval.
 # Compatible with bash 3.x (macOS default).
 # Exit 0 + stdout = context injected into Claude's prompt.
 # Exit 0 + no stdout = silent pass-through.
@@ -31,7 +31,7 @@ if ! echo "$PROMPT" | grep -iqE '算法|algorithm|leetcode|lc-|力扣|滑动窗�
   exit 0
 fi
 
-# ── Phase 3: Semantic search via kg query (Qdrant) ───────────────────
+# ── Phase 3: Semantic search via kg query (Weaviate) ───────────────────
 VAULT="${CLAUDE_PROJECT_DIR:-.}"
 
 # Resolve the venv Python and kg CLI
@@ -46,8 +46,7 @@ elif command -v kg >/dev/null 2>&1; then
   KG_CMD="kg"
 fi
 
-# Remove stale Qdrant lock (local storage mode)
-rm -f "$VAULT/indexes/qdrant/.lock" 2>/dev/null
+# Weaviate embedded handles its own process lifecycle; no lock file needed
 
 PATTERN_RESULTS="[]"
 PROBLEM_RESULTS="[]"
@@ -57,8 +56,7 @@ if [ -n "$KG_CMD" ]; then
   PATTERN_RESULTS=$(cd "$VAULT" 2>/dev/null && \
     $KG_CMD query "$PROMPT" --domain algorithm --type pattern --top-k 3 --format json 2>/dev/null || echo "[]")
 
-  # Remove lock between queries (local Qdrant single-process constraint)
-  rm -f "$VAULT/indexes/qdrant/.lock" 2>/dev/null
+  # Weaviate embedded: no inter-query lock needed
 
   # Search for related problems
   PROBLEM_RESULTS=$(cd "$VAULT" 2>/dev/null && \
@@ -98,7 +96,7 @@ if [ "$HAS_SEMANTIC_RESULTS" = "true" ]; then
 <user-prompt-submit-hook>
 [Algorithm Study Auto-Trigger — Semantic Search Results]
 
-User wants to ${INTENT} algorithms. Vector search (Qdrant) found the following relevant entries:
+User wants to ${INTENT} algorithms. Weaviate hybrid search found the following relevant entries:
 
 ## Related Patterns (top ${PATTERN_COUNT}):
 ${PATTERN_LIST:-  (none found)}
@@ -133,7 +131,7 @@ ${PROBLEM_LIST:-  (none found)}
 5. WAIT for user to choose: quiz / read pattern / pick specific problem
 
 Vault: $VAULT | Total problems: $TOTAL_PROBLEMS | Intent: $INTENT
-Search powered by: Qdrant vector search (all-MiniLM-L6-v2)
+Search powered by: Weaviate hybrid search (BM25 + Gemini embedding)
 </user-prompt-submit-hook>
 EOF
 

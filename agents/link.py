@@ -1,6 +1,6 @@
 """Auto-linking agent for knowledge graph entries.
 
-Hybrid discovery: Qdrant (vector similarity) + SurrealDB (graph
+Hybrid discovery: Weaviate (vector similarity) + SurrealDB (graph
 friends-of-friends). Suggests new wiki-links where semantic overlap
 or graph proximity is high but no explicit link exists.
 """
@@ -38,9 +38,9 @@ def find_links(
 ) -> list[dict[str, Any]]:
     """Find potential connections between entries using hybrid search.
 
-    Combines Qdrant vector similarity with SurrealDB graph traversal
+    Combines Weaviate vector similarity with SurrealDB graph traversal
     to discover links. For each entry:
-    1. Get top-N similar via Qdrant vector search
+    1. Get top-N similar via Weaviate vector search
     2. Get 2-hop neighbors via SurrealDB graph traversal
     3. Merge both sets, exclude existing wiki links
     4. Score: vector_similarity * 0.6 + graph_proximity * 0.4
@@ -68,7 +68,7 @@ def find_links(
         if eid:
             entry_by_id[eid] = entry
 
-    # Try Qdrant vector search
+    # Try Weaviate vector search
     vector_suggestions = _find_vector_links(entries, entry_by_id, config)
 
     # Try SurrealDB graph traversal
@@ -90,7 +90,7 @@ def _find_vector_links(
     entry_by_id: dict[str, dict[str, Any]],
     config: ProjectConfig,
 ) -> dict[tuple[str, str], float]:
-    """Find links via Qdrant vector similarity.
+    """Find links via Weaviate vector similarity.
 
     Returns dict mapping (source_id, target_id) -> similarity score.
     """

@@ -1,0 +1,29 @@
+# 出口探活的本地配置（kg plane collect egress）。复制到 <vault>/.kg/plane/egress.yaml（.kg/ 不进 git），
+# 或者用环境变量 KG_EGRESS_CONFIG 指向别的文件。下面全是占位值：端口、IP、域名换成自己的。
+# 探测缓存（上次探测时间、出口 IP、纯净度结果、IP 画像）写在同目录的 egress-cache.json。
+
+interval_s: 60              # 和定时规则的 cron 一致
+availability_target: 0.995  # 30 天可用性目标，休眠时段不计入
+recheck_delay_s: 75         # 唤醒后（或空档后）第一次失败，本轮内隔这么久再探一次
+wake_grace_s: 120           # 醒来多少秒内的失败算"唤醒后"
+pmset: false                # true：kern.waketime 之外再读 pmset -g log（慢，几秒）
+
+lines:
+  - name: main                          # 资源 id 为 egress:main，起了就别改
+    proxy: http://127.0.0.1:7890        # 本地代理地址；所有外网探测都经过它
+    controller:                         # 可选：代理内核的控制接口，只能是本机回环地址
+      url: http://127.0.0.1:9090
+      group: GLOBAL                     # 看哪个策略组当前选的节点
+      secret_env: KG_EGRESS_CONTROLLER_SECRET   # 密钥从环境变量读，或者用 secret_file: ~/path
+    trace_url: https://www.cloudflare.com/cdn-cgi/trace
+    expect_ips: [203.0.113.10]          # 期望出口 IP；也可以写 expect_ips_env: 变量名
+    # expect_country: US                # 不想写 IP 时，只比对 trace 的 loc
+    target_hosts: [api.example.com]     # 无凭据 HEAD，401/404 也算通
+
+purity:
+  enabled: true
+  every_s: 3600             # 每小时一次；出口 IP 一变立即再查
+  # profile_url: http://ip-api.com/json/{ip}?fields=...   # IP 画像服务，经代理请求，按 IP 缓存一天
+  dns_leak: true            # bash.ws 的 DNS 泄漏测试，解析全部经代理
+  direct_leak:
+    processes: []           # 要抽查连接表的进程名前缀，例如 [claude]；空着就跳过

@@ -12,6 +12,7 @@
     "@types/d3": "^7.4.3",
     "d3": "^7.9.0",
     "lucide-react": "^0.468",
+    "mermaid": "^11.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",

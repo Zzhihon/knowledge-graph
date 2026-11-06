@@ -1,8 +1,9 @@
 """Query agent for semantic search across the knowledge base.
 
-Builds and queries a Qdrant vector index from vault entries,
+Builds and queries a Weaviate vector index from vault entries,
 supporting filtered search by domain, type, depth, and status.
 Includes query expansion for vague queries and domain-aware boosting.
+Uses Weaviate native hybrid search (BM25 + vector).
 """
 
 from __future__ import annotations
@@ -63,9 +64,7 @@ def _is_vague_query(query: str) -> bool:
     if len(query) < 25 and any(m in query for m in vague_markers):
         return True
     # Very short queries (< 8 chars) are almost always vague
-    if len(query) < 8:
-        return True
-    return False
+    return len(query) < 8
 
 
 def _expand_query(query: str, config: ProjectConfig) -> list[str]:
@@ -76,7 +75,6 @@ def _expand_query(query: str, config: ProjectConfig) -> list[str]:
     """
     import json
 
-    import anthropic
 
     prompt = f"""\
 用户在知识库中搜索: "{query}"
@@ -113,10 +111,10 @@ def _expand_query(query: str, config: ProjectConfig) -> list[str]:
 
 
 def build_index(config: ProjectConfig | None = None) -> int:
-    """Rebuild the Qdrant vector index from all vault entries.
+    """Rebuild the Weaviate vector index from all vault entries.
 
     Scans all markdown files in 01-06 directories, generates
-    embeddings, and upserts into Qdrant.
+    embeddings, and upserts into Weaviate.
 
     Args:
         config: Project configuration. Auto-loaded if None.
@@ -130,7 +128,7 @@ def build_index(config: ProjectConfig | None = None) -> int:
     if config is None:
         config = load_config()
 
-    console.print("[bold blue]正在构建向量索引 (Qdrant)...[/]")
+    console.print("[bold blue]正在构建向量索引 (Weaviate)...[/]")
 
     entries = load_entries(config.vault_path)
     if not entries:
@@ -147,10 +145,7 @@ def build_index(config: ProjectConfig | None = None) -> int:
             continue
         title = meta.get("title", "")
         tags = meta.get("tags", [])
-        if isinstance(tags, list):
-            tags_str = ", ".join(str(t) for t in tags)
-        else:
-            tags_str = str(tags)
+        tags_str = ", ".join(str(t) for t in tags) if isinstance(tags, list) else str(tags)
         doc_text = f"{title}\n{tags_str}\n\n{entry['content']}"
         texts.append(doc_text)
         # Attach file_path into metadata for storage
@@ -170,7 +165,7 @@ def build_index(config: ProjectConfig | None = None) -> int:
         store.init_collection()
         count = store.upsert_entries(valid_entries, embeddings)
 
-    console.print(f"[green]索引构建完成: {count} 个条目已入库 (Qdrant)[/]")
+    console.print(f"[green]索引构建完成: {count} 个条目已入库 (Weaviate)[/]")
     return count
 
 
@@ -212,10 +207,7 @@ def search(
 
     # --- 方案 A: Query expansion ---
     # For vague queries, expand into multiple sub-queries
-    if _is_vague_query(query):
-        queries = _expand_query(query, config)
-    else:
-        queries = [query]
+    queries = _expand_query(query, config) if _is_vague_query(query) else [query]
 
     # Execute search for each query, merge results
     all_results: dict[str, dict[str, Any]] = {}  # entry_id → best result
@@ -261,149 +253,48 @@ def _search_single(
     top_k: int,
     config: ProjectConfig,
 ) -> list[dict[str, Any]]:
-    """Execute a single search query (vector + BM25 hybrid)."""
+    """Execute a single hybrid search query via Weaviate native hybrid."""
     from agents.embeddings import embed_single
     from agents.vector_store import get_vector_store
 
     alpha = config.agent.search_alpha
-    has_vector = True
 
     try:
         store = get_vector_store(config)
     except Exception as exc:
-        if alpha < 1.0:
-            has_vector = False
-            store = None  # type: ignore[assignment]
-        else:
-            console.print(f"[red]无法连接向量数据库: {exc}[/]")
-            return []
+        console.print(f"[red]无法连接向量数据库: {exc}[/]")
+        return []
 
-    if has_vector:
-        try:
-            stats = store.get_stats()
-            if not stats.get("exists") or stats.get("points_count", 0) == 0:
-                if alpha < 1.0:
-                    has_vector = False
-                else:
-                    console.print(
-                        "[yellow]索引尚未构建或为空。请先运行 `kg sync` 构建索引。[/]"
-                    )
-                    store.close()
-                    return []
-        except Exception:
-            if alpha < 1.0:
-                has_vector = False
-            else:
-                store.close()
-                return []
-
-    if alpha < 1.0:
-        from agents.bm25_store import BM25Retriever
-
-        vec_results: list[dict[str, Any]] = []
-        if has_vector:
-            try:
-                query_embedding = embed_single(query)
-                vec_results = store.search(
-                    query_embedding=query_embedding,
-                    top_k=top_k * 3,
-                    filters=filters,
-                )
-            except Exception as exc:
-                console.print(f"[yellow]向量搜索失败，仅使用 BM25: {exc}[/]")
-            finally:
-                if store is not None:
-                    store.close()
-
-        all_entries = load_entries(config.vault_path, filters=filters)
-        bm25 = BM25Retriever()
-        bm25.build(all_entries)
-        bm25_results = bm25.query(query, top_k=top_k * 3)
-
-        effective_alpha = alpha if has_vector else 0.0
-        results = _merge_hybrid(vec_results, bm25_results, effective_alpha, top_k)
-    else:
-        try:
-            query_embedding = embed_single(query)
-            results = store.search(
-                query_embedding=query_embedding,
-                top_k=top_k,
-                filters=filters,
+    try:
+        stats = store.get_stats()
+        if not stats.get("exists") or stats.get("points_count", 0) == 0:
+            console.print(
+                "[yellow]索引尚未构建或为空。请先运行 `kg sync` 构建索引。[/]"
             )
-        except Exception as exc:
-            console.print(f"[red]查询失败: {exc}[/]")
-            store.close()
             return []
+
+        query_embedding = embed_single(query)
+        expected_dim = config.agent.embedding_dim
+        if len(query_embedding) != expected_dim:
+            console.print(
+                f"[yellow]向量维度不匹配 ({len(query_embedding)} vs {expected_dim})，"
+                f"Embedding 服务可能不可用[/]"
+            )
+            return []
+
+        results = store.hybrid_search(
+            query=query,
+            query_embedding=query_embedding,
+            alpha=alpha,
+            top_k=top_k,
+            filters=filters,
+        )
+        return results
+    except Exception as exc:
+        console.print(f"[red]查询失败: {exc}[/]")
+        return []
+    finally:
         store.close()
-
-    return results
-
-
-def _merge_hybrid(
-    vec_results: list[dict[str, Any]],
-    bm25_results: list[dict[str, float]],
-    alpha: float,
-    top_k: int,
-) -> list[dict[str, Any]]:
-    """Merge vector and BM25 results with weighted scoring.
-
-    ``final = alpha * vec_score + (1 - alpha) * bm25_norm``
-
-    BM25 raw scores are min-max normalized to [0, 1] before merging.
-
-    Args:
-        vec_results: Results from VectorStore.search().
-        bm25_results: Results from BM25Retriever.query().
-        alpha: Vector weight (0.0 = pure BM25, 1.0 = pure vector).
-        top_k: Maximum number of results to return.
-
-    Returns:
-        Merged results in the same format as VectorStore.search().
-    """
-    # Index vector results by entry_id
-    vec_by_id: dict[str, dict[str, Any]] = {}
-    for r in vec_results:
-        eid = r.get("entry_id", "")
-        if eid:
-            vec_by_id[eid] = r
-
-    # Normalize BM25 scores to [0, 1]
-    bm25_scores: dict[str, float] = {}
-    if bm25_results:
-        raw_scores = [r["score"] for r in bm25_results]
-        min_s = min(raw_scores)
-        max_s = max(raw_scores)
-        span = max_s - min_s
-        for r in bm25_results:
-            eid = r["entry_id"]
-            bm25_scores[eid] = (
-                (r["score"] - min_s) / span if span > 0 else 1.0
-            )
-
-    # Union of all entry_ids
-    all_ids = set(vec_by_id.keys()) | set(bm25_scores.keys())
-
-    merged: list[dict[str, Any]] = []
-    for eid in all_ids:
-        vec_score = vec_by_id[eid]["score"] if eid in vec_by_id else 0.0
-        bm25_score = bm25_scores.get(eid, 0.0)
-        combined = alpha * vec_score + (1 - alpha) * bm25_score
-
-        if eid in vec_by_id:
-            entry = dict(vec_by_id[eid])
-            entry["score"] = combined
-        else:
-            # BM25-only hit: minimal metadata
-            entry = {
-                "entry_id": eid,
-                "title": eid,
-                "score": combined,
-                "metadata": {},
-            }
-        merged.append(entry)
-
-    merged.sort(key=lambda x: x["score"], reverse=True)
-    return merged[:top_k]
 
 
 def print_results(results: list[dict[str, Any]], query: str) -> None:
@@ -504,10 +395,7 @@ def _extract_section(text: str, heading: str) -> str:
     start += len(marker)
     # Find next ## heading
     end = text.find("\n## ", start)
-    if end == -1:
-        section = text[start:]
-    else:
-        section = text[start:end]
+    section = text[start:] if end == -1 else text[start:end]
 
     # Clean up lines
     lines: list[str] = []

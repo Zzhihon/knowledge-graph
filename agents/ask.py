@@ -12,28 +12,67 @@ Features:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Generator
+from typing import TYPE_CHECKING, Any
 
-import anthropic
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    import anthropic
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
 from agents.config import ProjectConfig, load_config
-from agents.query import search
 
 console = Console()
 
 _SYSTEM_PROMPT = """\
-你是知识库问答助手。基于以下检索到的知识条目回答问题。
-引用来源时使用 [条目ID] 格式。如果知识库中没有相关信息，明确说明。
+你是知识库问答助手。基于以下检索到的知识条目（以及 Agent 产出的工件页）回答问题。
+引用来源时使用 [条目ID] 格式（工件用它的 id）。如果知识库中没有相关信息，明确说明。
 回答应准确、简洁，并整合多个条目的信息给出综合性回答。"""
 
 _FALLBACK_SYSTEM_PROMPT = """\
 你是知识库问答助手。知识库中暂无相关条目，请基于你的知识给出准确、详细的回答。
 回答时注意结构清晰，分段阐述，并在适当位置给出示例。"""
+
+def search(*args: Any, **kwargs: Any) -> list[dict[str, Any]]:
+    """Local LanceDB retrieval (kg.retrieval); raises RetrievalError instead of returning []."""
+    from kg.retrieval.service import search as local_search
+
+    return local_search(*args, **kwargs)
+
+
+def _with_artifacts(question: str, results: list[dict[str, Any]],
+                    top_k: int = 2) -> list[dict[str, Any]]:
+    """Entry hits plus up to `top_k` artifact pages that match the question (#6).
+
+    Artifacts are searched on their own, so they never push an entry out of its place; a
+    missing or broken artifact index leaves the entry hits as they are. KG_ASK_ARTIFACTS=0 off.
+    """
+    import os
+
+    if os.environ.get("KG_ASK_ARTIFACTS", "1") == "0":
+        return results
+    from kg.retrieval.errors import RetrievalError
+    from kg.retrieval.service import search_artifacts
+
+    try:
+        return results + search_artifacts(question, top_k=top_k)
+    except (RetrievalError, OSError, ValueError):
+        return results
+
+
+def _link(url: str | None) -> str:
+    """A share link without query or fragment: tokens never go into the prompt."""
+    if not url:
+        return "（无）"
+    from urllib.parse import urlsplit
+
+    parts = urlsplit(url)
+    return f"{parts.scheme}://{parts.hostname or ''}{parts.path}" if parts.scheme else "（无）"
+
 
 _MAX_TOKENS = 8192
 _MAX_CONTINUATIONS = 5
@@ -89,6 +128,15 @@ def _build_context(
         domain = result.get("domain", "")
         file_path = result.get("file_path", "")
 
+        if result.get("kind") == "artifact":
+            # Never the raw page: `content` is the indexed text with credentials masked.
+            blocks.append("\n".join([
+                f"--- 工件: {entry_id} ---", f"标题: {title}",
+                f"链接: {_link(result.get('url'))}", "",
+                result.get("content") or "(内容不可用)",
+            ]))
+            continue
+
         content = _load_entry_content(file_path) if file_path else ""
 
         neighbors_str = ""
@@ -136,10 +184,7 @@ def _stream_answer(
 
     sys_prompt = system_prompt or _SYSTEM_PROMPT
 
-    if context:
-        user_content = f"知识库上下文:\n\n{context}\n\n---\n问题: {question}"
-    else:
-        user_content = question
+    user_content = f"知识库上下文:\n\n{context}\n\n---\n问题: {question}" if context else question
 
     messages: list[dict[str, Any]] = [
         {"role": "user", "content": user_content},
@@ -199,10 +244,7 @@ def _stream_answer_sse(
 
     sys_prompt = system_prompt or _SYSTEM_PROMPT
 
-    if context:
-        user_content = f"知识库上下文:\n\n{context}\n\n---\n问题: {question}"
-    else:
-        user_content = question
+    user_content = f"知识库上下文:\n\n{context}\n\n---\n问题: {question}" if context else question
 
     messages: list[dict[str, Any]] = [
         {"role": "user", "content": user_content},
@@ -271,7 +313,7 @@ def _auto_ingest_qa(
         target_dir.mkdir(parents=True, exist_ok=True)
         target_file = target_dir / f"{entry_id}.md"
 
-        now = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         metadata: dict[str, Any] = {
             "id": entry_id,
@@ -368,10 +410,12 @@ def ask(
         top_k=top_k,
         config=config,
     )
+    if not domain:
+        results = _with_artifacts(question, results)
 
     if not results:
         fb = config.fallback
-        if enable_fallback and fb.enabled:
+        if enable_fallback and fb.enabled is True:
             # Fallback: direct LLM answer + auto-ingest
             console.print(Panel(
                 "[yellow]知识库中未找到相关条目，正在使用 Fallback 直接回答...[/]",
@@ -382,7 +426,11 @@ def ask(
             from agents.api_client import get_fallback_client
             client, model = get_fallback_client(fb.key_index)
 
-            console.print(Panel(f"[bold]{question}[/]", title="问题 (Fallback)", border_style="magenta"))
+            console.print(Panel(
+                f"[bold]{question}[/]",
+                title="问题 (Fallback)",
+                border_style="magenta",
+            ))
             full_text = _stream_answer(
                 question, None, model,
                 client=client,
@@ -452,17 +500,36 @@ def ask_stream(
     if domain:
         filters["domain"] = domain
 
-    results = search(
-        query=question,
-        filters=filters if filters else None,
-        top_k=top_k,
-        config=config,
-    )
+    yield {"type": "status", "data": {"message": "正在检索相关条目...", "phase": "search"}}
+
+    from kg.retrieval.errors import RetrievalError
+
+    try:
+        results = search(
+            query=question,
+            filters=filters if filters else None,
+            top_k=top_k,
+            config=config,
+        )
+        if not domain:
+            results = _with_artifacts(question, results)
+    except RetrievalError as exc:
+        # Say why retrieval failed instead of answering as if the knowledge base were empty.
+        # `error` carries the code for pages that handle it; the token shows the reason in
+        # pages that only render tokens.
+        yield {"type": "error", "data": exc.to_dict()}
+        yield {"type": "token", "data": {"text": f"检索失败：{exc}"}}
+        yield {"type": "sources", "data": {"sources": []}}
+        yield {"type": "done", "data": {}}
+        return
 
     if not results:
         fb = config.fallback
-        if enable_fallback and fb.enabled:
-            yield {"type": "status", "data": {"message": "知识库无结果，Fallback 直接回答..."}}
+        if enable_fallback and fb.enabled is True:
+            yield {
+                "type": "status",
+                "data": {"message": "知识库无结果，Fallback 直接回答...", "phase": "fallback"},
+            }
 
             from agents.api_client import get_fallback_client
             client, model = get_fallback_client(fb.key_index)
@@ -504,6 +571,12 @@ def ask_stream(
         yield {"type": "done", "data": {}}
         return
 
+    yield {"type": "status", "data": {
+        "message": f"已检索到 {len(results)} 个条目，正在生成回答...",
+        "phase": "generate",
+        "result_count": len(results),
+    }}
+
     context = _build_context(results, config, use_graph=use_graph)
 
     from agents.api_client import get_anthropic_client
@@ -522,6 +595,8 @@ def ask_stream(
             "title": r.get("title", ""),
             "domain": r.get("domain", ""),
             "score": r.get("score", 0),
+            "kind": r.get("kind", "entry"),
+            "url": r.get("url"),
         }
         for r in results
     ]

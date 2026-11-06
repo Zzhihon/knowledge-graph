@@ -17,14 +17,14 @@ export default function ActionButton({ icon, label, cmd, onClick, primary, disab
       className={`group flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-all ${
         disabled ? 'opacity-50 cursor-not-allowed' :
         primary
-          ? 'bg-zinc-100 text-zinc-900 hover:bg-white'
-          : 'border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:bg-zinc-800'
+          ? 'bg-k-ink text-k-surface hover:bg-k-surface'
+          : 'border border-k-line-strong hover:border-k-ink4 text-k-ink2 hover:bg-k-sunk'
       }`}
     >
       {icon}
       <span className="font-medium">{label}</span>
       <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ml-1 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block ${
-        primary ? 'bg-zinc-200 text-zinc-600' : 'bg-zinc-800 text-zinc-400'
+        primary ? 'bg-k-ink text-k-ink4' : 'bg-k-sunk text-k-ink3'
       }`}>
         {cmd}
       </span>

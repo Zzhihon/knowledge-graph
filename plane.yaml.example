@@ -1,0 +1,21 @@
+# 管控面采集器的本地配置。复制到 <vault>/.kg/plane/config.yaml（.kg/ 不进 git）。
+# 不写这个文件也能跑，下面都是可选项。
+
+services:
+  # 不记成资源的 launchd label 前缀。com.apple. 和 application.（每次启动 label 都变的
+  # 应用实例）已经默认忽略，这里写额外要忽略的。
+  ignore_prefixes:
+    - com.example.noisy-helper
+
+sessions:
+  # "进行中"看板看最近多少天的会话（按最后一次有人说话的时间算）。
+  days: 7
+  # GitHub 汇总的最新快照（只读这个文件，不访问 GitHub）。没有这个文件时未合并 PR 记为未知。
+  github_snapshot: ~/.agent-autoloop/work/github-digest/input.json
+  # 复制恢复命令用的模板，{id} 换成会话 id；前面会自动加上 cd 到会话目录。
+  # 用受管启动器开会话的，可以把命令换成启动器的写法。
+  resume:
+    claude: "claude --resume {id}"
+    codex: "codex resume {id}"
+  # 不想读 Orca 时设成 false，终端数会记为未知。
+  orca: true

@@ -1,0 +1,173 @@
+/* ---------------------------------------------------------------------------
+   Reading UI design system, adapted from AIHOT (https://github.com/KKKKhazix/AIHOT,
+   apps/web/app/app.css, MIT License, Copyright (c) 2026 数字生命卡兹克).
+   Warm off-white paper, ink text, one teal accent (cyan in dark), hairline borders, no gradients.
+   Radius scale: mark 5 · control 8 · tile 10 · card 12 · panel 14 · sheet 16.
+   Components use these names; only the values change per theme.
+   --------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+  --k-bg: #faf9f6;
+  --k-sunk: #f3f3ef;
+  --k-muted: #e9ede9;
+  --k-surface: #ffffff;
+  --k-sidebar: #fdfdfb;
+  --k-ink: #202a30;
+  --k-ink-2: #303c42;
+  --k-ink-3: #59656b;
+  --k-ink-4: #657176;
+  --k-line: #dfe4e1;
+  --k-line-strong: #d1d9d5;
+  --k-line-soft: #e9ede9;
+  --k-accent: #176b75;
+  --k-accent-ink: #145f68;
+  --k-accent-soft: rgba(23, 107, 117, 0.08);
+  --k-accent-contrast: #ffffff;
+  --k-note: #526f72;
+  --k-hot: #b3402a;
+  --k-hot-soft: rgba(179, 64, 42, 0.08);
+  --k-amber: #b8873a;
+  --k-amber-ink: #7c5a24;
+  --k-amber-soft: rgba(184, 135, 58, 0.1);
+  --k-ok: #2f7d5c;
+  --k-ok-soft: rgba(47, 125, 92, 0.1);
+  --k-violet: #6b4fa8;
+  --k-violet-soft: rgba(107, 79, 168, 0.09);
+  --k-rank-1: #b3402a;
+  --k-rank-2: #a3642f;
+  --k-rank-3: #96702e;
+  --k-rank-rest: #6b7684;
+  --k-shadow-card: 0 1px 2px rgba(32, 42, 48, 0.025);
+  --k-shadow-hover: 0 3px 12px rgba(32, 42, 48, 0.055);
+  --k-shadow-pop: 0 12px 32px rgba(28, 39, 51, 0.12);
+  --k-prose: #26323a;
+  --k-code-bg: #f6f7f4;
+  --k-selection: rgba(23, 107, 117, 0.16);
+  --k-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --k-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --k-bg: #13191c;
+  --k-sunk: #182024;
+  --k-muted: #202a2f;
+  --k-surface: #1a2226;
+  --k-sidebar: #161e21;
+  --k-ink: #e7eceb;
+  --k-ink-2: #d2dada;
+  --k-ink-3: #a5b0b3;
+  --k-ink-4: #89979d;
+  --k-line: rgba(255, 255, 255, 0.08);
+  --k-line-strong: rgba(255, 255, 255, 0.12);
+  --k-line-soft: rgba(255, 255, 255, 0.06);
+  --k-accent: #12ccd8;
+  --k-accent-ink: #2ce2e8;
+  --k-accent-soft: rgba(18, 204, 216, 0.12);
+  --k-accent-contrast: #000000;
+  --k-note: #8fb8a8;
+  --k-hot: #d86a52;
+  --k-hot-soft: rgba(216, 106, 82, 0.12);
+  --k-amber: #d3b26a;
+  --k-amber-ink: #d3b26a;
+  --k-amber-soft: rgba(211, 178, 106, 0.12);
+  --k-ok: #5fc79a;
+  --k-ok-soft: rgba(95, 199, 154, 0.12);
+  --k-violet: #b9a2ec;
+  --k-violet-soft: rgba(185, 162, 236, 0.12);
+  --k-rank-1: #d86a52;
+  --k-rank-2: #d18a5e;
+  --k-rank-3: #d3b26a;
+  --k-rank-rest: #7b869a;
+  --k-shadow-card: none;
+  --k-shadow-hover: none;
+  --k-shadow-pop: 0 16px 40px rgba(0, 0, 0, 0.45);
+  --k-prose: #d7dfdf;
+  --k-code-bg: #10151c;
+  --k-selection: rgba(18, 204, 216, 0.22);
+}
+
+.k-app { background: var(--k-bg); color: var(--k-ink); font-family: var(--k-sans); font-size: 14px; line-height: 1.5; }
+.k-app ::selection { background: var(--k-selection); }
+.k-app :focus-visible { outline: 2px solid var(--k-accent); outline-offset: 2px; border-radius: 5px; }
+.k-mono { font-family: var(--k-mono); font-variant-numeric: tabular-nums; }
+.k-num { font-variant-numeric: tabular-nums; }
+
+/* Card: white sheet with a hairline and the faintest shadow; hover lifts the shadow only. */
+.k-card { background: var(--k-surface); border: 1px solid var(--k-line); border-radius: 12px; box-shadow: var(--k-shadow-card); }
+.k-card-hover { transition: box-shadow .18s cubic-bezier(.25, 1, .5, 1), border-color .18s; }
+.k-card-hover:hover { box-shadow: var(--k-shadow-hover); border-color: var(--k-line-strong); }
+
+/* Chip: a soft pill with a leading dot, coloured by --c / --cs. */
+.k-chip { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  white-space: nowrap; color: var(--c, var(--k-amber-ink)); background: var(--cs, var(--k-amber-soft)); }
+.k-chip::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.k-chip.plain::before { display: none; }
+
+/* Segmented filter: pills on a sunk track. */
+.k-seg { display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--k-sunk); overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+.k-seg button { flex: none; border: 0; background: none; padding: 6px 16px; border-radius: 999px; font-size: 14.5px; color: var(--k-ink-2); white-space: nowrap; }
+.k-seg button:hover { color: var(--k-ink); }
+.k-seg button[aria-pressed="true"] { background: var(--k-surface); color: var(--k-ink); font-weight: 600; box-shadow: var(--k-shadow-card), 0 0 0 1px var(--k-line-soft); }
+.k-seg small { font-family: var(--k-mono); font-size: 11px; color: var(--k-ink-4); margin-left: 5px; font-weight: 400; }
+
+.k-search { display: flex; align-items: center; gap: 10px; border-radius: 999px; background: var(--k-sunk); padding: 0 14px; height: 40px; color: var(--k-ink-4); }
+.k-search input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font: inherit; font-size: 14.5px; color: var(--k-ink); }
+.k-search input::placeholder { color: var(--k-ink-4); }
+.k-kbd { font-family: var(--k-mono); font-size: 11px; line-height: 16px; padding: 0 5px; border: 1px solid var(--k-line-strong); border-radius: 5px; background: var(--k-surface); color: var(--k-ink-4); }
+
+/* Time rail: label column, a hairline with dots, then cards. */
+.k-rail { display: grid; grid-template-columns: 64px 22px minmax(0, 1fr); row-gap: 14px; position: relative; }
+.k-rail::before { content: ""; position: absolute; left: 75px; top: 16px; bottom: 16px; width: 1px; background: var(--k-line-strong); }
+.k-rail > .k-rail-label { padding-top: 19px; font-family: var(--k-mono); font-size: 13px; color: var(--k-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.k-rail > .k-rail-dot { position: relative; }
+.k-rail > .k-rail-dot::before { content: ""; position: absolute; left: 7.5px; top: 25px; width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--k-accent)); box-shadow: 0 0 0 4px var(--k-bg); }
+@media (max-width: 760px) {
+  .k-rail { grid-template-columns: 0 14px minmax(0, 1fr); }
+  .k-rail::before { left: 6px; }
+  .k-rail > .k-rail-label { visibility: hidden; }
+  .k-rail > .k-rail-dot::before { left: 3px; }
+}
+
+/* Reading prose. */
+.k-prose { color: var(--k-prose); font-size: 16px; line-height: 1.85; overflow-wrap: anywhere; }
+.k-prose > :first-child { margin-top: 0; }
+.k-prose h1 { font-size: 26px; line-height: 1.4; font-weight: 700; margin: 0 0 16px; color: var(--k-ink); }
+.k-prose h2 { font-size: 20px; line-height: 1.45; font-weight: 650; margin: 36px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--k-line-soft); color: var(--k-ink); }
+.k-prose h3 { font-size: 17px; font-weight: 650; margin: 26px 0 8px; color: var(--k-ink); }
+.k-prose h4 { font-size: 15.5px; font-weight: 650; margin: 20px 0 6px; color: var(--k-ink); }
+.k-prose p { margin: 10px 0; }
+.k-prose ul, .k-prose ol { padding-left: 1.4em; margin: 10px 0; }
+.k-prose ul { list-style: disc; } .k-prose ol { list-style: decimal; }
+.k-prose li { margin: 5px 0; } .k-prose li::marker { color: var(--k-ink-4); }
+.k-prose a { color: var(--k-accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--k-accent) 35%, transparent); text-underline-offset: 3px; }
+.k-prose a:hover { text-decoration-color: var(--k-accent); }
+.k-prose strong { color: var(--k-ink); font-weight: 650; }
+.k-prose code { font-family: var(--k-mono); font-size: .86em; background: var(--k-code-bg); border: 1px solid var(--k-line-soft); padding: 1px 5px; border-radius: 5px; }
+.k-prose pre { background: var(--k-code-bg); border: 1px solid var(--k-line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.65; margin: 14px 0; }
+.k-prose pre code { border: 0; background: none; padding: 0; font-size: inherit; }
+.k-prose blockquote { margin: 14px 0; padding: 2px 0 2px 16px; border-left: 3px solid var(--k-line-strong); color: var(--k-ink-3); }
+.k-prose table { display: block; overflow-x: auto; border-collapse: collapse; margin: 14px 0; font-size: 14px; line-height: 1.6; }
+.k-prose th, .k-prose td { border: 1px solid var(--k-line); padding: 7px 12px; text-align: left; vertical-align: top; }
+.k-prose th { background: var(--k-sunk); font-weight: 600; color: var(--k-ink); }
+.k-prose hr { border: 0; border-top: 1px solid var(--k-line); margin: 28px 0; }
+.k-prose img { max-width: 100%; border-radius: 10px; }
+.k-prose input[type="checkbox"] { margin-right: 6px; }
+.k-inline > p { display: inline; margin: 0; }
+.k-inline > ul, .k-inline > ol { display: inline; padding: 0; }
+.k-inline code { font-family: var(--k-mono); font-size: .9em; padding: 0 4px; border-radius: 5px; background: var(--k-sunk); color: var(--k-ink-2); }
+.k-inline a:not(.k-wiki) { color: var(--k-accent); }
+
+.k-wiki { color: var(--k-ink-2); border-bottom: 1px solid var(--k-line-strong); cursor: pointer; text-decoration: none !important; }
+.k-wiki:hover { color: var(--k-accent); border-color: var(--k-accent); }
+.k-wiki.miss { color: var(--k-ink-4); cursor: default; border-bottom-style: dashed; }
+
+/* Obsidian callouts. */
+.k-callout { margin: 16px 0; padding: 12px 16px; border-radius: 12px; background: var(--cs, var(--k-accent-soft)); border: 1px solid color-mix(in srgb, var(--c, var(--k-accent)) 22%, transparent); color: var(--k-prose); }
+.k-callout > .k-callout-title { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 14.5px; color: var(--c, var(--k-accent)); margin-bottom: 4px; }
+.k-callout > .k-callout-title::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.k-callout p { margin: 6px 0; }
+
+/* Diagrams. */
+.k-figure { margin: 18px 0; padding: 18px; border: 1px solid var(--k-line); border-radius: 14px; background: var(--k-surface); overflow-x: auto; text-align: center; }
+.k-figure svg { height: auto; margin: 0 auto; }
+.k-figure figcaption { margin-top: 8px; font-size: 12.5px; color: var(--k-ink-4); }

@@ -1,0 +1,37 @@
+# 自动沉淀的配置。复制到 <vault>/.kg/capture/config.yaml（.kg/ 不进 git）。
+# kg capture scan 只读 cwd 落在 allow 里、且不在 deny 里的会话。
+
+sources:
+  claude: ~/.claude/projects
+  codex: ~/.codex/sessions
+
+# 允许读的项目目录（含子目录）。container: true 表示它的每个子目录各算一个项目；
+# exact: true 只匹配这个目录本身（比如主目录，不想把所有子目录都放进来）。
+allow:
+  - ~/code/my-app
+  - { path: ~/Github-Projects, container: true }
+  - { path: "~", exact: true }
+
+# 优先于 allow：公司仓库、自动化自己的工作目录、临时目录。
+deny:
+  - ~/work/company
+  - ~/.agent-autoloop
+  - /tmp
+  - /private/tmp
+
+# 只看这天以后改过的会话；更早的历史想补，就把它往前调。
+start_date: 2026-10-22
+
+budget:
+  max_chars_per_batch: 120000     # 一批最多交给模型多少字
+  max_chars_per_session: 30000    # 单个会话一批最多读多少字，读不完下一批接着读
+  max_sessions_per_batch: 25
+  min_user_chars: 60              # 新会话里用户说的话少于这个数就不整理
+  idle_minutes: 30                # 最近这么久还在写的会话先不读
+  max_pending_batches: 2          # 没整理完的批次到这个数就先不读新的
+
+brief:
+  aihot: true
+  # 日报一并参考的本机文件，{date} 换成当天日期
+  extra:
+    - ~/.agent-autoloop/work/github-digest/digests/{date}.md

@@ -59,7 +59,7 @@
 | 组件 | 选型 | 职责 |
 |------|------|------|
 | 知识源文件 | **Obsidian Vault** (Markdown + YAML frontmatter) | 唯一信源，人类可读可编辑 |
-| 向量数据库 | **Qdrant** (本地磁盘模式) | 语义检索，余弦相似度匹配，支持元数据过滤 |
+| 向量数据库 | **Weaviate Embedded** (本地持久化) | 语义检索，余弦相似度匹配，支持元数据过滤 |
 | 图数据库 | **SurrealDB** (SurrealKV 本地存储) | 条目关系建模，BFS 路径查找，N 跳邻居遍历 |
 
 ### AI 与嵌入
@@ -67,7 +67,7 @@
 | 组件 | 选型 | 说明 |
 |------|------|------|
 | 知识提取 | **Claude API** (claude-sonnet-4-20250514) | 从非结构化文本提取结构化知识条目 |
-| 文本嵌入 | **sentence-transformers** (all-MiniLM-L6-v2) | 384 维向量，本地离线推理，无需 GPU |
+| 文本嵌入 | **Gemini Embedding / sentence-transformers** | 可配置维度；可选在线高质量 embedding 或本地离线模型 |
 
 ### 应用层
 
@@ -87,7 +87,7 @@
 final_score = vector_similarity * 0.6 + graph_proximity * 0.4
 ```
 
-- 向量相似度 (60%): Qdrant 余弦距离，捕捉语义相关性
+- 向量相似度 (60%): Weaviate 向量相似度，捕捉语义相关性
 - 图邻近度 (40%): SurrealDB 2 跳可达性，捕捉结构关联
 
 ### 间隔重复算法
@@ -116,7 +116,7 @@ strength = coverage * 0.3 + depth * 0.3 + freshness * 0.2 + confidence * 0.2
 │   ├── cli.py              # Click CLI 入口 (12 个命令)
 │   ├── config.py           # YAML 配置加载器
 │   ├── embeddings.py       # sentence-transformers 嵌入封装
-│   ├── vector_store.py     # Qdrant 向量库封装
+│   ├── vector_store.py     # Weaviate 向量库封装
 │   ├── graph_store.py      # SurrealDB 图库封装
 │   ├── ingest.py           # Claude API 知识提取
 │   ├── query.py            # 语义检索引擎
@@ -137,7 +137,7 @@ strength = coverage * 0.3 + depth * 0.3 + freshness * 0.2 + confidence * 0.2
 │   ├── session-kg-load.sh  # UserPromptSubmit hook: 会话自动上下文加载
 │   ├── review-reminder.py  # 每日复习提醒 (macOS 通知)
 │   └── weekly-radar.py     # 每周知识域强度报告
-├── config.yaml              # 项目配置 (知识域/条目类型/模型等)
+├── config.yaml.example      # 项目配置模板 (知识域/条目类型/模型等)
 └── pyproject.toml           # Python 包定义与依赖
 ```
 
@@ -153,7 +153,7 @@ strength = coverage * 0.3 + depth * 0.3 + freshness * 0.2 + confidence * 0.2
 06-Team/         团队共享知识
 07-Projects/     项目跟踪笔记
 Templates/       Obsidian Templater 模板
-indexes/         数据库本地存储 (Qdrant + SurrealDB)
+indexes/         数据库本地存储 (Weaviate + SurrealDB)
 ```
 
 ## 架构
@@ -169,8 +169,8 @@ indexes/         数据库本地存储 (Qdrant + SurrealDB)
          ┌─────────────┼─────────────┐
          ▼                           ▼
 ┌─────────────────┐        ┌─────────────────┐
-│     Qdrant      │        │   SurrealDB     │
-│  向量嵌入 (384d) │        │  图关系 (边+节点) │
+│    Weaviate     │        │   SurrealDB     │
+│  向量嵌入 (可配置维度) │        │  图关系 (边+节点) │
 │  余弦相似度检索   │        │  BFS/N跳遍历     │
 └────────┬────────┘        └────────┬────────┘
          │                          │

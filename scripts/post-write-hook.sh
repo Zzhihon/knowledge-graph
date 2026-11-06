@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-VAULT_ROOT="/Users/bt1q/Github-Projects/knowledge-graph"
+VAULT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_PYTHON="${VAULT_ROOT}/.venv/bin/python3"
 LOG_FILE="${VAULT_ROOT}/scripts/.hook.log"
 

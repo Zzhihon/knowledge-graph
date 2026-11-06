@@ -24,7 +24,7 @@ personas: []
 ## Implementation
 Delegates to the `kg` CLI tool:
 ```bash
-cd /Users/bt1q/Github-Projects/knowledge-graph && .venv/bin/kg ingest <file_path> [--dry-run]
+cd <repo> && .venv/bin/kg ingest <file_path> [--dry-run]
 ```
 
 If the CLI `kg ingest` fails or produces unsatisfactory results, fall back to the `/sc:kg` extraction logic applied to the file content directly.
