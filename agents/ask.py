@@ -25,7 +25,6 @@ from rich.panel import Panel
 from rich.table import Table
 
 from agents.config import ProjectConfig, load_config
-from agents.query import search
 
 console = Console()
 
@@ -37,6 +36,13 @@ _SYSTEM_PROMPT = """\
 _FALLBACK_SYSTEM_PROMPT = """\
 你是知识库问答助手。知识库中暂无相关条目，请基于你的知识给出准确、详细的回答。
 回答时注意结构清晰，分段阐述，并在适当位置给出示例。"""
+
+def search(*args: Any, **kwargs: Any) -> list[dict[str, Any]]:
+    """Local LanceDB retrieval (kg.retrieval); raises RetrievalError instead of returning []."""
+    from kg.retrieval.service import search as local_search
+
+    return local_search(*args, **kwargs)
+
 
 _MAX_TOKENS = 8192
 _MAX_CONTINUATIONS = 5
@@ -455,12 +461,24 @@ def ask_stream(
 
     yield {"type": "status", "data": {"message": "正在检索相关条目...", "phase": "search"}}
 
-    results = search(
-        query=question,
-        filters=filters if filters else None,
-        top_k=top_k,
-        config=config,
-    )
+    from kg.retrieval.errors import RetrievalError
+
+    try:
+        results = search(
+            query=question,
+            filters=filters if filters else None,
+            top_k=top_k,
+            config=config,
+        )
+    except RetrievalError as exc:
+        # Say why retrieval failed instead of answering as if the knowledge base were empty.
+        # `error` carries the code for pages that handle it; the token shows the reason in
+        # pages that only render tokens.
+        yield {"type": "error", "data": exc.to_dict()}
+        yield {"type": "token", "data": {"text": f"检索失败：{exc}"}}
+        yield {"type": "sources", "data": {"sources": []}}
+        yield {"type": "done", "data": {}}
+        return
 
     if not results:
         fb = config.fallback
