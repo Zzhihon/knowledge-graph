@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import re
 
-KINDS = ("service", "egress", "artifact", "project", "session", "rule")
+KINDS = ("service", "egress", "artifact", "project", "session", "rule", "index")
 MAX_LENGTH = 256
 
 _PART = re.compile(r"[^\s:\x00-\x1f\x7f]+")

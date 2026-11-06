@@ -326,9 +326,9 @@ def test_service_restart_is_rate_limited(tmp_path):
 
 def test_index_incident_marks_the_index_stale_and_close_marks_it_fresh(tmp_path):
     vault, conn = _vault(tmp_path)
-    store.upsert_resources(conn, [Resource("service:index:kg", "service", "index", "x")], now=T0)
+    store.upsert_resources(conn, [Resource("index:kg:main", "index", "检索索引", "index")], now=T0)
     assert search_warning(vault) is None
-    inc = get_incident(conn, _open(conn, "service:index:kg", "index.failed", T0))
+    inc = get_incident(conn, _open(conn, "index:kg:main", "index.failed", T0))
     ctx = HealContext(vault, _config(index_stale="auto"), T0)
     (out,) = on_open(ctx, inc, None)
     assert read_index_status(vault).stale and "结果可能不全" in search_warning(vault)
