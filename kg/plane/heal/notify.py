@@ -174,17 +174,16 @@ class Notifier:
 
     def _ask(self, inc: dict[str, Any], resource: dict[str, Any] | None,
              outcomes: list[actions.Outcome], *, title: str, key: str) -> None:
-        text = self._base_text(inc, resource)
-        text += [o.text for o in outcomes]
+        text = [scrub_text(t) for t in self._base_text(inc, resource) + [o.text for o in outcomes]]
         prev = self._previous(inc)
-        if prev:
+        if prev:  # entry ids are checked on link; the scrubber would mask the long path
             text.append(prev)
         options = [HANDLED, SILENCE, INVESTIGATE]
         suggestion = next((o.option for o in outcomes if o.option), None)
         if suggestion:
             options.append(suggestion)
         self.receipt.ask.append({
-            "title": scrub_text(title), "text": scrub_text("\n".join(text)),
+            "title": scrub_text(title), "text": "\n".join(text),
             "options": options, "recommend": len(options) - 1 if suggestion else 0,
             "about": f"incident:{inc['id']}", "key": key,
         })
