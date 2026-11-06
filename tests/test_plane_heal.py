@@ -640,3 +640,40 @@ def test_cli_notify_link_undo_and_report(tmp_path, monkeypatch):
     assert next(i for i in listed if i["id"] == entry_audit.id)["undone"] is True
     report = runner.invoke(_cli(), ["report", "--week"])
     assert report.exit_code == 0 and "管控面周报" in report.output
+
+
+# ── the 事故 page's API ──
+
+
+def test_incidents_board_and_undo_need_same_origin_json(tmp_path):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from agents.api_routes import incidents
+
+    vault, conn = _vault(tmp_path)
+    hub = _hub()
+    store.append_signals(conn, [Signal(EGRESS, T0 + i * 60, "down" if i < 3 else "up")
+                                for i in range(5)])
+    inc = get_incident(conn, _open(conn, EGRESS, "egress.outage", T0))
+    (out,) = on_open(HealContext(vault, _config(egress_pause="auto"), T0, hub), inc, None)
+    app = FastAPI()
+    app.include_router(incidents.router, prefix="/api")
+    app.dependency_overrides[incidents.heal_vault] = lambda: vault
+    app.dependency_overrides[incidents.heal_hub] = lambda: hub
+    client = TestClient(app, base_url="http://127.0.0.1:8000")
+    board = client.get("/api/plane/incidents/board").json()
+    (item,) = board["open"]
+    assert item["id"] == inc["id"] and item["timeline"][0]["status"] == "down"
+    assert item["actions"][0]["undoable"] is True
+    # A write from another site, or not JSON, is refused.
+    assert client.post("/api/plane/heal/undo", json={"id": out.audit_id},
+                       headers={"origin": "http://evil.example"}).status_code == 403
+    ok = client.post("/api/plane/heal/undo", json={"id": out.audit_id},
+                     headers={"origin": "http://127.0.0.1:8000"})
+    assert ok.status_code == 200 and hub.paused == set()
+    again = client.post("/api/plane/heal/undo", json={"id": out.audit_id},
+                        headers={"origin": "http://127.0.0.1:8000"})
+    assert again.status_code == 409 and "已经撤销过" in again.json()["detail"]
+    board = client.get("/api/plane/incidents/board").json()
+    assert board["open"][0]["actions"][0]["undone"] is True

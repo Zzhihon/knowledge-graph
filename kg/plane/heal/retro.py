@@ -108,7 +108,7 @@ def should_retro(conn: sqlite3.Connection, incident: dict[str, Any], config: Hea
     return None
 
 
-def _runs(signals: list[Any]) -> list[dict[str, Any]]:
+def timeline_runs(signals: list[Any]) -> list[dict[str, Any]]:
     """Consecutive signals with one status folded into one step of the timeline."""
     out: list[dict[str, Any]] = []
     for s in signals:
@@ -160,7 +160,7 @@ def build_retro_input(conn: sqlite3.Connection, vault: Path, incident: dict[str,
         "why_retro": why,
         "resource": {"id": resource.get("id"), "kind": resource.get("kind"),
                      "name": resource.get("name"), "attrs": attrs},
-        "timeline": _runs(signals),
+        "timeline": timeline_runs(signals),
         "evidence": evidence,
         "actions": actions,
         "notifications": notes or [],
