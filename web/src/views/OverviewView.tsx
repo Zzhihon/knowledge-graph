@@ -7,7 +7,7 @@ import { Empty } from './DailyView'
 import { money } from '../lib/hub'
 import {
   agoUnix, fetchOverviewPage, issueUrl, usePoll,
-  type AttentionItem, type Block, type Failed, type Overview, type Pill, type Planned,
+  type ArtifactCard, type AttentionItem, type Block, type Failed, type Overview, type Pill, type ProjectCard,
 } from '../lib/overview'
 
 type Nav = (id: string) => void
@@ -20,7 +20,7 @@ const URGENCY: Record<AttentionItem['urgency'], { label: string; c: string; cs: 
   info: { label: '提示', c: '--k-ink-4', cs: '--k-line-soft' },
   session: { label: '等你回答', c: '--k-violet', cs: '--k-violet-soft' },
 }
-const SOURCE: Record<string, string> = { hub: '中台', incidents: '状态库' }
+const SOURCE: Record<string, string> = { hub: '中台', incidents: '状态库', sessions: '会话看板' }
 
 function Reason({ children }: { children: ReactNode }) {
   return (
@@ -41,7 +41,6 @@ export function PlannedNote({ issue, children }: { issue: number; children?: Rea
   )
 }
 
-const isPlanned = (b: unknown): b is Planned => typeof b === 'object' && b !== null && 'planned' in b
 const failed = <T,>(b: Block<T>): b is Failed => !b.ok
 
 function Attention({ data, onNavigate }: { data: Overview['attention']; onNavigate: Nav }) {
@@ -83,7 +82,6 @@ function Attention({ data, onNavigate }: { data: Overview['attention']; onNaviga
             另外 {data.count - 8} 件<ArrowRight className="h-3.5 w-3.5" />
           </button>
         )}
-        <PlannedNote issue={data.planned.sessions}>等你回答的会话，#5 上线后排进这个列表</PlannedNote>
       </div>
     </Section>
   )
@@ -95,6 +93,7 @@ const PILL_TONE: Record<Pill['status'], [string, string]> = {
   asleep: ['--k-violet', '--k-violet-soft'],
   unknown: ['--k-ink-4', '--k-line-soft'],
   planned: ['--k-ink-4', '--k-line-soft'],
+  stale: ['--k-amber-ink', '--k-amber-soft'],
 }
 const PILL_PAGE: Record<string, string> = { egress: 'egress', services: 'services', hub: 'hub', index: 'library' }
 
@@ -112,6 +111,8 @@ function HealthPill({ p, onNavigate }: { p: Pill; onNavigate: Nav }) {
       </span>
       <span className="text-[12.5px] text-k-ink4">
         {p.status === 'planned' ? '模块还没上线' : p.note ? p.note
+          : p.id === 'index' ? <>上次成功 <span className="k-num text-k-ink2">{agoUnix(p.last) || '—'}</span>
+            {' · '}待更新 <span className="k-num text-k-ink2">{p.pending ?? '—'}</span> 个文件</>
           : <>24 小时 <span className="k-num text-k-ink2">{av === null || av === undefined ? '—' : `${(av * 100).toFixed(av === 1 ? 0 : 1)}%`}</span>
             {p.count ? ` · ${p.count} 项` : ''}</>}
       </span>
@@ -176,11 +177,104 @@ function Today({ o, onNavigate }: { o: Overview; onNavigate: Nav }) {
   )
 }
 
-function PlannedBlock({ title, block, what }: { title: string; block: Overview['inprogress']; what: string }) {
+const STAGE_TONE: Record<string, [string, string]> = {
+  waiting: ['--k-violet', '--k-violet-soft'],
+  active: ['--k-ok', '--k-ok-soft'],
+  stalled: ['--k-amber-ink', '--k-amber-soft'],
+}
+
+function ProjectRow({ p, onNavigate }: { p: ProjectCard; onNavigate: Nav }) {
+  const [c, cs] = STAGE_TONE[p.stage] ?? ['--k-ink-4', '--k-line-soft']
   return (
-    <Section title={title}>
-      {isPlanned(block) ? <PlannedNote issue={block.planned}>{what}</PlannedNote>
-        : failed(block as Block<unknown>) ? <Reason>{(block as Failed).error}</Reason> : null}
+    <li>
+      <button onClick={() => onNavigate('inprogress')} title={p.reason}
+        className="flex w-full min-w-0 flex-col gap-1 px-4 py-3 text-left hover:bg-k-sunk sm:px-5">
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="min-w-0 truncate text-[15px] font-[600] text-k-ink">{p.name}</span>
+          <span className="k-chip shrink-0" style={vars(c, cs)}>{p.stage_label || p.stage}</span>
+          <span className="ml-auto shrink-0 whitespace-nowrap text-[12.5px] text-k-ink4">{agoUnix(p.last_action)}</span>
+        </span>
+        <span className="line-clamp-2 break-words text-[13.5px] leading-[1.6] text-k-ink2">
+          {p.conclusion || <span className="text-k-ink4">还没有结论</span>}
+        </span>
+        <span className="flex flex-wrap gap-x-3 gap-y-0.5 text-[12.5px] text-k-ink4">
+          {p.dirty > 0 ? <span className="text-k-amber-ink">{p.dirty} 处未提交改动</span> : <span>改动都已提交</span>}
+          {!!p.open_prs && <span>{p.open_prs} 个未合并 PR</span>}
+          {p.waiting > 0 && <span className="text-k-violet">{p.waiting} 个会话等你</span>}
+        </span>
+      </button>
+    </li>
+  )
+}
+
+function InProgress({ data, onNavigate }: { data: Overview['inprogress']; onNavigate: Nav }) {
+  return (
+    <Section title="进行中" aside={failed(data) ? undefined : (
+      <>共 {data.count} 个项目{data.stale && <span className="ml-2 font-medium text-k-amber-ink">
+        数据可能过期{data.collected_at ? `（上次 ${agoUnix(data.collected_at)}）` : ''}</span>}</>
+    )}>
+      {failed(data) ? <Reason>读不到会话看板：{data.error}</Reason>
+        : data.items.length === 0 ? <p className="k-card px-6 py-6 text-center text-[14.5px] text-k-ink4">最近没有活跃的项目。</p>
+          : (
+            <ol className="k-card divide-y divide-k-line-soft overflow-hidden">
+              {data.items.map((p) => <ProjectRow key={p.id} p={p} onNavigate={onNavigate} />)}
+            </ol>
+          )}
+    </Section>
+  )
+}
+
+const VISIBILITY: Record<string, { label: string; c: string; cs: string }> = {
+  public: { label: '公开', c: '--k-hot', cs: '--k-hot-soft' },
+  private: { label: '私有', c: '--k-violet', cs: '--k-violet-soft' },
+  local: { label: '仅本机', c: '--k-ink-3', cs: '--k-sunk' },
+}
+const ADAPTER: Record<string, string> = { orca: 'Orca', claude: 'Claude Artifact', local: '本地页' }
+
+function ArtifactRow({ a, onNavigate }: { a: ArtifactCard; onNavigate: Nav }) {
+  const vis = a.visibility ? VISIBILITY[a.visibility] : undefined
+  // #artifacts&open=<id> makes the artifact page open this one; App keeps the hash until it renders.
+  const open = () => { history.replaceState(null, '', `#artifacts&open=${encodeURIComponent(a.id)}`); onNavigate('artifacts') }
+  const flagged = a.expired || a.public_sensitive
+  return (
+    <li>
+      <button onClick={open} className="relative flex w-full min-w-0 flex-col gap-1 px-4 py-3 text-left hover:bg-k-sunk sm:px-5">
+        {(flagged || a.sensitive || a.expiring) && <span aria-hidden className="absolute inset-y-0 left-0 w-[3px]"
+          style={{ background: flagged ? 'var(--k-hot)' : 'var(--k-amber)' }} />}
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="min-w-0 truncate text-[15px] font-[600] text-k-ink" title={a.title}>{a.title}</span>
+          <span className="ml-auto shrink-0 whitespace-nowrap text-[12.5px] text-k-ink4">{agoUnix(a.updated)}</span>
+        </span>
+        <span className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-k-ink4">
+          {vis && <span className="k-chip" style={vars(vis.c, vis.cs)}>{vis.label}</span>}
+          {a.expired && <span className="k-chip" style={vars('--k-hot', '--k-hot-soft')}>已过期</span>}
+          {a.expiring && <span className="k-chip" style={vars('--k-amber-ink', '--k-amber-soft')}>即将过期</span>}
+          {a.sensitive && <span className="k-chip" style={a.public_sensitive ? vars('--k-hot', '--k-hot-soft') : vars('--k-amber-ink', '--k-amber-soft')}>
+            {a.public_sensitive ? '公开且敏感' : '敏感'}</span>}
+          {a.incidents > 0 && <span className="k-chip" style={vars('--k-hot', '--k-hot-soft')}>{a.incidents} 个事故</span>}
+          <span className="min-w-0 truncate">{[a.project, a.adapter && (ADAPTER[a.adapter] ?? a.adapter)].filter(Boolean).join(' · ')}</span>
+        </span>
+      </button>
+    </li>
+  )
+}
+
+function Artifacts({ data, onNavigate }: { data: Overview['artifacts']; onNavigate: Nav }) {
+  const marks = failed(data) ? [] : ([
+    [data.expired, '个已过期', 'text-k-hot'], [data.expiring, '个即将过期', 'text-k-amber-ink'],
+    [data.public_sensitive, '个公开且敏感', 'text-k-hot'],
+  ] as const).filter(([n]) => n > 0)
+  return (
+    <Section title="最近工件" aside={failed(data) ? undefined : (
+      <>共 {data.count} 个{marks.map(([n, t, cls]) => <span key={t} className={`ml-2 font-medium ${cls}`}>{n} {t}</span>)}</>
+    )}>
+      {failed(data) ? <Reason>读不到工件：{data.error}</Reason>
+        : data.items.length === 0 ? <p className="k-card px-6 py-6 text-center text-[14.5px] text-k-ink4">还没有采集到工件。</p>
+          : (
+            <ol className="k-card divide-y divide-k-line-soft overflow-hidden">
+              {data.items.map((a) => <ArtifactRow key={a.id} a={a} onNavigate={onNavigate} />)}
+            </ol>
+          )}
     </Section>
   )
 }
@@ -204,8 +298,8 @@ export default function OverviewView({ onNavigate }: { onNavigate: Nav }) {
           <Health data={data.health} onNavigate={onNavigate} />
           <Today o={data} onNavigate={onNavigate} />
           <div className="grid gap-x-8 md:grid-cols-2">
-            <PlannedBlock title="进行中" block={data.inprogress} what="最近活跃的 3–5 个项目和会话" />
-            <PlannedBlock title="最近工件" block={data.artifacts} what="最近 5 个工件，过期和敏感的会标出来" />
+            <InProgress data={data.inprogress} onNavigate={onNavigate} />
+            <Artifacts data={data.artifacts} onNavigate={onNavigate} />
           </div>
           <div className="mt-8 text-right">
             <a href={issueUrl(11)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[12.5px] text-k-ink4 hover:text-k-accent">
