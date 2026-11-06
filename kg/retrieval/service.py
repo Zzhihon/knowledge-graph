@@ -11,7 +11,7 @@ import os
 import threading
 from typing import TYPE_CHECKING, Any
 
-from kg.retrieval.search import Result, Searcher
+from kg.retrieval.search import Result, Searcher, relevant
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -63,5 +63,25 @@ def search(query: str, filters: dict[str, str] | None = None, top_k: int = 5,
     out = []
     for h in result.hits:
         path = str(searcher.vault / h.path)  # absolute: `kg ask` reads the file for context
-        out.append(h.to_dict() | {"file_path": path, "metadata": {"file_path": path}})
+        item = h.to_dict() | {"file_path": path, "metadata": {"file_path": path}}
+        if h.kind == "artifact":
+            # The page itself may hold credentials; `kg ask` gets the masked, indexed text.
+            item["content"] = searcher.artifact_text(h.entry_id)
+        out.append(item)
+    return out
+
+
+def search_artifacts(query: str, *, top_k: int = 3, rerank: bool = False) -> list[dict[str, Any]]:
+    """Artifact pages for a question, next to (never instead of) the entry hits.
+
+    Only artifacts that match a query word or are close by vector; each carries its masked
+    text as `content`. Raises `IndexMissingError` while the index holds no artifacts.
+    """
+    searcher = get_searcher("hybrid", rerank)
+    result = searcher.search(query, top_k=top_k, filters={"kind": "artifact"})
+    out = []
+    for h in result.hits:
+        if relevant(h):
+            out.append(h.to_dict() | {"file_path": h.path, "metadata": {"file_path": h.path},
+                                      "content": searcher.artifact_text(h.entry_id)})
     return out

@@ -14,7 +14,7 @@ The data comes from the same functions the board uses, so an agent and kg-web ag
 | project_status      | `agents.api_routes.sessions.get_projects` (`/api/plane/projects`, #5)   |
 | recent_sessions     | `agents.api_routes.sessions.get_sessions` (`/api/plane/sessions`)       |
 | plane_health        | `agents.api_routes.overview.plane_health` + open incidents + index      |
-| find_artifact       | artifact resources (#6) and their local text (`kg.plane.artifact_docs`) |
+| find_artifact       | the index's artifact table (#6), else artifact resources + local text   |
 | similar_incidents   | incidents in the state store (#9), their retro entries, debug entries   |
 """
 
@@ -51,6 +51,7 @@ BOARDS: dict[str, tuple[str, ...]] = {
     "题目": ("08-Problems",),
     "面试": ("09-Interview",),
 }
+ARTIFACT_BOARDS = ("工件", "artifact", "artifacts")  # search_knowledge over artifact pages
 
 
 def _err(code: str, message: str, hint: str = "") -> dict[str, Any]:
@@ -136,6 +137,8 @@ def search_knowledge(plane: Plane, query: str, board: str | None = None, limit: 
     limit = max(1, min(int(limit or 5), 20))
     out: dict[str, Any] = {"query": query, "board": board,
                            "mode": "hybrid+rerank" if rerank else "hybrid", "results": []}
+    if board and board.strip().lower() in ARTIFACT_BOARDS:
+        return _search_artifacts(plane, query, limit, rerank, out)
     dirs = board_dirs(board)
     if dirs == ():
         out["error"] = _err("unknown_board", f"没有板块 {board}",
@@ -158,6 +161,25 @@ def search_knowledge(plane: Plane, query: str, board: str | None = None, limit: 
     if stale:
         warnings.append(stale)
     out["warnings"] = warnings
+    out["timings_ms"] = result.timings
+    return out
+
+
+def _search_artifacts(plane: Plane, query: str, limit: int, rerank: bool,
+                      out: dict[str, Any]) -> dict[str, Any]:
+    from kg.retrieval.errors import RetrievalError
+
+    try:
+        result = plane.search(query, limit, {"kind": "artifact"}, rerank)
+    except RetrievalError as exc:
+        out["error"] = exc.to_dict()
+        return out
+    out["results"] = [{
+        "id": h.entry_id, "title": h.title, "board": "artifact", "kind": h.kind,
+        "url": h.url, "local_file": h.path, "project": h.project, "sensitive": h.sensitive,
+        "snippet": h.snippet, "score": round(h.score, 4),
+    } for h in result.hits if h.kind == "artifact"]
+    out["warnings"] = list(result.warnings)
     out["timings_ms"] = result.timings
     return out
 
@@ -417,6 +439,39 @@ def _snippet(text: str, terms: list[str], width: int = 160) -> str:
     return ("…" if start else "") + text[start:start + width].replace("\n", " ").strip() + "…"
 
 
+def _artifact_item(r: dict[str, Any], now: int, snippet: str, score: Any) -> dict[str, Any]:
+    a = r["attrs"] or {}
+    expires = a.get("expires_at")
+    return {
+        "id": r["id"], "title": a.get("title") or r["name"], "origin": a.get("origin"),
+        "visibility": a.get("visibility"), "url": a.get("url"),
+        "local_file": a.get("local_file"), "project": a.get("project"),
+        "updated_at": _iso(a.get("updated_at")), "expires_at": _iso(expires),
+        "days_left": round((expires - now) / DAY, 1) if expires else None,
+        "expired": bool(expires and expires <= now), "status": r["status"],
+        "snippet": snippet, "score": score,
+    }
+
+
+def _find_in_index(plane: Plane, query: str, limit: int, rows: list[dict[str, Any]],
+                   now: int) -> list[dict[str, Any]] | None:
+    """Artifacts from the search index, joined to the store; None when the index can't answer."""
+    from kg.retrieval.errors import RetrievalError
+    from kg.retrieval.search import relevant
+
+    try:
+        result = plane.search(query, limit, {"kind": "artifact"}, False)
+    except RetrievalError:
+        return None
+    live = {r["id"]: r for r in rows}
+    # A hit for an artifact the store no longer lists (gone since the last index update) is
+    # dropped, and so is one that is only "the nearest vector" without sharing a query word.
+    found = [_artifact_item(live[h.entry_id], now, h.snippet, round(h.score, 4))
+             for h in result.hits
+             if h.kind == "artifact" and h.entry_id in live and relevant(h)]
+    return found or None
+
+
 def find_artifact(plane: Plane, query: str, limit: int = 10) -> dict[str, Any]:
     from kg.plane.artifact_docs import doc_from_file
     from kg.plane.sensitive import Scanner
@@ -435,8 +490,14 @@ def find_artifact(plane: Plane, query: str, limit: int = 10) -> dict[str, Any]:
         conn.close()
     if not plane.db.exists() or not rows:
         out["warning"] = "状态库里还没有工件（运行 kg plane collect artifacts）"
-    scanner = Scanner()
     now = plane.clock()
+    indexed = _find_in_index(plane, query, limit, rows, now) if rows else None
+    if indexed is not None:
+        out.update(results=indexed, count=len(indexed), via="index")
+        return out
+    # Fallback: no index, no artifact table yet, or nothing relevant there: match words in the
+    # titles and local text directly (slower, but always available).
+    scanner = Scanner()
     scored = []
     phrase = query.strip().lower()
     for r in rows:
@@ -455,19 +516,10 @@ def find_artifact(plane: Plane, query: str, limit: int = 10) -> dict[str, Any]:
         if score:
             scored.append((score, attrs.get("updated_at") or r["first_seen"] or 0, r, body))
     scored.sort(key=lambda x: (-x[0], -x[1]))
-    for score, _, r, body in scored[:limit]:
-        a = r["attrs"] or {}
-        expires = a.get("expires_at")
-        out["results"].append({
-            "id": r["id"], "title": a.get("title") or r["name"], "origin": a.get("origin"),
-            "visibility": a.get("visibility"), "url": a.get("url"),
-            "local_file": a.get("local_file"), "project": a.get("project"),
-            "updated_at": _iso(a.get("updated_at")), "expires_at": _iso(expires),
-            "days_left": round((expires - now) / DAY, 1) if expires else None,
-            "expired": bool(expires and expires <= now), "status": r["status"],
-            "snippet": _snippet(body, terms) if body else "", "score": score,
-        })
+    out["results"] = [_artifact_item(r, now, _snippet(body, terms) if body else "", score)
+                      for score, _, r, body in scored[:limit]]
     out["count"] = len(scored)
+    out["via"] = "words"
     return out
 
 

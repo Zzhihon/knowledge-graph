@@ -1,6 +1,7 @@
 """`kg index` handlers: build and incrementally update the local retrieval index.
 
-  kg index update    only new / modified / deleted entry files (mtime + size, then sha256)
+  kg index update    only new / modified / deleted entry files (mtime + size, then sha256),
+                     then artifact pages from the state store whose content hash changed
   kg index rebuild   drop and re-index the whole vault
   kg index status    last success, last error, files waiting to be indexed
 
@@ -73,6 +74,10 @@ def run_index_command(
         f"无 id 跳过 {report.skipped}；写入 {report.chunks_written} 块，"
         f"现有 {report.entries} 个条目 / {report.chunks} 块，"
         f"用时 {report.seconds}s（向量 {report.embed_seconds}s）"
+    )
+    console.print(
+        f"工件：现有 {report.artifacts} 个；新增 {report.artifacts_added}、"
+        f"修改 {report.artifacts_modified}、删除 {report.artifacts_deleted}"
     )
     for err in report.errors:
         console.print(f"[yellow]读不了：{err}[/]")

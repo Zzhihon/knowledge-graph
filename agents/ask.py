@@ -29,8 +29,8 @@ from agents.config import ProjectConfig, load_config
 console = Console()
 
 _SYSTEM_PROMPT = """\
-你是知识库问答助手。基于以下检索到的知识条目回答问题。
-引用来源时使用 [条目ID] 格式。如果知识库中没有相关信息，明确说明。
+你是知识库问答助手。基于以下检索到的知识条目（以及 Agent 产出的工件页）回答问题。
+引用来源时使用 [条目ID] 格式（工件用它的 id）。如果知识库中没有相关信息，明确说明。
 回答应准确、简洁，并整合多个条目的信息给出综合性回答。"""
 
 _FALLBACK_SYSTEM_PROMPT = """\
@@ -42,6 +42,36 @@ def search(*args: Any, **kwargs: Any) -> list[dict[str, Any]]:
     from kg.retrieval.service import search as local_search
 
     return local_search(*args, **kwargs)
+
+
+def _with_artifacts(question: str, results: list[dict[str, Any]],
+                    top_k: int = 2) -> list[dict[str, Any]]:
+    """Entry hits plus up to `top_k` artifact pages that match the question (#6).
+
+    Artifacts are searched on their own, so they never push an entry out of its place; a
+    missing or broken artifact index leaves the entry hits as they are. KG_ASK_ARTIFACTS=0 off.
+    """
+    import os
+
+    if os.environ.get("KG_ASK_ARTIFACTS", "1") == "0":
+        return results
+    from kg.retrieval.errors import RetrievalError
+    from kg.retrieval.service import search_artifacts
+
+    try:
+        return results + search_artifacts(question, top_k=top_k)
+    except (RetrievalError, OSError, ValueError):
+        return results
+
+
+def _link(url: str | None) -> str:
+    """A share link without query or fragment: tokens never go into the prompt."""
+    if not url:
+        return "（无）"
+    from urllib.parse import urlsplit
+
+    parts = urlsplit(url)
+    return f"{parts.scheme}://{parts.hostname or ''}{parts.path}" if parts.scheme else "（无）"
 
 
 _MAX_TOKENS = 8192
@@ -97,6 +127,15 @@ def _build_context(
         title = result.get("title", "")
         domain = result.get("domain", "")
         file_path = result.get("file_path", "")
+
+        if result.get("kind") == "artifact":
+            # Never the raw page: `content` is the indexed text with credentials masked.
+            blocks.append("\n".join([
+                f"--- 工件: {entry_id} ---", f"标题: {title}",
+                f"链接: {_link(result.get('url'))}", "",
+                result.get("content") or "(内容不可用)",
+            ]))
+            continue
 
         content = _load_entry_content(file_path) if file_path else ""
 
@@ -371,6 +410,8 @@ def ask(
         top_k=top_k,
         config=config,
     )
+    if not domain:
+        results = _with_artifacts(question, results)
 
     if not results:
         fb = config.fallback
@@ -470,6 +511,8 @@ def ask_stream(
             top_k=top_k,
             config=config,
         )
+        if not domain:
+            results = _with_artifacts(question, results)
     except RetrievalError as exc:
         # Say why retrieval failed instead of answering as if the knowledge base were empty.
         # `error` carries the code for pages that handle it; the token shows the reason in
@@ -552,6 +595,8 @@ def ask_stream(
             "title": r.get("title", ""),
             "domain": r.get("domain", ""),
             "score": r.get("score", 0),
+            "kind": r.get("kind", "entry"),
+            "url": r.get("url"),
         }
         for r in results
     ]

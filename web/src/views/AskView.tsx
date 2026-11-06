@@ -3,6 +3,7 @@ import { Search, Sparkles, BrainCircuit, Send, Loader2, BookPlus, RotateCcw } fr
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { get, post, streamSSE } from '../api/client'
+import { artifacts } from '../api/artifacts'
 import type { SearchResult, Source, Conversation } from '../types'
 
 type AskPhase = 'idle' | 'search' | 'generate' | 'fallback'
@@ -265,8 +266,20 @@ export default function AskView({ conversationId, onConversationCreated, onPrevi
               )}
               {msg.sources && msg.sources.length > 0 && (
                 <div className="mt-2.5 pt-2.5 border-t border-k-line-strong/40 space-y-0.5">
-                  <div className="text-[11px] font-medium text-k-ink4 mb-1.5">来源条目</div>
-                  {msg.sources.map((s) => (
+                  <div className="text-[11px] font-medium text-k-ink4 mb-1.5">来源</div>
+                  {msg.sources.map((s) => s.kind === 'artifact' ? (
+                    // An artifact page (#6): open its share link, or the sandboxed local preview.
+                    <a
+                      key={s.id}
+                      href={s.url || artifacts.previewUrl(s.id)}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="flex items-center gap-1.5 w-full text-left text-[11px] text-k-accent/80 hover:text-k-accent hover:bg-k-muted/30 rounded px-1.5 py-1 -mx-1.5 transition-colors"
+                    >
+                      <span className="truncate">{s.title}</span>
+                      <span className="text-k-ink4 shrink-0">（工件）</span>
+                    </a>
+                  ) : (
                     <button
                       key={s.id}
                       onClick={() => onPreviewEntry?.(s.id)}
