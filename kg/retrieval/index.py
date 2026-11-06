@@ -100,8 +100,9 @@ class Index:
         status = self.status()
         status["last_attempt"] = _now()
         if error is None and report is not None:
+            # A good build also clears a stale mark left by the heal action (kg.plane.heal).
             status.update(ok=True, last_success=status["last_attempt"], error=None,
-                          last_update=asdict(report))
+                          last_update=asdict(report), stale=False, since=None, reason="")
         else:
             status["ok"] = False
             status["error"] = (

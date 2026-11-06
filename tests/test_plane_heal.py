@@ -677,3 +677,21 @@ def test_incidents_board_and_undo_need_same_origin_json(tmp_path):
     assert again.status_code == 409 and "已经撤销过" in again.json()["detail"]
     board = client.get("/api/plane/incidents/board").json()
     assert board["open"][0]["actions"][0]["undone"] is True
+
+
+def test_marking_the_index_keeps_the_index_builders_own_fields(tmp_path):
+    # kg.retrieval writes ok / last_success / error into the same status.json; the heal action
+    # used to overwrite the whole file and wipe them.
+    from kg.plane.heal.index_status import mark_index_fresh, mark_index_stale, status_path
+
+    file = status_path(tmp_path)
+    file.parent.mkdir(parents=True)
+    built = {"ok": True, "last_success": "2026-11-06T05:30:00+08:00", "files": 3}
+    file.write_text(json.dumps(built))
+    mark_index_stale(tmp_path, "建索引失败", incident=7, now=100)
+    raw = json.loads(file.read_text())
+    assert raw["stale"] and raw["incident"] == 7
+    assert (raw["ok"], raw["last_success"], raw["files"]) == (True, "2026-11-06T05:30:00+08:00", 3)
+    mark_index_fresh(tmp_path, now=200)
+    raw = json.loads(file.read_text())
+    assert not raw["stale"] and raw["files"] == 3

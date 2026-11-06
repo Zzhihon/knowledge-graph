@@ -46,8 +46,16 @@ def read_index_status(vault: Path) -> IndexStatus:
 def _write(vault: Path, status: IndexStatus) -> IndexStatus:
     file = status_path(vault)
     file.parent.mkdir(parents=True, exist_ok=True)
+    # The index builder (kg.retrieval) keeps its own fields in the same file: merge, never replace.
+    try:
+        merged = json.loads(file.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        merged = {}
+    if not isinstance(merged, dict):
+        merged = {}
+    merged.update(asdict(status))
     tmp = file.with_suffix(".tmp")
-    tmp.write_text(json.dumps(asdict(status), ensure_ascii=False, indent=1), encoding="utf-8")
+    tmp.write_text(json.dumps(merged, ensure_ascii=False, indent=1), encoding="utf-8")
     os.replace(tmp, file)
     return status
 
