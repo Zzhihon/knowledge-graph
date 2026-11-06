@@ -20,7 +20,7 @@ export interface AttentionItem {
 export interface Pill {
   id: string
   label: string
-  status: 'up' | 'down' | 'asleep' | 'unknown' | 'planned'
+  status: 'up' | 'down' | 'asleep' | 'unknown' | 'planned' | 'stale'
   text: string
   count?: number
   issue?: number
@@ -32,19 +32,52 @@ export interface Pill {
   stale?: boolean
   /** Replaces the 24-hour line, e.g. how many agents are online. */
   note?: string
+  /** Index pill only: files changed since the last build (null when there is no index). */
+  pending?: number | null
+}
+
+/** A recently active project from the #5 board. */
+export interface ProjectCard {
+  id: string
+  name: string
+  stage: 'waiting' | 'active' | 'stalled' | 'idle' | 'done' | string
+  stage_label: string
+  reason: string
+  last_action: number | null
+  conclusion: string
+  conclusion_ts: number | null
+  dirty: number
+  open_prs: number | null
+  waiting: number
+}
+
+/** One of the newest artifacts from #6, with what to watch out for. */
+export interface ArtifactCard {
+  id: string
+  title: string
+  adapter: string | null
+  visibility: 'public' | 'private' | 'local' | string | null
+  project: string | null
+  updated: number | null
+  incidents: number
+  expires_at: number | null
+  expired: boolean
+  expiring: boolean
+  sensitive: boolean | null
+  public_sensitive: boolean
 }
 
 export interface Overview {
   now: number
   today: string
-  attention: { ok: boolean; items: AttentionItem[]; count: number; errors: Record<string, string>; planned: { sessions: number } }
+  attention: { ok: boolean; items: AttentionItem[]; count: number; errors: Record<string, string> }
   health: Block<{ pills: Pill[] }>
   incidents: Block<{ open: number }>
   daily: Block<{ date: string | null; today: boolean; lead: string }>
   automation: Block<{ rounds: number; running: number; cost: number; missingCost: number }>
   fresh: Block<{ count: number }>
-  inprogress: Planned | Block<Record<string, unknown>>
-  artifacts: Planned | Block<Record<string, unknown>>
+  inprogress: Block<{ items: ProjectCard[]; count: number; stale: boolean; collected_at: number | null }>
+  artifacts: Block<{ items: ArtifactCard[]; count: number; expired: number; expiring: number; sensitive: number; public_sensitive: number }>
 }
 
 export interface Incident {
