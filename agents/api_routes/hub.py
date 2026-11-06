@@ -19,14 +19,16 @@ from pydantic import BaseModel, Field
 from agents.autoloop import (
     CheckUnavailableError,
     CliChecker,
+    ControlUnsupportedError,
     HubClient,
+    HubControl,
     HubError,
     HubSettings,
     RuleControl,
     RulesInvalidError,
     RulesStore,
     StaleVersionError,
-    UndecidedControl,
+    control_summary,
     load_settings,
 )
 from agents.local_guard import require_local, require_same_origin_json
@@ -72,11 +74,8 @@ def get_store(settings: Settings) -> RulesStore:
     return _stores[settings]
 
 
-_control = UndecidedControl()
-
-
-def get_control() -> RuleControl:
-    return _control
+def get_control(client: Annotated[HubClient, Depends(get_client)]) -> RuleControl:
+    return HubControl(client)
 
 
 Client = Annotated[HubClient, Depends(get_client)]
@@ -99,10 +98,9 @@ def _hub_error(exc: HubError) -> JSONResponse:
 def state(
     client: Client,
     store: Store,
-    control: Ctl,
     before: Annotated[int | None, Query(gt=0)] = None,
 ) -> Any:
-    """The hub's /v1/state, plus each scheduled rule's cron and what the pause layer knows."""
+    """The hub's /v1/state, plus each scheduled rule's cron and whether rule control works."""
     try:
         data = client.call("GET", "/v1/state" if before is None else f"/v1/state?before={before}")
     except HubError as exc:
@@ -114,7 +112,7 @@ def state(
     except (OSError, ValueError, AttributeError, KeyError, TypeError):
         pass
     data["schedules"] = schedules
-    data["control"] = {"available": control.available, "paused": control.paused()}
+    data["control"] = control_summary(data)
     return data
 
 
@@ -241,19 +239,32 @@ def rollback(body: Rollback, store: Store) -> Any:
 class Control(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     action: str = Field(..., pattern="^(pause|resume|run)$")
+    scope: str = Field("rule", pattern="^(rule|requires)$")
     reason: str = Field("", max_length=500)
+    until: str | None = Field(None, max_length=40)
+    subject: str = Field("", max_length=500)
 
 
 @router.post("/rules/control", dependencies=write)
 def control(body: Control, ctl: Ctl) -> Any:
-    """Pause, resume or run a rule now. Not decided yet: answers 501 until #8 picks a way."""
+    """Pause, resume or run a rule now, or pause / resume every rule that requires a capability.
+
+    The hub keeps these as facts in its log; rules.json is not touched.
+    """
+    reason = body.reason.strip()
     try:
+        if body.scope == "requires":
+            if body.action == "run":
+                return _error(400, "能力没法立即运行，只能暂停或恢复写了它的规则")
+            if body.action == "pause":
+                return ctl.pause_requires(body.name, reason, body.until)
+            return ctl.resume_requires(body.name)
         if body.action == "pause":
-            return ctl.pause(body.name, body.reason)
+            return ctl.pause(body.name, reason, body.until)
         if body.action == "resume":
             return ctl.resume(body.name)
-        return ctl.run_now(body.name)
-    except NotImplementedError as exc:
-        return _error(501, str(exc), decision="#8")
+        return ctl.run_now(body.name, reason, body.subject.strip())
+    except ControlUnsupportedError as exc:
+        return _error(501, str(exc), upgrade=True)
     except HubError as exc:
         return _hub_error(exc)

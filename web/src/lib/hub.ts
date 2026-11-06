@@ -27,10 +27,11 @@ export const FACT: Record<string, string> = {
   rules: '规则有变动', ingest: '收到事件', events: '收到事件', tick: '定时到点', claimNext: 'Agent 领走', started: '开始执行',
   heartbeat: '仍在运行', finish: '结束', answer: '回答了卡片', resolve: '结案', cancel: '要求停止', retry: '重试', tell: '发了通知',
   sweep: '检查超时', createCard: '发了卡片', nextCard: '通道取走卡片', delivered: '送达', failed: '没送出去',
+  pauseRule: '暂停了规则', resumeRule: '恢复了规则', runRule: '手动运行', pauseRequires: '按能力暂停', resumeRequires: '按能力恢复',
 }
 export const EVENT: Record<string, string> = {
   'capture.ready': '会话读好了', 'brief.ready': '日报资料齐了', 'digest.ready': 'GitHub 快照读好了', 'try.*': '试跑',
-  'schedule.tick': '定时到点',
+  'schedule.tick': '定时到点', 'run.manual': '手动运行',
 }
 export const BY: Record<string, string> = { owner: '你', 本人: '你', cli: '你', mcp: '你（MCP）', panel: '你' }
 export const tr = (map: Record<string, string>, k: string) => map[k] ?? k

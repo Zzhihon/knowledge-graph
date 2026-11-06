@@ -5,13 +5,13 @@ import { hub, HubApiError, type Rule, type RulesDoc, type WriteResult } from '..
 import { cronInfo } from '../../lib/hub'
 import { Drawer, Problem, btn, btnPrimary, field } from './HubBits'
 
-const KNOWN = ['name', 'when', 'to', 'cwd', 'skill', 'prompt', 'group', 'parallel', 'tell', 'emits']
+const KNOWN = ['name', 'when', 'to', 'cwd', 'skill', 'prompt', 'group', 'parallel', 'tell', 'emits', 'requires']
 const words = (s: string) => s.split(/[,，\s]+/).map((x) => x.trim()).filter(Boolean)
 
 interface Form {
   name: string; trigger: 'cron' | 'event'; cron: string; source: string; types: string
   to: string; cwd: string; skill: string; prompt: string; group: string; parallel: string
-  tell: string; emits: boolean; emitSource: string; emitTypes: string
+  tell: string; emits: boolean; emitSource: string; emitTypes: string; requires: string
 }
 
 function formOf(rule: Rule | null, doc: RulesDoc): Form {
@@ -34,6 +34,7 @@ function formOf(rule: Rule | null, doc: RulesDoc): Form {
     emits: !!rule?.emits,
     emitSource: rule?.emits?.source ?? sources[0] ?? '',
     emitTypes: rule?.emits?.types?.join(', ') ?? '',
+    requires: rule?.requires?.join(', ') ?? '',
   }
 }
 
@@ -53,6 +54,7 @@ function ruleOf(f: Form, original: Rule | null): Rule {
   if (f.parallel.trim()) rule.parallel = Number(f.parallel)
   if (f.tell) rule.tell = f.tell as Rule['tell']
   if (f.emits) rule.emits = { source: f.emitSource, types: words(f.emitTypes) }
+  if (words(f.requires).length) rule.requires = words(f.requires)
   return rule
 }
 
@@ -164,6 +166,9 @@ export default function RuleEditor({ doc, original, onSaved, onClose }: {
               <option value="always">每次</option>
               <option value="never">不推送</option>
             </select>
+          </Field>
+          <Field label="依赖的能力（requires）" hint="逗号分隔，小写字母、数字和 -，比如 egress。出问题时可以按能力把写了它的规则一起暂停" wide>
+            <input className={`${field} k-mono`} value={f.requires} onChange={(e) => set('requires', e.target.value)} placeholder="egress" />
           </Field>
           <div className="sm:col-span-2">
             <label className="flex items-center gap-2 text-[13.5px] text-k-ink2">

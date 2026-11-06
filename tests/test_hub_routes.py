@@ -159,7 +159,9 @@ def test_state_is_forwarded_with_the_key_and_the_key_never_comes_back(env) -> No
     r = env["client"].get("/api/hub/state")
     assert r.status_code == 200
     assert r.json()["schedules"] == {"晨报": "0 9 * * *"}
-    assert r.json()["control"] == {"available": False, "paused": {}}
+    control = r.json()["control"]
+    assert control["available"] is False, "an old hub has no pauses"
+    assert "需要升级" in control["reason"]
     assert stub.seen[-1]["auth"] == f"Bearer {OWNER}"
     _no_key(r)
 
@@ -404,12 +406,99 @@ def test_rollback_to_an_invalid_backup_is_refused(env) -> None:
     assert r.status_code == 422 and env["rules"].read_bytes() == before
 
 
-def test_pause_and_run_now_answer_501_until_decided(env) -> None:
-    for action in ("pause", "resume", "run"):
-        r = env["client"].post(
-            "/api/hub/rules/control", json={"name": "晨报", "action": action}, headers=SAME
-        )
-        assert r.status_code == 501 and r.json()["decision"] == "#8"
+def _control(env, **body: Any):
+    return env["client"].post("/api/hub/rules/control", json=body, headers=SAME)
+
+
+def test_rule_control_goes_to_the_hubs_owner_api(env) -> None:
+    stub = env["stub"]
+    paused = {"changed": True, "rule": "晨报", "paused": [{"kind": "rule", "reason": "放假"}]}
+    stub.replies[("POST", "/v1/rules/%E6%99%A8%E6%8A%A5/pause")] = (200, paused)
+    stub.replies[("POST", "/v1/rules/%E6%99%A8%E6%8A%A5/resume")] = (200, {"changed": True})
+    stub.replies[("POST", "/v1/rules/%E6%99%A8%E6%8A%A5/run")] = (200, {"event": 3, "run": 9})
+    until = "2026-11-07T09:00:00+08:00"
+    r = _control(env, name="晨报", action="pause", reason=" 放假 ", until=until)
+    assert r.status_code == 200 and r.json() == paused
+    assert stub.seen[-1]["body"] == {"reason": "放假", "until": until}
+    assert stub.seen[-1]["auth"] == f"Bearer {OWNER}"
+    assert _control(env, name="晨报", action="resume").json() == {"changed": True}
+    assert stub.seen[-1]["body"] == {}
+    r = _control(env, name="晨报", action="run", reason="看一眼")
+    assert r.json() == {"event": 3, "run": 9}
+    assert stub.seen[-1]["body"] == {"reason": "看一眼"}
+    _no_key(r)
+
+
+def test_capability_control_and_its_limits(env) -> None:
+    stub = env["stub"]
+    paused = {"changed": True, "rules": ["晨报"]}
+    stub.replies[("POST", "/v1/requires/egress/pause")] = (200, paused)
+    stub.replies[("POST", "/v1/requires/egress/resume")] = (
+        200,
+        {"changed": True, "rules": ["晨报"], "stillPaused": []},
+    )
+    r = _control(env, name="egress", action="pause", scope="requires", reason="出口断了")
+    assert r.json()["rules"] == ["晨报"] and stub.seen[-1]["body"] == {"reason": "出口断了"}
+    assert _control(env, name="egress", action="resume", scope="requires").status_code == 200
+    n = len(stub.seen)
+    assert _control(env, name="egress", action="run", scope="requires").status_code == 400
+    assert len(stub.seen) == n, "refused here, never sent"
+
+
+def test_hub_refusals_keep_their_words(env) -> None:
+    stub = env["stub"]
+    stub.replies[("POST", "/v1/rules/x/pause")] = (404, {"error": "没有这条规则：x"})
+    refused = {"error": "规则「x」暂停中（这条规则），先恢复再手动运行"}
+    stub.replies[("POST", "/v1/rules/x/run")] = (409, refused)
+    r = _control(env, name="x", action="pause")
+    assert r.status_code == 404 and r.json() == {"error": "没有这条规则：x", "source": "hub"}
+    r = _control(env, name="x", action="run")
+    assert r.status_code == 409 and "先恢复" in r.json()["error"]
+
+
+def test_an_old_hub_says_it_needs_an_upgrade_not_a_server_error(env) -> None:
+    # The stub, like a hub without rule control, answers 404 没有这个地址 for paths it doesn't know.
+    for body in (
+        {"name": "晨报", "action": "pause"},
+        {"name": "晨报", "action": "resume"},
+        {"name": "晨报", "action": "run"},
+        {"name": "egress", "action": "pause", "scope": "requires"},
+    ):
+        r = _control(env, **body)
+        assert r.status_code == 501, body
+        assert "中台版本不支持暂停" in r.json()["error"] and r.json()["upgrade"] is True
+
+
+def test_state_says_what_is_paused_on_a_new_hub(env) -> None:
+    stub = env["stub"]
+    pause = {"kind": "requires", "name": "egress", "by": "owner", "reason": "出口断了"}
+    stub.replies[("GET", "/v1/state")] = (
+        200,
+        {
+            "runs": [],
+            "pauses": [{**pause, "rules": ["晨报"]}],
+            "lines": [
+                {"name": "晨报", "paused": [pause], "requires": ["egress"]},
+                {"name": "处理", "paused": [], "requires": []},
+            ],
+        },
+    )
+    control = env["client"].get("/api/hub/state").json()["control"]
+    assert control == {"available": True, "reason": None, "paused": {"晨报": [pause]}}
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"name": "晨报", "action": "stop"},
+        {"name": "", "action": "pause"},
+        {"name": "晨报", "action": "pause", "scope": "all"},
+        {"name": "晨报", "action": "pause", "reason": "长" * 501},
+    ],
+)
+def test_bad_control_bodies_never_reach_the_hub(env, body) -> None:
+    assert _control(env, **body).status_code == 422
+    assert env["stub"].seen == []
 
 
 # ── The real checker, in a throwaway home ───────────────────────────────────────────────────────
@@ -421,7 +510,11 @@ def _fake_cli(tmp_path: Path, real_home: Path) -> Path:
     script.write_text(
         f"#!{sys.executable}\n"
         "import json, os, sys\n"
-        "home, rules = os.environ['AGENT_AUTOLOOP_HOME'], os.environ['AGENT_AUTOLOOP_RULES']\n"
+        "home = os.environ.get('AGENT_AUTOLOOP_HOME', '')\n"
+        "rules = os.environ.get('AGENT_AUTOLOOP_RULES')\n"
+        "if sys.argv[1:] == ['help']:\n"
+        "    print('  agent-autoloop check                   检查 rules.json')\n"
+        "    sys.exit(0)\n"
         f"assert not home.startswith({str(real_home)!r}), 'checked in the real home'\n"
         "assert sys.argv[1:] == ['check']\n"
         "data = json.load(open(rules))\n"
@@ -437,11 +530,53 @@ def _fake_cli(tmp_path: Path, real_home: Path) -> Path:
     return script
 
 
+def _new_cli(tmp_path: Path, real_home: Path, log: Path) -> Path:
+    """A stand-in for a CLI with `check [文件]`: checks the file it is given, never a home."""
+    script = tmp_path / "new-autoloop"
+    script.write_text(
+        f"#!{sys.executable}\n"
+        "import json, os, sys\n"
+        f"open({str(log)!r}, 'a').write(json.dumps([sys.argv[1:], "
+        "{k: v for k, v in os.environ.items() if k.startswith('AGENT_AUTOLOOP_')}]) + '\\n')\n"
+        "if sys.argv[1:] == ['help']:\n"
+        "    print('  agent-autoloop check [文件]            检查规则文件，不碰中台')\n"
+        "    sys.exit(0)\n"
+        "assert sys.argv[1] == 'check' and len(sys.argv) == 3, sys.argv\n"
+        "data = json.load(open(sys.argv[2]))\n"
+        "bad = [r['name'] for r in data['rules'] if r['to'] not in data['agents']]\n"
+        "if bad:\n"
+        "    print('rules.json 有问题：', file=sys.stderr)\n"
+        "    [print(f'规则「{n}」的 to 不是已登记的 Agent', file=sys.stderr) for n in bad]\n"
+        "    sys.exit(1)\n"
+        "print('规则没问题：' + sys.argv[2])\n",
+        encoding="utf-8",
+    )
+    script.chmod(script.stat().st_mode | stat.S_IEXEC)
+    return script
+
+
+def test_a_cli_that_checks_a_file_gets_the_file_and_no_home(tmp_path: Path, monkeypatch) -> None:
+    real_home = tmp_path / "real-home"
+    log = tmp_path / "calls.jsonl"
+    monkeypatch.setenv("AGENT_AUTOLOOP_HOME", str(real_home))
+    checker = CliChecker((str(_new_cli(tmp_path, real_home, log)),))
+    assert checker(json.dumps(RULES)) == []
+    bad = {**RULES, "rules": [{**RULES["rules"][0], "to": "ghost"}]}
+    assert checker(json.dumps(bad)) == ["规则「晨报」的 to 不是已登记的 Agent"]
+    calls = [json.loads(line) for line in log.read_text().splitlines()]
+    assert [argv[0] for argv, _ in calls] == ["help", "check", "check"], "help is asked once"
+    assert all(len(argv) == 2 for argv, _ in calls[1:]), "the candidate file is named"
+    assert all(env == {} for _, env in calls), "no throwaway home, and not the real one either"
+    assert not real_home.exists()
+
+
 def test_cli_checker_uses_a_throwaway_home(tmp_path: Path, monkeypatch) -> None:
+    # An older CLI, which checks only its own RULES_FILE: its help doesn't offer a file to check.
     real_home = tmp_path / "real-home"
     monkeypatch.setenv("AGENT_AUTOLOOP_HOME", str(real_home))
     checker = CliChecker((str(_fake_cli(tmp_path, real_home)),))
     assert checker(json.dumps(RULES)) == []
+    assert checker.checks_a_file() is False
     bad = {**RULES, "rules": [{**RULES["rules"][0], "to": "ghost"}]}
     assert checker(json.dumps(bad)) == ["规则「晨报」的 to 不是已登记的 Agent"]
     assert not real_home.exists()
