@@ -32,6 +32,7 @@ dependencies = [
     "jieba>=0.42",
     "lancedb>=0.41",
     "bm25s>=0.3",
+    "mcp>=2.3",
 ]
 
 [project.optional-dependencies]
