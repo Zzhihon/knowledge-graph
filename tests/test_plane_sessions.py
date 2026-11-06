@@ -108,6 +108,15 @@ def test_excerpt_head_and_tail() -> None:
     "结论如上。还在等你确认企业微信那 11G 要不要删。",
     "Hi! What are you working on today?\n\nSome tools did not connect; most tasks work anyway.",
     "这一步会改签名，建议你自己确认后再做。\n\n" + "说明。" * 200,
+    # A decision put to you as a heading plus a yes / no, with no "选哪个" wording. The
+    # question is what blocks the work; a whitelist of decision verbs cannot be required here.
+    "## 需要你处理\n- 审阅并合并 #127 和 #1544\n"
+    "- 仍然需要你决定：CPU 上限要不要调高？",
+    # Go-ahead questions use all sorts of verbs. A whitelist of decision verbs dropped these
+    # three real ones from the blind review (the agent stopped until the answer came).
+    "改动已经整理好。要我现在改吗？",
+    "要我先把哪块做起来？可选：① 刷新条目；② 起草 yaml；③ 整理配置步骤。",
+    "P0 和 P1 里，ops 侧的两项我可以直接写 PR。你想先做哪些？",
 ])
 def test_is_question_true(text: str) -> None:
     assert is_question(text)

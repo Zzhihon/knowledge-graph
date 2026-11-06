@@ -158,10 +158,21 @@ class _Reader:
             d.last_event = "error"
 
 
+if TYPE_CHECKING:
+    # observe(role, text, timestamp, raw_line, digest-so-far)
+    Observer = Callable[[str, str, str, Callable[[], bytes], "Digest"], None]
+
+
 def read_session(source: str, file: Path, previous: Digest | None, *,
                  allowed: Callable[[str], bool] | None = None,
-                 chunk: int = CHUNK) -> Digest:
-    """Bring `previous` up to date with `file`; reads only what was appended since."""
+                 chunk: int = CHUNK,
+                 observe: Observer | None = None) -> Digest:
+    """Bring `previous` up to date with `file`; reads only what was appended since.
+
+    `observe(role, text, timestamp, raw_line, digest)` is called before each block is folded in,
+    so a caller can see the digest as it stood at every point of the session (the behaviour
+    check in `kg.plane.waiting_eval` replays the board's judgement that way).
+    """
     stat = file.stat()
     size, mtime = stat.st_size, stat.st_mtime
     if previous and previous.size == size and previous.mtime == mtime:
@@ -200,8 +211,13 @@ def read_session(source: str, file: Path, previous: Digest | None, *,
                     break
                 if block.role:
                     lo, hi = line_start - base, line_end - base
-                    reader.block(block.role, block.text, block.timestamp,
-                                 lambda lo=lo, hi=hi, buf=buf: buf[lo:hi])
+
+                    def raw(lo: int = lo, hi: int = hi, buf: bytes = buf) -> bytes:
+                        return buf[lo:hi]
+
+                    if observe is not None:
+                        observe(block.role, block.text, block.timestamp, raw, digest)
+                    reader.block(block.role, block.text, block.timestamp, raw)
                     if reader.skip:
                         info.skip = reader.skip
                         break
