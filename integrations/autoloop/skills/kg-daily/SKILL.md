@@ -14,6 +14,7 @@ description: 根据 kg brief collect 备好的资料写当天的精简日报：�
 - `experiments`：全部实验条目（路径、标题、状态）。`trying` 的读正文最新进展；`planned` 且超过 14 天没更新的算"搁置"。
 - `experiences`：新写的经验条目。
 - `extra`：附带的本机资料（比如 GitHub 每日汇总），`content` 是全文。
+- `plane`（可能没有）：本机管控面。`incidents` 是上次日报以来开过或关过的事故（`minutes` 是持续分钟，未关闭为 null），`retros` 是已写好的复盘条目（`entry_id`、`path`），`week` 是最近 7 天的周报 Markdown。有 `error` 时只说一句"管控面资料没读到"。
 - `aihot`：`daily` 是 AIHOT 当天的日报，`items` 是精选条目（`title`、`summary`、`url`、`source`、`category`）。`summary` 是模型生成的，只能当线索用。
 
 ## 写什么
@@ -45,6 +46,11 @@ brief: <资料编号>
 
 ## 今日图解
 （一张 mermaid 图，见下）
+
+## 本机健康
+- 事故：<资源> <规则> 持续 N 分钟，已恢复 / 还开着（只列 warning、critical）
+- 排障：[[ke-…]] 事故 #N 的复盘
+- 周一附上 `plane.week` 的表格；其余日子只在有资源错误预算剩余低于 50% 时写一句
 
 ## GitHub 待办
 - 从附带的 GitHub 汇总里摘最多 3 条要动手的

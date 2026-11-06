@@ -1,0 +1,39 @@
+# 告警与自愈的本地配置（kg plane notify）。复制到 <vault>/.kg/plane/heal.yaml（.kg/ 不进 git），
+# 或者用环境变量 KG_HEAL_CONFIG 指向别的文件。不写这个文件时全部动作都是 suggest。
+
+# 每种动作单独开关：off 不管 / suggest 只在卡片上写建议（带"照建议做"按钮）/ auto 自己做。
+actions:
+  egress_pause: suggest     # 出口断线：暂停 requires 含 egress 的中台规则，恢复后补跑
+  service_restart: suggest  # 本人服务挂掉：launchctl kickstart -k 一次，复查仍挂再交给你
+  index_stale: suggest      # 索引失败（index.* 规则）：标记索引过期，检索提示结果可能不全
+
+hub:
+  # 中台的 config.json（地址 + 本人密钥），只在调用时读；KG_HUB_CONFIG 优先。
+  config_file: ~/.agent-autoloop/config.json
+  timeout: 15
+
+notify:
+  min_severity: warning     # info 事故（停滞提醒、纯净度变差）不发卡片，只进周报
+  mute_rules: []            # 这些规则永远不发卡片
+  silence_days: 7           # 卡片上"忽略一周"静默多久
+  desktop: false            # 另外弹一条 macOS 通知；中台默认的 desktop 通道已经会弹
+
+egress:
+  rules: [egress.outage]
+  capability: egress        # 中台规则里 requires 写的能力名
+  max_pause_hours: 6        # 暂停时带 until，没人恢复也会自己解除
+
+service_restart:
+  rules: [service.down, service.health]
+  groups: [mine]            # 只重启本人的服务
+  modes: [keepalive]        # 只重启常驻任务
+  per_hour: 2               # 同一服务 1 小时最多自动重启几次
+  recheck_minutes: 10       # 重启后多久复查，仍挂就发卡片
+
+retro:
+  min_minutes: 10           # 持续这么久，或同类第二次，才写复盘
+  repeat_days: 90           # "同类"往回看多少天
+
+slo:                        # 周报的可用性目标（错误预算 = (1 - 目标) × 时长）
+  default: 0.99
+  egress: 0.995

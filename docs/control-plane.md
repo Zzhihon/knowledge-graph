@@ -253,3 +253,35 @@ GitHub 汇总快照（只读文件）──────────────�
 | `GET /api/plane/sessions` | `project`、`state`、`limit` | 最近 7 天的会话，新的在前；每条带 `resume` 恢复命令 |
 
 "在等你"的判断要用真实会话人工抽查：`python -m kg.plane.waiting_review export` 抽 20 个（一半判成在等、一半判成不在等）写到 `.kg/plane/waiting-review.jsonl`（不进 git），逐行把 `human` 填成 true / false，再 `python -m kg.plane.waiting_review score` 看一致率。`--days 30 --exclude <上一轮文件>` 用来抽一轮没见过的会话。
+
+## 告警与自愈：`kg plane notify`（#9）
+
+```
+采集器 --autoloop ──plane.incident.opened / closed──▶ kg plane notify --autoloop（command agent）
+                                                       ├─ 卡片 ask：已处理 / 忽略一周 / 交给 Agent 查 / 照建议做
+                                                       ├─ 自愈动作（heal.yaml：off / suggest / auto，默认 suggest）
+                                                       ├─ 恢复 notice："已恢复，持续 N 分钟"，结掉原卡片
+                                                       └─ incident.retro.ready ──▶ Claude + kg-retro ──▶ 03-Debug 条目
+                                                                                   └─ kg plane incident link <事故> <条目>
+```
+
+代码在 `kg/plane/heal/`，配置 `.kg/plane/heal.yaml`（模板 `heal.yaml.example`）。
+
+- **只通知一次。** `.kg/plane/notified.json` 记每个事故是哪一轮（`AGENT_AUTOLOOP_RUN`）发的卡片。别的轮次再收到同一事件不发；中台重派同一轮时照原样再发，回执丢了卡片也不会丢。卡片的 `key` 是 `plane-incident-<编号>`，中台那边也去重。info 事故和 `mute_rules` 不发卡片，只进周报。
+- **忽略一周** 写 `.kg/plane/silence.json`：同一规则、同一资源到期前不发卡片也不发恢复通知，事故照常开关、自愈照常执行。
+- **交给 Agent 查** 写 `.kg/plane/incidents/<编号>/investigate-input.json`，发 `plane.incident.investigate` 事件。
+- **自愈动作**：
+
+  | 事故 | 动作（auto） | 关闭时 | 撤销 |
+  |---|---|---|---|
+  | `egress.outage` | `POST /v1/requires/egress/pause`（带 `until`，默认 6 小时） | resume，再对暂停期间被跳过的规则各 `POST /v1/rules/<名>/run` 一次 | `kg plane heal undo` = resume |
+  | `service.down` / `service.health`，本人的常驻任务 | `launchctl kickstart -k gui/<uid>/<label>`，同一服务 1 小时最多 2 次；先发 notice 和 10 分钟后的复查（`later`），复查时仍挂再发 ask | 取消复查 | 不能撤销 |
+  | `index.*` | 写 `.kg/index/status.json`，检索调 `search_warning()` 提示"结果可能不全" | 标回正常 | 标回正常 |
+
+  `suggest` 时卡片写建议，多一个"照建议做"选项。中台没有这些接口（旧版回 404"没有这个地址"）时降级为只建议，原因写进审计。主人密钥只在调用时从中台 `config.json` 读，只进请求头。
+- **审计** `.kg/plane/heal-audit.jsonl`：每条有时间、事故、动作、模式、结果、怎么撤销。`kg plane heal list [--incident N]`、`kg plane heal undo <审计 id>`。
+- **复盘**：事故关闭且持续 ≥ 10 分钟或同类（同规则同资源）第二次时，写 `.kg/plane/incidents/<编号>/retro-input.json`（时间线、证据、动作、通知，密钥、链接、IPv4、本人目录都已遮掉），发 `incident.retro.ready`。`kg plane incident link` 写回 `incident.entry_id` 前用 `validate_retro_entry` 校验条目（必填字段、`type: debug`、`source.incident`、现象 / 根因 / 修复三节、mermaid 图、没有 IP）。同类再出事时卡片附上上一次的复盘。
+- **周报** `kg plane report --week`：可用性（不计休眠和未知）、事故次数和时长、错误预算剩余（目标按资源种类，见 `slo`）。日报资料 `input.json` 的 `plane` 一节带当天的事故、复盘条目和周报。
+- **演练** `python -m kg.plane.heal.drill`：临时状态库 + 编造的探测 + 127.0.0.1 上的假中台，跑一遍断线 → 卡片 → 暂停 → 恢复 → 补跑 → 复盘事件，不碰真实出口和中台。
+
+规则：采集出口的规则自己**不能**写 `requires: ["egress"]`，否则断线时它被暂停，事故永远关不上。
