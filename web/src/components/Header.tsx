@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Database, ChevronRight, RefreshCw, Upload, Download, Workflow, Search } from 'lucide-react'
 import ActionButton from './ActionButton'
 
@@ -22,9 +23,11 @@ interface Props {
   onOpenExport: () => void
   onOpenIntegrate?: () => void
   onOpenSearch?: () => void
+  /** Shown first on the right, e.g. the 异常 badge. */
+  extra?: ReactNode
 }
 
-export default function Header({ activeTab, isSyncing, onSync, onOpenIngest, onOpenExport, onOpenIntegrate, onOpenSearch }: Props) {
+export default function Header({ activeTab, isSyncing, onSync, onOpenIngest, onOpenExport, onOpenIntegrate, onOpenSearch, extra }: Props) {
   return (
     <header className="h-14 border-b border-k-line/50 flex items-center justify-between px-6 bg-k-bg/80 backdrop-blur-md z-10">
       <div className="flex items-center gap-2 text-sm text-k-ink3">
@@ -35,6 +38,7 @@ export default function Header({ activeTab, isSyncing, onSync, onOpenIngest, onO
       </div>
 
       <div className="flex items-center gap-3">
+        {extra}
         {onOpenSearch && (
           <button
             onClick={onOpenSearch}

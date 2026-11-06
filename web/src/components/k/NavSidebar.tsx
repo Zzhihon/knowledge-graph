@@ -1,41 +1,7 @@
-import type { ComponentType } from 'react'
-import {
-  Zap, List, LayoutGrid, FlaskConical, Search, Share2, Boxes, GitMerge, LayoutDashboard, AlertTriangle, Rss,
-  Play, Library, Briefcase, GraduationCap, Moon, Monitor, Sun, Plus, Trash2, MessageSquare,
-  Inbox, Workflow, ClipboardCheck,
-} from 'lucide-react'
+import { Search, Moon, Monitor, Sun, Plus, Trash2, MessageSquare, X } from 'lucide-react'
 import type { ConversationListItem } from '../../types'
 import type { ThemeChoice } from '../../lib/theme'
-
-type Item = { id: string; label: string; icon: ComponentType<{ className?: string }> }
-const GROUPS: [string, Item[]][] = [
-  ['内容', [
-    { id: 'daily', label: '日报', icon: Zap },
-    { id: 'library', label: '知识库', icon: List },
-    { id: 'projects', label: '项目', icon: LayoutGrid },
-    { id: 'lab', label: '实验', icon: FlaskConical },
-    { id: 'eval', label: '评测', icon: ClipboardCheck },
-  ]],
-  ['自动化', [
-    { id: 'hub', label: '中台', icon: Inbox },
-    { id: 'rules', label: '规则与运行', icon: Workflow },
-  ]],
-  ['工具', [
-    { id: 'ask', label: '探索与问答', icon: Search },
-    { id: 'network', label: '知识网络', icon: Share2 },
-    { id: 'topics', label: '主题总览', icon: Boxes },
-    { id: 'graph', label: '图谱演进', icon: GitMerge },
-    { id: 'dashboard', label: '概览仪表盘', icon: LayoutDashboard },
-    { id: 'health', label: '健康巡检', icon: AlertTriangle },
-    { id: 'rss', label: 'RSS 摄取', icon: Rss },
-  ]],
-  ['练习', [
-    { id: 'quiz', label: '间隔测验', icon: Play },
-    { id: 'problems', label: '算法题库', icon: Library },
-    { id: 'interview', label: '面试题库', icon: Briefcase },
-    { id: 'course', label: '课程知识', icon: GraduationCap },
-  ]],
-]
+import { grouped } from '../../lib/modules'
 
 interface Props {
   activeTab: string
@@ -48,29 +14,46 @@ interface Props {
   onSelectConversation: (id: string) => void
   onNewConversation: () => void
   onDeleteConversation: (id: string) => void
+  /** 'drawer' is the narrow-screen menu: always shown, with a close button. */
+  variant?: 'side' | 'drawer'
+  onClose?: () => void
 }
 
 export default function NavSidebar(p: Props) {
+  const drawer = p.variant === 'drawer'
   return (
-    <aside className="flex w-[236px] shrink-0 flex-col border-r border-k-line bg-k-sidebar">
-      <div className="px-6 pb-5 pt-7">
-        <div className="text-[22px] font-light tracking-[0.34em] text-k-ink">KG<span className="text-k-accent">·</span>VAULT</div>
-        <div className="mt-1 text-[12px] tracking-[0.2em] text-k-ink4">个人知识库</div>
+    <aside className={drawer
+      ? 'flex h-full w-[280px] max-w-[86vw] flex-col bg-k-sidebar'
+      : 'hidden w-[236px] shrink-0 flex-col border-r border-k-line bg-k-sidebar md:flex'}>
+      <div className="flex items-start px-6 pb-5 pt-7">
+        <div>
+          <div className="text-[22px] font-light tracking-[0.34em] text-k-ink">KG<span className="text-k-accent">·</span>VAULT</div>
+          <div className="mt-1 text-[12px] tracking-[0.2em] text-k-ink4">个人知识库</div>
+        </div>
+        {drawer && (
+          <button onClick={p.onClose} className="-mr-2 ml-auto rounded-full p-1.5 text-k-ink3 hover:bg-k-sunk" aria-label="关闭菜单">
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 overflow-y-auto px-4 pb-4">
-        {GROUPS.map(([group, items]) => (
+        {grouped().map(([group, items]) => (
           <div key={group}>
             <div className="px-3 pb-1 pt-4 text-[12px] text-k-ink4">{group}</div>
-            {items.map(({ id, label, icon: Icon }) => (
+            {items.map(({ id, label, icon: Icon, status, issue }) => (
               <div key={id}>
                 <button
                   onClick={() => { p.setActiveTab(id); if (id === 'ask') p.onNewConversation() }}
                   aria-current={p.activeTab === id ? 'page' : undefined}
+                  title={status === 'planned' ? `规划中 #${issue}：还没上线，点开看说明` : undefined}
                   className={`flex w-full items-center gap-3 rounded-tile px-3.5 py-2 text-left text-[14.5px] transition-colors ${
-                    p.activeTab === id ? 'bg-k-sunk font-semibold text-k-ink' : 'text-k-ink2 hover:bg-k-sunk'}`}
+                    p.activeTab === id ? 'bg-k-sunk font-semibold text-k-ink'
+                      : status === 'planned' ? 'text-k-ink4 hover:bg-k-sunk' : 'text-k-ink2 hover:bg-k-sunk'}`}
                 >
-                  <Icon className="h-[17px] w-[17px] opacity-80" />{label}
+                  <Icon className={`h-[17px] w-[17px] ${status === 'planned' ? 'opacity-50' : 'opacity-80'}`} />
+                  <span className="min-w-0 flex-1 truncate">{label}</span>
+                  {status === 'planned' && <span className="shrink-0 whitespace-nowrap text-[11.5px] font-normal text-k-ink4">规划中 #{issue}</span>}
                 </button>
                 {id === 'ask' && p.activeTab === 'ask' && (
                   <div className="mb-2 ml-4 mt-1 border-l border-k-line pl-2">
@@ -97,7 +80,7 @@ export default function NavSidebar(p: Props) {
 
       <div className="space-y-3 border-t border-k-line-soft px-5 py-4">
         <button onClick={p.onOpenSearch} className="k-search h-9 w-full text-[13.5px]">
-          <Search className="h-4 w-4" /><span className="flex-1 text-left">搜索条目</span><kbd className="k-kbd">⌘K</kbd>
+          <Search className="h-4 w-4" /><span className="flex-1 text-left">全局搜索</span><kbd className="k-kbd">⌘K</kbd>
         </button>
         <div className="flex justify-center gap-1 rounded-full bg-k-sunk p-1" role="group" aria-label="主题">
           {([['dark', Moon, '深色'], ['system', Monitor, '跟随系统'], ['light', Sun, '浅色']] as const).map(([v, Icon, label]) => (

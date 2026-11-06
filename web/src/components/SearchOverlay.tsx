@@ -1,41 +1,72 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, X, Loader2 } from 'lucide-react'
+// ⌘K: one search over knowledge entries, automation rules and kg-web's own pages.
+// Entries come from /api/typeahead as before; rules from /api/hub/rules, matched here in the page.
+// One source failing leaves the others in the list, with a line saying which one is missing.
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { Search, X, Loader2, Workflow, FileText, LayoutGrid } from 'lucide-react'
 import { get } from '../api/client'
+import { hub, type Rule } from '../api/hub'
+import { cronInfo } from '../lib/hub'
+import type { Module } from '../lib/modules'
 import type { TypeaheadResponse, TypeaheadResult } from '../types'
 
 interface Props {
   open: boolean
   onClose: () => void
   onSelectEntry: (id: string) => void
+  /** Pages to search by name; opening one calls onNavigate. */
+  modules?: Module[]
+  onNavigate?: (id: string) => void
 }
 
-export default function SearchOverlay({ open, onClose, onSelectEntry }: Props) {
+type Hit =
+  | { kind: 'entry'; key: string; entry: TypeaheadResult }
+  | { kind: 'rule'; key: string; rule: Rule }
+  | { kind: 'page'; key: string; page: Module }
+
+const ruleText = (r: Rule) =>
+  [r.name, r.to, r.skill, r.prompt, r.group, 'cron' in r.when ? r.when.cron : [r.when.source, ...r.when.types].join(' ')]
+    .filter(Boolean).join(' ').toLowerCase()
+const ruleWhen = (r: Rule) => ('cron' in r.when ? cronInfo(r.when.cron).text : `收到 ${r.when.types.join('、')}`)
+
+/** Rules whose name, agent, skill, prompt, group or trigger contain every word of the query. */
+export function matchRules(rules: Rule[], q: string): Rule[] {
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean)
+  if (!words.length) return []
+  return rules
+    .filter((r) => { const t = ruleText(r); return words.every((w) => t.includes(w)) })
+    .sort((a, b) => Number(!a.name.toLowerCase().includes(words[0])) - Number(!b.name.toLowerCase().includes(words[0])))
+}
+
+export default function SearchOverlay({ open, onClose, onSelectEntry, modules = [], onNavigate }: Props) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<TypeaheadResult[]>([])
+  const [entryError, setEntryError] = useState('')
+  const [rules, setRules] = useState<Rule[] | null>(null)
+  const [ruleError, setRuleError] = useState('')
   const [loading, setLoading] = useState(false)
   const [selectedIdx, setSelectedIdx] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
-  // Focus input when overlay opens
+  // Focus input when overlay opens; read the rules once per opening (they change rarely).
   useEffect(() => {
-    if (open) {
-      setQuery('')
-      setResults([])
-      setSelectedIdx(0)
-      // Small delay to ensure the DOM is ready
-      requestAnimationFrame(() => inputRef.current?.focus())
-    }
+    if (!open) return
+    setQuery('')
+    setResults([])
+    setSelectedIdx(0)
+    requestAnimationFrame(() => inputRef.current?.focus())
+    hub.rules()
+      .then((doc) => { setRules(doc.data?.rules ?? []); setRuleError(doc.data ? '' : '规则文件不是合法 JSON') })
+      .catch((e) => { setRuleError(e instanceof Error ? e.message : String(e)) })
   }, [open])
 
-  // Debounced search
+  // Debounced entry search
   useEffect(() => {
     if (!query.trim()) {
       setResults([])
       setSelectedIdx(0)
       return
     }
-
     const timer = setTimeout(async () => {
       setLoading(true)
       try {
@@ -43,17 +74,30 @@ export default function SearchOverlay({ open, onClose, onSelectEntry }: Props) {
         // Stale response guard: only apply if query still matches
         if (resp.query === query.trim()) {
           setResults(resp.results)
-          setSelectedIdx(0)
+          setEntryError('')
         }
-      } catch {
-        // silently ignore
+      } catch (e) {
+        setEntryError(e instanceof Error ? e.message : String(e))
       } finally {
         setLoading(false)
       }
     }, 300)
-
     return () => clearTimeout(timer)
   }, [query])
+
+  const hits = useMemo<Hit[]>(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    const pages = modules
+      .filter((m) => !m.hidden && (m.label.toLowerCase().includes(q) || m.id.includes(q) || (m.blurb ?? '').toLowerCase().includes(q)))
+      .slice(0, 4)
+      .map((m): Hit => ({ kind: 'page', key: `page:${m.id}`, page: m }))
+    const ruleHits = matchRules(rules ?? [], q).slice(0, 6).map((r): Hit => ({ kind: 'rule', key: `rule:${r.name}`, rule: r }))
+    const entryHits = results.map((r): Hit => ({ kind: 'entry', key: `entry:${r.id}`, entry: r }))
+    return [...pages, ...ruleHits, ...entryHits]
+  }, [query, modules, rules, results])
+
+  useEffect(() => { setSelectedIdx(0) }, [hits.length])
 
   // Scroll selected item into view
   useEffect(() => {
@@ -62,22 +106,28 @@ export default function SearchOverlay({ open, onClose, onSelectEntry }: Props) {
     items[selectedIdx]?.scrollIntoView({ block: 'nearest' })
   }, [selectedIdx])
 
+  const choose = useCallback((h: Hit) => {
+    if (h.kind === 'entry') onSelectEntry(h.entry.id)
+    else if (h.kind === 'rule') onNavigate?.('rules')
+    else onNavigate?.(h.page.id)
+    onClose()
+  }, [onSelectEntry, onNavigate, onClose])
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setSelectedIdx(i => Math.min(i + 1, results.length - 1))
+      setSelectedIdx(i => Math.min(i + 1, hits.length - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setSelectedIdx(i => Math.max(i - 1, 0))
-    } else if (e.key === 'Enter' && results.length > 0) {
+    } else if (e.key === 'Enter' && hits.length > 0) {
       e.preventDefault()
-      onSelectEntry(results[selectedIdx].id)
-      onClose()
+      choose(hits[selectedIdx])
     } else if (e.key === 'Escape') {
       e.preventDefault()
       onClose()
     }
-  }, [results, selectedIdx, onSelectEntry, onClose])
+  }, [hits, selectedIdx, choose, onClose])
 
   if (!open) return null
 
@@ -95,100 +145,127 @@ export default function SearchOverlay({ open, onClose, onSelectEntry }: Props) {
     }
     return colors[key?.toLowerCase() ?? ''] ?? 'bg-k-ink4/15 text-k-ink3'
   }
+  const HEAD: Record<Hit['kind'], string> = { page: '页面', rule: '规则', entry: '知识条目' }
+  const q = query.trim()
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] bg-k-bg/60 backdrop-blur-sm"
+      className="k-app fixed inset-0 z-50 flex items-start justify-center bg-k-bg/60 px-3 pt-[10vh] backdrop-blur-sm sm:pt-[15vh]"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className="w-full max-w-2xl bg-k-surface border border-k-line-strong/50 rounded-xl shadow-2xl shadow-k-ink/50 overflow-hidden"
+        className="w-full max-w-2xl overflow-hidden rounded-xl border border-k-line-strong/50 bg-k-surface shadow-2xl shadow-k-ink/50"
         onKeyDown={handleKeyDown}
       >
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-k-line">
-          <Search className="w-5 h-5 text-k-ink4 shrink-0" />
+        <div className="flex items-center gap-3 border-b border-k-line px-4 py-3">
+          <Search className="h-5 w-5 shrink-0 text-k-ink4" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="搜索知识库中的条目..."
-            className="flex-1 bg-transparent text-sm text-k-ink placeholder:text-k-ink4 outline-none"
+            placeholder="搜索知识条目、自动化规则、页面…"
+            className="flex-1 bg-transparent text-sm text-k-ink outline-none placeholder:text-k-ink4"
           />
-          {loading && <Loader2 className="w-4 h-4 text-k-ink4 animate-spin shrink-0" />}
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-k-sunk border border-k-line-strong text-[10px] text-k-ink4 font-mono">
+          {loading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-k-ink4" />}
+          <kbd className="hidden items-center gap-0.5 rounded border border-k-line-strong bg-k-sunk px-1.5 py-0.5 font-mono text-[10px] text-k-ink4 sm:inline-flex">
             ⌘K
           </kbd>
-          <button onClick={onClose} className="text-k-ink4 hover:text-k-ink2 transition-colors">
-            <X className="w-4 h-4" />
+          <button onClick={onClose} className="text-k-ink4 transition-colors hover:text-k-ink2" aria-label="关闭搜索">
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Results list */}
-        <div ref={listRef} className="max-h-[50vh] overflow-y-auto">
-          {!query.trim() && (
+        <div ref={listRef} className="max-h-[60vh] overflow-y-auto">
+          {!q && (
             <div className="px-4 py-10 text-center text-sm text-k-ink4">
-              输入关键词搜索知识库中的条目
+              输入关键词，同时搜知识条目、自动化规则和页面
             </div>
           )}
 
-          {query.trim() && !loading && results.length === 0 && (
-            <div className="px-4 py-10 text-center text-sm text-k-ink4">
-              未找到匹配的条目
-            </div>
+          {q && !loading && hits.length === 0 && (
+            <div className="px-4 py-10 text-center text-sm text-k-ink4">没有匹配的条目、规则或页面</div>
           )}
 
-          {results.map((r, idx) => {
-            const domainLabel = Array.isArray(r.domain) ? r.domain.join(', ') : r.domain
+          {hits.map((h, idx) => {
+            const head = idx === 0 || hits[idx - 1].kind !== h.kind ? HEAD[h.kind] : null
+            const sel = idx === selectedIdx
             return (
-              <button
-                key={r.id}
-                data-result-item
-                onClick={() => { onSelectEntry(r.id); onClose() }}
-                onMouseEnter={() => setSelectedIdx(idx)}
-                className={`w-full text-left px-4 py-2.5 flex items-start gap-3 transition-colors cursor-pointer ${
-                  idx === selectedIdx
-                    ? 'bg-k-accent/10 border-l-2 border-k-accent'
-                    : 'border-l-2 border-transparent hover:bg-k-sunk/50'
-                }`}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-k-ink truncate">{r.title}</div>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    {domainLabel && (
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${domainColor(r.domain)}`}>
-                        {domainLabel}
-                      </span>
+              <div key={h.key}>
+                {head && <div className="px-4 pb-1 pt-3 text-[11px] tracking-[0.08em] text-k-ink4">{head}</div>}
+                <button
+                  data-result-item
+                  onClick={() => choose(h)}
+                  onMouseEnter={() => setSelectedIdx(idx)}
+                  className={`flex w-full cursor-pointer items-start gap-3 px-4 py-2.5 text-left transition-colors ${
+                    sel ? 'border-l-2 border-k-accent bg-k-accent/10' : 'border-l-2 border-transparent hover:bg-k-sunk/50'}`}
+                >
+                  {h.kind === 'entry' && <FileText className="mt-0.5 h-4 w-4 shrink-0 text-k-ink4" />}
+                  {h.kind === 'rule' && <Workflow className="mt-0.5 h-4 w-4 shrink-0 text-k-ink4" />}
+                  {h.kind === 'page' && <LayoutGrid className="mt-0.5 h-4 w-4 shrink-0 text-k-ink4" />}
+                  <div className="min-w-0 flex-1">
+                    {h.kind === 'entry' && (
+                      <>
+                        <div className="truncate text-sm text-k-ink">{h.entry.title}</div>
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                          {(Array.isArray(h.entry.domain) ? h.entry.domain.join(', ') : h.entry.domain) && (
+                            <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${domainColor(h.entry.domain)}`}>
+                              {Array.isArray(h.entry.domain) ? h.entry.domain.join(', ') : h.entry.domain}
+                            </span>
+                          )}
+                          <span className="rounded bg-k-sunk px-1.5 py-0.5 text-[10px] text-k-ink4">{h.entry.type}</span>
+                          {h.entry.tags.slice(0, 3).map(tag => <span key={tag} className="text-[10px] text-k-ink4">#{tag}</span>)}
+                        </div>
+                      </>
                     )}
-                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-k-sunk text-k-ink4">
-                      {r.type}
-                    </span>
-                    {r.tags.slice(0, 3).map(tag => (
-                      <span key={tag} className="text-[10px] text-k-ink4">#{tag}</span>
-                    ))}
+                    {h.kind === 'rule' && (
+                      <>
+                        <div className="truncate text-sm text-k-ink">{h.rule.name}</div>
+                        <div className="mt-0.5 truncate text-[11.5px] text-k-ink4">
+                          {ruleWhen(h.rule)} → {h.rule.to}{h.rule.skill ? ` · ${h.rule.skill}` : ''}
+                        </div>
+                      </>
+                    )}
+                    {h.kind === 'page' && (
+                      <>
+                        <div className="truncate text-sm text-k-ink">
+                          {h.page.label}
+                          {h.page.status === 'planned' && <span className="ml-2 text-[11px] text-k-ink4">规划中 #{h.page.issue}</span>}
+                        </div>
+                        {h.page.blurb && <div className="mt-0.5 truncate text-[11.5px] text-k-ink4">{h.page.blurb}</div>}
+                      </>
+                    )}
                   </div>
-                </div>
-                <div className="shrink-0 flex flex-col items-end gap-1 pt-0.5">
-                  {r.confidence != null && (
-                    <span className={`text-[10px] font-mono ${
-                      r.confidence >= 0.8 ? 'text-k-ok' : r.confidence >= 0.5 ? 'text-k-amber-ink' : 'text-k-hot'
-                    }`}>
-                      {Math.round(r.confidence * 100)}%
-                    </span>
+                  {h.kind === 'entry' && (
+                    <div className="flex shrink-0 flex-col items-end gap-1 pt-0.5">
+                      {h.entry.confidence != null && (
+                        <span className={`font-mono text-[10px] ${
+                          h.entry.confidence >= 0.8 ? 'text-k-ok' : h.entry.confidence >= 0.5 ? 'text-k-amber-ink' : 'text-k-hot'}`}>
+                          {Math.round(h.entry.confidence * 100)}%
+                        </span>
+                      )}
+                      <span className="font-mono text-[10px] text-k-ink4">{h.entry.score.toFixed(2)}</span>
+                    </div>
                   )}
-                  <span className="text-[10px] text-k-ink4 font-mono">{r.score.toFixed(2)}</span>
-                </div>
-              </button>
+                </button>
+              </div>
             )
           })}
+          {q && (ruleError || entryError) && (
+            <div className="border-t border-k-line-soft px-4 py-2 text-[11.5px] text-k-hot">
+              {ruleError && <div>规则没搜：{ruleError}</div>}
+              {entryError && <div>条目没搜：{entryError}</div>}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 border-t border-k-line flex items-center gap-4 text-[11px] text-k-ink4">
-          <span><kbd className="px-1 py-0.5 rounded bg-k-sunk text-k-ink4 font-mono text-[10px]">↑↓</kbd> 导航</span>
-          <span><kbd className="px-1 py-0.5 rounded bg-k-sunk text-k-ink4 font-mono text-[10px]">Enter</kbd> 打开</span>
-          <span><kbd className="px-1 py-0.5 rounded bg-k-sunk text-k-ink4 font-mono text-[10px]">Esc</kbd> 关闭</span>
+        <div className="flex items-center gap-4 border-t border-k-line px-4 py-2 text-[11px] text-k-ink4">
+          <span><kbd className="rounded bg-k-sunk px-1 py-0.5 font-mono text-[10px] text-k-ink4">↑↓</kbd> 导航</span>
+          <span><kbd className="rounded bg-k-sunk px-1 py-0.5 font-mono text-[10px] text-k-ink4">Enter</kbd> 打开</span>
+          <span><kbd className="rounded bg-k-sunk px-1 py-0.5 font-mono text-[10px] text-k-ink4">Esc</kbd> 关闭</span>
         </div>
       </div>
     </div>
