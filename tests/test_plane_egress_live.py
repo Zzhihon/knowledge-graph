@@ -494,6 +494,35 @@ def test_import_raw_history(tmp_path: Path) -> None:
     _check_import(Path(os.environ["KG_EGRESS_REPLAY"]), tmp_path / "state.db")
 
 
+def test_import_backfills_history_into_a_line_already_collected_live(tmp_path: Path) -> None:
+    # A line that went live before its old probe log was imported: the history lies before every
+    # stored signal, so the rules never see it; the outage must still land, with replay's times.
+    db = tmp_path / "state.db"
+    conn = store.connect(db)
+    live = _ts("2026-11-07 12:00:00")
+    rid = line_id("default")
+    store.upsert_resources(conn, [store.Resource(rid, "egress", "default", "egress")], now=live)
+    store.append_signals(conn, [store.Signal(line_id("default"), live, "up", 400.0, "ms")])
+    conn.close()
+    with FIXTURE.open(encoding="utf-8") as f:
+        report = import_history(f, db=db)
+    assert report.backfilled == report.read and report.changes == []
+    assert report.store == report.replay
+    ((rule, opened, closed),) = report.store
+    assert rule == OUTAGE and opened < _ts("2026-11-05 13:09:00")
+    assert closed is not None and closed > _ts("2026-11-05 14:30:00")
+    conn = store.connect(db)
+    (inc,) = store.list_incidents(conn)
+    assert inc["evidence"]["started_at"] == _ts("2026-11-05 12:59:46")
+    assert inc["evidence"]["backfilled"]
+    assert store.list_signals(conn, line_id("default"), limit=1)[0].ts == live
+    conn.close()
+    # Importing again adds nothing.
+    with FIXTURE.open(encoding="utf-8") as f:
+        again = import_history(f, db=db)
+    assert (again.appended, again.backfilled) == (0, 0) and again.store == report.store
+
+
 # ── purity ────────────────────────────────────────────────────────────────
 
 

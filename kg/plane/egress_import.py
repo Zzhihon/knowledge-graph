@@ -23,9 +23,11 @@ from kg.plane.rules import Change, evaluate
 from kg.plane.store import (
     Resource,
     append_signals,
+    close_incident,
     connect,
     list_incidents,
     list_signals,
+    open_incident,
     transaction,
     upsert_resources,
 )
@@ -50,6 +52,7 @@ class ImportReport:
     changes: list[Change] = field(default_factory=list)
     store: list[Row] = field(default_factory=list)  # incidents of this line in the store
     replay: list[Row] = field(default_factory=list)  # what egress_rules.replay decides
+    backfilled: int = 0  # signals older than anything the store had (a line already running live)
 
 
 def read_records(lines: Iterable[str], *, line: str, expected_ips: Sequence[str] | None
@@ -100,15 +103,26 @@ def import_history(lines: Iterable[str], *, db: Path | str, line: str = "default
     observations = [o for o, _ in records]
     interval = interval_s or infer_interval([o.ts for o in observations])
     rid = line_id(line)
+    result = replay(observations, power_events=power_events,
+                    sleep_rules=SleepRules(expected_interval_s=interval))
     conn = connect(db)
     try:
         latest = list_signals(conn, rid, limit=1)
         after = latest[-1].ts if latest else None
-        fresh = [r for r in records if after is None or r[0].ts > after]
+        first = conn.execute("SELECT MIN(ts) FROM signal WHERE resource_id = ?",
+                             (rid,)).fetchone()[0]
+
+        # Newer than the store: appended and judged by the rules, as live collection would.
+        # Older than the store (history of a line that is already collected live): backfilled.
+        def keep(ts: int) -> bool:
+            return after is None or ts > after or ts < first
+
+        fresh = [r for r in records if keep(r[0].ts)]
         # Classify over the whole file so stored statuses see the probes before the cut.
         signals = build_signals(records, resource_id=rid, interval_s=interval,
                                 power_events=power_events)
-        signals = [s for s in signals if after is None or s.ts > after]
+        signals = [s for s in signals if keep(s.ts)]
+        newer = sum(1 for s in signals if after is None or s.ts > after)
         report = ImportReport(rid, len(records), len(fresh), len(records) - len(fresh), interval,
                               sum(1 for s in signals if s.status == "asleep"))
         with transaction(conn, rollback=dry_run):
@@ -117,7 +131,25 @@ def import_history(lines: Iterable[str], *, db: Path | str, line: str = "default
                                                  {"interval_s": interval, "imported": True})],
                                  now=signals[-1].ts)
                 append_signals(conn, signals)
-                report.changes = evaluate(conn, {rid: len(signals)}, {rid: "egress"})
+                if newer:
+                    report.changes = evaluate(conn, {rid: newer}, {rid: "egress"})
+                report.backfilled = len(signals) - newer
+            if report.backfilled:
+                # The rules only ever judge the latest signals, so incidents inside the backfilled
+                # span come from the replay of the same file, with its open and close times.
+                known = {(i["rule"], i["opened_at"]) for i in list_incidents(conn, resource_id=rid,
+                                                                            limit=100_000)}
+                for inc in result.incidents:
+                    past = inc.closed_at is not None and inc.closed_at < first
+                    if not past or (inc.rule, inc.opened_at) in known:
+                        continue
+                    evidence = {"started_at": inc.started_at, "probes": list(inc.evidence),
+                                "backfilled": True}
+                    if open_incident(conn, resource_id=rid, rule=inc.rule, opened_at=inc.opened_at,
+                                     severity=inc.severity, summary=inc.summary,
+                                     evidence=evidence) is not None:
+                        close_incident(conn, resource_id=rid, rule=inc.rule,
+                                       closed_at=inc.closed_at)
             report.store = sorted(
                 (i["rule"], i["opened_at"], i["closed_at"])
                 for i in list_incidents(conn, resource_id=rid, limit=100_000)
@@ -125,7 +157,5 @@ def import_history(lines: Iterable[str], *, db: Path | str, line: str = "default
             )
     finally:
         conn.close()
-    result = replay(observations, power_events=power_events,
-                    sleep_rules=SleepRules(expected_interval_s=interval))
     report.replay = sorted((i.rule, i.opened_at, i.closed_at) for i in result.incidents)
     return report
