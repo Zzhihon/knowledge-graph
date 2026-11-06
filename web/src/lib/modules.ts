@@ -18,6 +18,7 @@ import ServicesView from '../views/ServicesView'
 import EgressView from '../views/EgressView'
 import InProgressView from '../views/InProgressView'
 import ArtifactsView from '../views/ArtifactsView'
+import IncidentsView from '../views/IncidentsView'
 
 export const GROUPS = ['总览', '知识', '自动化', '运维', '进行中', '工具', '练习'] as const
 export type Group = (typeof GROUPS)[number]
@@ -65,8 +66,8 @@ export const MODULES: Module[] = [
     blurb: '代理出口的探测记录：哪一段断了、出口身份对不对、休眠唤醒不误报。' },
   { id: 'artifacts', group: '运维', label: '工件', icon: Package, status: 'live', issue: 6, view: ArtifactsView, shell: 'reading',
     blurb: '分享出去的页面和文件：在哪、谁能看、什么时候过期、有没有敏感内容。' },
-  { id: 'incidents', group: '运维', label: '事故', icon: Siren, status: 'planned', issue: 9, shell: 'reading',
-    blurb: '事故的开、关、证据和自愈记录，结案后沉淀成知识条目。右上角的"异常"徽标已经能列出未关闭的事故。' },
+  { id: 'incidents', group: '运维', label: '事故', icon: Siren, status: 'live', issue: 9, view: IncidentsView, shell: 'reading',
+    blurb: '事故的开、关、证据和自愈记录，结案后沉淀成知识条目。' },
 
   { id: 'inprogress', group: '进行中', label: '项目与会话', icon: FolderKanban, status: 'live', issue: 5, view: InProgressView, shell: 'reading',
     blurb: '最近活跃的项目和会话，哪些在等你回答。' },

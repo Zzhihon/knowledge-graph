@@ -15,6 +15,10 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from agents.cli_plane_heal import register as register_plane_heal
+from kg.eval.retrieval import RETRIEVERS
+from kg.interfaces.cli.commands.index import index_group
+
 console = Console()
 
 
@@ -644,12 +648,13 @@ def eval_mine(days: int, limit: int) -> None:
 
 
 @eval_group.command(name="run")
-@click.option("--retriever", type=click.Choice(["current", "bm25", "all"]), default="all", show_default=True)
-def eval_run(retriever: str) -> None:
+@click.option("--retriever", type=click.Choice([*RETRIEVERS, "all"]), default="all", show_default=True)
+@click.option("--tag", default="", help="报告文件名后缀")
+def eval_run(retriever: str, tag: str) -> None:
     """按 .kg/eval/retrieval.jsonl 给检索打分：hit@1、recall@5/10、MRR@10。"""
     from kg.interfaces.cli.commands.eval import run_eval_run_command
 
-    run_eval_run_command(retriever=retriever, console=console)
+    run_eval_run_command(retriever=retriever, console=console, tag=tag)
 
 
 @cli.group()
@@ -709,6 +714,10 @@ def plane_egress_import(path: Path, db: Path | None, line: str, expect: tuple[st
 
     sys.exit(run_egress_import_command(path=path, db=db, line=line, expect=tuple(expect), pmset_log=pmset_log,
                                        interval=interval, dry_run=dry_run, console=console))
+
+
+register_plane_heal(plane)
+cli.add_command(index_group)
 
 
 @cli.command()

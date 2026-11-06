@@ -82,6 +82,7 @@ export function streamSSE(
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
+    let failed = false
 
     while (true) {
       const { done, value } = await reader.read()
@@ -100,7 +101,12 @@ export function streamSSE(
             const data = JSON.parse(line.slice(6))
             switch (currentEvent) {
               case 'token':
-                opts.onToken(data.text)
+                // The server follows an error event with the same reason as a token, for older pages.
+                if (!failed) opts.onToken(data.text)
+                break
+              case 'error':
+                failed = true
+                opts.onError?.(data.hint ? `${data.message}（${data.hint}）` : data.message)
                 break
               case 'sources':
                 opts.onDone(data.sources)
