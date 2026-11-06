@@ -1,0 +1,9 @@
+# Add to ~/.codex/config.toml (the integrator does this; the repo never edits it).
+# The first search loads the local embedding model (about 10 s), hence the longer timeout.
+[mcp_servers.kg]
+command = "/path/to/knowledge-graph/.venv/bin/kg"
+args = ["mcp", "serve"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+# All kg tools are read-only, so `codex exec` may call them without asking.
+default_tools_approval_mode = "approve"
