@@ -1,13 +1,14 @@
-// ⌘K: one search over knowledge entries, automation rules and kg-web's own pages.
-// Entries come from /api/typeahead as before; rules from /api/hub/rules, matched here in the page.
+// ⌘K: one search over knowledge entries, artifact pages, automation rules and kg-web's own pages.
+// Entries come from /api/typeahead as before; artifact pages (#6) from the same endpoint with
+// kind=artifact, so they never take an entry's place; rules from /api/hub/rules, matched here.
 // One source failing leaves the others in the list, with a line saying which one is missing.
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { Search, X, Loader2, Workflow, FileText, LayoutGrid } from 'lucide-react'
+import { Search, X, Loader2, Workflow, FileText, LayoutGrid, Package } from 'lucide-react'
 import { get } from '../api/client'
 import { hub, type Rule } from '../api/hub'
 import { cronInfo } from '../lib/hub'
 import type { Module } from '../lib/modules'
-import type { TypeaheadResponse, TypeaheadResult } from '../types'
+import type { ArtifactSearchHit, ArtifactSearchResponse, TypeaheadResponse, TypeaheadResult } from '../types'
 
 interface Props {
   open: boolean
@@ -20,6 +21,7 @@ interface Props {
 
 type Hit =
   | { kind: 'entry'; key: string; entry: TypeaheadResult }
+  | { kind: 'artifact'; key: string; artifact: ArtifactSearchHit }
   | { kind: 'rule'; key: string; rule: Rule }
   | { kind: 'page'; key: string; page: Module }
 
@@ -41,6 +43,8 @@ export default function SearchOverlay({ open, onClose, onSelectEntry, modules = 
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<TypeaheadResult[]>([])
   const [entryError, setEntryError] = useState('')
+  const [arts, setArts] = useState<ArtifactSearchHit[]>([])
+  const [artError, setArtError] = useState('')
   const [rules, setRules] = useState<Rule[] | null>(null)
   const [ruleError, setRuleError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -53,6 +57,7 @@ export default function SearchOverlay({ open, onClose, onSelectEntry, modules = 
     if (!open) return
     setQuery('')
     setResults([])
+    setArts([])
     setSelectedIdx(0)
     requestAnimationFrame(() => inputRef.current?.focus())
     hub.rules()
@@ -64,23 +69,33 @@ export default function SearchOverlay({ open, onClose, onSelectEntry, modules = 
   useEffect(() => {
     if (!query.trim()) {
       setResults([])
+      setArts([])
       setSelectedIdx(0)
       return
     }
     const timer = setTimeout(async () => {
       setLoading(true)
-      try {
-        const resp = await get<TypeaheadResponse>('/typeahead', { q: query.trim(), limit: 15 })
-        // Stale response guard: only apply if query still matches
-        if (resp.query === query.trim()) {
-          setResults(resp.results)
-          setEntryError('')
-        }
-      } catch (e) {
-        setEntryError(e instanceof Error ? e.message : String(e))
-      } finally {
-        setLoading(false)
+      const q = query.trim()
+      const [entries, pages] = await Promise.allSettled([
+        get<TypeaheadResponse>('/typeahead', { q, limit: 15 }),
+        get<ArtifactSearchResponse>('/typeahead', { q, kind: 'artifact', limit: 5 }),
+      ])
+      // Stale response guard: only apply if query still matches
+      if (entries.status === 'fulfilled') {
+        if (entries.value.query === q) { setResults(entries.value.results); setEntryError('') }
+      } else {
+        setEntryError(entries.reason instanceof Error ? entries.reason.message : String(entries.reason))
       }
+      if (pages.status === 'fulfilled') {
+        if (pages.value.query === q) {
+          setArts(pages.value.results ?? [])
+          // No artifact in the index yet is not an error worth a red line.
+          setArtError(pages.value.error && pages.value.error.code !== 'index_missing' ? pages.value.error.message : '')
+        }
+      } else {
+        setArtError(pages.reason instanceof Error ? pages.reason.message : String(pages.reason))
+      }
+      setLoading(false)
     }, 300)
     return () => clearTimeout(timer)
   }, [query])
@@ -94,8 +109,9 @@ export default function SearchOverlay({ open, onClose, onSelectEntry, modules = 
       .map((m): Hit => ({ kind: 'page', key: `page:${m.id}`, page: m }))
     const ruleHits = matchRules(rules ?? [], q).slice(0, 6).map((r): Hit => ({ kind: 'rule', key: `rule:${r.name}`, rule: r }))
     const entryHits = results.map((r): Hit => ({ kind: 'entry', key: `entry:${r.id}`, entry: r }))
-    return [...pages, ...ruleHits, ...entryHits]
-  }, [query, modules, rules, results])
+    const artHits = arts.map((a): Hit => ({ kind: 'artifact', key: `artifact:${a.id}`, artifact: a }))
+    return [...pages, ...ruleHits, ...entryHits, ...artHits]
+  }, [query, modules, rules, results, arts])
 
   useEffect(() => { setSelectedIdx(0) }, [hits.length])
 
@@ -108,6 +124,11 @@ export default function SearchOverlay({ open, onClose, onSelectEntry, modules = 
 
   const choose = useCallback((h: Hit) => {
     if (h.kind === 'entry') onSelectEntry(h.entry.id)
+    else if (h.kind === 'artifact') {
+      // Same deep link as the overview: the artifact page opens this one.
+      history.replaceState(null, '', `#artifacts&open=${encodeURIComponent(h.artifact.id)}`)
+      onNavigate?.('artifacts')
+    }
     else if (h.kind === 'rule') onNavigate?.('rules')
     else onNavigate?.(h.page.id)
     onClose()
@@ -145,7 +166,7 @@ export default function SearchOverlay({ open, onClose, onSelectEntry, modules = 
     }
     return colors[key?.toLowerCase() ?? ''] ?? 'bg-k-ink4/15 text-k-ink3'
   }
-  const HEAD: Record<Hit['kind'], string> = { page: '页面', rule: '规则', entry: '知识条目' }
+  const HEAD: Record<Hit['kind'], string> = { page: '页面', rule: '规则', entry: '知识条目', artifact: '工件' }
   const q = query.trim()
 
   return (
@@ -165,7 +186,7 @@ export default function SearchOverlay({ open, onClose, onSelectEntry, modules = 
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="搜索知识条目、自动化规则、页面…"
+            placeholder="搜索知识条目、工件、自动化规则、页面…"
             className="flex-1 bg-transparent text-sm text-k-ink outline-none placeholder:text-k-ink4"
           />
           {loading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-k-ink4" />}
@@ -181,12 +202,12 @@ export default function SearchOverlay({ open, onClose, onSelectEntry, modules = 
         <div ref={listRef} className="max-h-[60vh] overflow-y-auto">
           {!q && (
             <div className="px-4 py-10 text-center text-sm text-k-ink4">
-              输入关键词，同时搜知识条目、自动化规则和页面
+              输入关键词，同时搜知识条目、工件正文、自动化规则和页面
             </div>
           )}
 
           {q && !loading && hits.length === 0 && (
-            <div className="px-4 py-10 text-center text-sm text-k-ink4">没有匹配的条目、规则或页面</div>
+            <div className="px-4 py-10 text-center text-sm text-k-ink4">没有匹配的条目、工件、规则或页面</div>
           )}
 
           {hits.map((h, idx) => {
@@ -203,6 +224,7 @@ export default function SearchOverlay({ open, onClose, onSelectEntry, modules = 
                     sel ? 'border-l-2 border-k-accent bg-k-accent/10' : 'border-l-2 border-transparent hover:bg-k-sunk/50'}`}
                 >
                   {h.kind === 'entry' && <FileText className="mt-0.5 h-4 w-4 shrink-0 text-k-ink4" />}
+                  {h.kind === 'artifact' && <Package className="mt-0.5 h-4 w-4 shrink-0 text-k-ink4" />}
                   {h.kind === 'rule' && <Workflow className="mt-0.5 h-4 w-4 shrink-0 text-k-ink4" />}
                   {h.kind === 'page' && <LayoutGrid className="mt-0.5 h-4 w-4 shrink-0 text-k-ink4" />}
                   <div className="min-w-0 flex-1">
@@ -216,8 +238,22 @@ export default function SearchOverlay({ open, onClose, onSelectEntry, modules = 
                             </span>
                           )}
                           <span className="rounded bg-k-sunk px-1.5 py-0.5 text-[10px] text-k-ink4">{h.entry.type}</span>
-                          {h.entry.tags.slice(0, 3).map(tag => <span key={tag} className="text-[10px] text-k-ink4">#{tag}</span>)}
+                          {(h.entry.tags ?? []).slice(0, 3).map(tag => <span key={tag} className="text-[10px] text-k-ink4">#{tag}</span>)}
                         </div>
+                      </>
+                    )}
+                    {h.kind === 'artifact' && (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="truncate text-sm text-k-ink">{h.artifact.title}</span>
+                          {h.artifact.sensitive && (
+                            <span className="shrink-0 rounded bg-k-hot/15 px-1.5 py-0.5 text-[10px] text-k-hot" title="原文含内网地址或凭据，这里显示的是脱敏后的正文">敏感</span>
+                          )}
+                          {h.artifact.url && <span className="shrink-0 text-[10px] text-k-ink4">有分享链接</span>}
+                        </div>
+                        {h.artifact.snippet && (
+                          <div className="mt-0.5 line-clamp-2 text-[11.5px] text-k-ink3">{h.artifact.snippet}</div>
+                        )}
                       </>
                     )}
                     {h.kind === 'rule' && (
@@ -253,10 +289,11 @@ export default function SearchOverlay({ open, onClose, onSelectEntry, modules = 
               </div>
             )
           })}
-          {q && (ruleError || entryError) && (
+          {q && (ruleError || entryError || artError) && (
             <div className="border-t border-k-line-soft px-4 py-2 text-[11.5px] text-k-hot">
               {ruleError && <div>规则没搜：{ruleError}</div>}
               {entryError && <div>条目没搜：{entryError}</div>}
+              {artError && <div>工件没搜：{artError}</div>}
             </div>
           )}
         </div>
