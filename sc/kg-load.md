@@ -3,7 +3,7 @@ name: kg-load
 description: "Load relevant knowledge context from the vault at session start based on topic or project"
 category: knowledge
 complexity: standard
-mcp-servers: []
+mcp-servers: [kg]
 personas: []
 ---
 
@@ -26,8 +26,14 @@ personas: []
    - If empty, prompt the user: "What topic or project should I load context for?"
    - Normalize keywords for search (e.g., "golang gc" -> search for "golang", "gc", "garbage collection")
 
-2. **Semantic Search First (Weaviate + BM25)**: Retrieve knowledge entries through the project search adapter, not by lexical search alone.
-   - Preferred command:
+2. **MCP First (`kg` server, `kg mcp serve`)**: When the `mcp__kg__*` tools are available, use them before anything else.
+   - `mcp__kg__search_knowledge(query="$ARGUMENTS", limit=10)` — local retrieval (jieba BM25 + vectors, RRF). Add `board` (`项目` / `通识` / `经验` / `实验` / `排障`) to narrow; `rerank=true` only when ranking really matters (it takes 10+ seconds).
+   - `mcp__kg__get_entry(id)` for the hits you read in full (step 3), instead of opening files.
+   - If the topic names a project: `mcp__kg__project_status(project)` gives the same state as the 进行中 board (stage, last conclusion, live sessions, uncommitted changes, open PRs, project page summary). Use it for step 5.
+   - If the topic is an error or outage: `mcp__kg__similar_incidents(text)`.
+   - If a result carries `error` (`index_missing`, `index_stale`, `embedding_failed`, ...), show `error.message` and `error.hint` to the user as they are; do not present it as "no knowledge found".
+
+   **Fallback when the MCP tools are not listed or the server does not start** — the previous path:
      ```bash
      cd <repo> && python integrations/omx/kg_skill.py load "$ARGUMENTS" --top-k 10
      ```
@@ -35,8 +41,8 @@ personas: []
      ```bash
      cd <repo> && kg query "$ARGUMENTS" --top-k 10 --format json
      ```
-   - This path uses `agents.query.search()`, which performs Weaviate native hybrid search (BM25 + vector) with project filters.
-   - If the command reports that the index is empty or stale, run `kg sync` or ask the user before continuing if sync would be expensive.
+   - Both go through the same local retrieval (`kg.retrieval`, #7) and fail with the same error codes.
+   - If the command reports that the index is missing or stale, run `kg index update` (or `kg index rebuild`) or ask the user before continuing if it would be expensive.
    - Keep the returned ranking and scores visible in the briefing so gaps are auditable.
 
 3. **Read Semantic Hits**: Read the Markdown files returned by semantic search using their `file_path` values.
@@ -45,7 +51,7 @@ personas: []
    - Deduplicate by entry ID/path before reading.
 
 4. **Lexical Fallback and Supplement**: Use Grep/Glob only after semantic retrieval:
-   - As a fallback if Weaviate/BM25 search fails.
+   - As a fallback if local retrieval fails (MCP and CLI both).
    - As a supplement for exact project names, acronyms, filenames, or identifiers that may not embed well.
    - Search paths:
      - `<repo>/01-Principles/`
@@ -58,7 +64,7 @@ personas: []
      - `<repo>/09-Interview/`
    - Add lexical-only hits to the context only when they are clearly relevant.
 
-5. **Search Project Tracking (07-Projects/)**: Use Grep and Glob to search project notes:
+5. **Search Project Tracking (07-Projects/)**: Skip this step when `mcp__kg__project_status` answered in step 2. Otherwise use Grep and Glob to search project notes:
    - Search path: `<repo>/07-Projects/`
    - Look for files matching the topic/project name.
    - Extract: current status, recent decisions, blockers, next steps, open questions.
@@ -129,7 +135,7 @@ personas: []
 ## Boundaries
 
 **Will:**
-- Search the vault through semantic hybrid retrieval first (Weaviate native hybrid search)
+- Search the vault through the `kg` MCP tools first, then the local hybrid retrieval CLI
 - Use Grep/Glob as fallback and exact-match supplement, not as the primary ranking mechanism
 - Read and summarize the most relevant entries for immediate context
 - Present project state from 07-Projects/ when available

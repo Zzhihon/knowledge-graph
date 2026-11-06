@@ -285,3 +285,53 @@ GitHub 汇总快照（只读文件）──────────────�
 - **演练** `python -m kg.plane.heal.drill`：临时状态库 + 编造的探测 + 127.0.0.1 上的假中台，跑一遍断线 → 卡片 → 暂停 → 恢复 → 补跑 → 复盘事件，不碰真实出口和中台。
 
 规则：采集出口的规则自己**不能**写 `requires: ["egress"]`，否则断线时它被暂停，事故永远关不上。
+
+## MCP 统一入口：`kg mcp serve`（#10）
+
+让 Claude Code、Codex 等本机 Agent 自己查管控面和知识库，不用本人再贴背景。走 stdio，由 Agent 当子进程启动，不开端口。工具全部只读（`readOnlyHint`），写操作（回答卡片、自愈、采集）不进 MCP。
+
+```
+Agent ──stdio JSON-RPC──▶ kg mcp serve（kg/mcp/server.py，官方 Python SDK mcp 2.x）
+                            ├─ kg/mcp/tools.py   每个工具一个纯函数，读看板用的同一批函数
+                            └─ kg/mcp/scrub.py   所有返回值逐个字符串过密钥过滤，再交给 Agent
+```
+
+| 工具 | 回答什么 | 数据来自 |
+|---|---|---|
+| `search_knowledge(query, board?, limit=5, rerank=false)` | 知识条目：标题、摘要、路径、id | `kg.retrieval`（#7）。默认 BM25 + 向量 RRF，不重排（p50 约 0.1 秒）；`rerank=true` 加本地重排（十几秒）。`board` 收 项目 / 通识 / 经验 / 实验 / 排障、目录名或条目类型 |
+| `get_entry(id)` | 一条知识的全文和元数据 | 条目文件，id 或库内相对路径；超过 3 万字截断 |
+| `project_status(project)` | 阶段和原因、项目页摘要、最后结论、活跃会话、未提交改动、未合并 PR | `GET /api/plane/projects` 背后的 `get_projects`，和看板同一份；看板里没有时退回 `07-Projects` 项目页 |
+| `recent_sessions(project?, hours=24)` | 最近会话、状态、最后一句话和结论、恢复命令 | `get_sessions` |
+| `plane_health()` | 出口、本地服务、未关闭事故、等你的会话、索引是否落后 | 总览的 `plane_health` + `list_incidents` + `.kg/index/status.json` |
+| `find_artifact(query)` | 工件的链接、本地文件、过期时间、剩余天数 | 状态库里的工件（#6）和它们的本地文本 |
+| `similar_incidents(text)` | 相似的历史事故（时长、自愈动作、复盘条目）和排障条目 | 状态库事故按词重合（idf 加权）排序；排障条目走检索 |
+
+- **失败原样返回。** 检索报错时结果为空，`error` 是 `{code, message, hint}`（`index_missing`、`index_stale`、`embedding_failed`、`rerank_failed`）；找不到项目时列出 `known_projects`。看板超过两个周期没采集、或状态库还没建时带 `warning`。
+- **密钥过滤**（`kg/mcp/scrub.py`）：`kg.plane.redact` 的"关键词后面的值"、bearer 和非本机链接；`kg.plane.sensitive` 的凭据、非回环 IPv4、内网主机名（含 `artifacts.yaml` 里的 `sensitive.internal_domains`）；32 位以上十六进制串；24 位以上看起来随机的串；本人目录写成 `~`。条目 id、库内路径保持可读。唯一的例外是键名为 `url` 的值：保留协议、主机和路径（工件的分享链接），去掉查询串和片段；带用户名密码、指向 IP 或内网主机、路径里有已知密钥前缀时整条遮掉。
+- **模型只在用到时加载。** 第一次 `search_knowledge` / `similar_incidents` 要加载本地向量模型（约 10 秒），之后同一进程内不再加载。每个 Agent 会话各起一个进程，所以只做状态查询的会话不占模型内存。
+
+### 注册
+
+Claude Code（项目级，复制 `mcp.json.example` 为 `.mcp.json`，或者用户级）：
+
+```bash
+claude mcp add --scope user kg -- /path/to/knowledge-graph/.venv/bin/kg mcp serve
+```
+
+Codex：把 `integrations/mcp/codex-config.toml.example` 的 `[mcp_servers.kg]` 一节加进 `~/.codex/config.toml`。`default_tools_approval_mode = "approve"` 让 `codex exec` 不用确认就能调这些只读工具。
+
+### 会话开场简报：`kg mcp brief`
+
+```
+kg mcp brief --cwd <会话目录>
+```
+
+按 `.kg/capture/config.yaml` 的白名单把目录对到看板上的项目，打印不超过 20 行：阶段、项目页摘要、上次结论、等你回答的会话、未提交改动、未合并 PR、未关闭事故、和上次结论相似的已关闭事故及其复盘。不加载模型，1 秒内返回；不认识的目录或没有状态库时什么都不打印，出错也退出 0，不挡会话。挂成 Claude Code 的 `SessionStart` hook 见 `integrations/mcp/session-start-hook.json.example`。
+
+### 评测
+
+```
+python -m kg.mcp.evaluate [--rerank] [--out FILE]
+```
+
+起一个 `kg mcp serve` 子进程，按协议对评测集 v1 的每道题调 `search_knowledge(limit=10)`，用 `kg eval run` 同一个打分函数算 hit@1 / recall@5 / recall@10 / MRR@10。分数应和 #7 的 `hybrid` / `hybrid-rerank` 报告一致，低了说明 MCP 这一层（过滤、结果形状）丢了命中。

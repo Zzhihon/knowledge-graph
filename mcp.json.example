@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "kg": {
+      "type": "stdio",
+      "command": "/path/to/knowledge-graph/.venv/bin/kg",
+      "args": ["mcp", "serve"]
+    }
+  }
+}
