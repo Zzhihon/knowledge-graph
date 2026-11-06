@@ -165,15 +165,15 @@ def build_retro_input(conn: sqlite3.Connection, vault: Path, incident: dict[str,
         "actions": actions,
         "notifications": notes or [],
         "earlier": earlier,
-        "write": {
-            "entry_id": entry_id,
-            "entry_path": f"03-Debug/{entry_id}.md",
-            "link_command": f"kg plane incident link {incident['id']} {entry_id}",
-            "result_path": str((incident_dir(vault, incident["id"]) / "result.md")
-                               .relative_to(vault)),
-        },
     }
-    return scrub(data)
+    data = scrub(data)
+    # Only ids and paths this code made up: scrubbing them turned the entry path into a mask.
+    data["write"] = {
+        "entry_id": entry_id,
+        "entry_path": f"03-Debug/{entry_id}.md",
+        "result_path": str((incident_dir(vault, incident["id"]) / "result.md").relative_to(vault)),
+    }
+    return data
 
 
 def write_retro_input(vault: Path, incident_id: int, data: dict[str, Any]) -> Path:
