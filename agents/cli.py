@@ -18,6 +18,7 @@ from rich.table import Table
 from agents.cli_plane_heal import register as register_plane_heal
 from kg.eval.retrieval import RETRIEVERS
 from kg.interfaces.cli.commands.index import index_group
+from kg.interfaces.cli.commands.mcp import mcp_group
 
 console = Console()
 
@@ -718,6 +719,7 @@ def plane_egress_import(path: Path, db: Path | None, line: str, expect: tuple[st
 
 register_plane_heal(plane)
 cli.add_command(index_group)
+cli.add_command(mcp_group)
 
 
 @cli.command()
