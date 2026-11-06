@@ -2,7 +2,9 @@
 
 Writes `<vault>/.kg/brief/<date>/input.json`: capture batches processed since the
 last brief, project pages and experiments touched in that window, extra local
-files (such as the GitHub digest), and AIHOT's daily report plus selected items.
+files (such as the GitHub digest), the control plane's incidents, retro entries and
+weekly report (`plane`, when there is a state store), and AIHOT's daily report plus
+selected items.
 AIHOT is public and read-only; a failed fetch is recorded, not fatal.
 """
 
@@ -102,6 +104,21 @@ def _touched(folder: Path, since: float, vault: Path) -> list[dict[str, Any]]:
     return found
 
 
+def _plane_block(vault: Path, since: float) -> dict[str, Any] | None:
+    """Incidents, retro entries and the weekly report from the control plane (#9), if any.
+
+    Optional: no state store means no block, and a failure is recorded, never fatal.
+    """
+    try:
+        from kg.plane.heal.config import load_config as load_heal_config
+        from kg.plane.heal.report import brief_block
+
+        return brief_block(vault, load_heal_config(vault), since=int(since),
+                           now=int(time.time()))
+    except Exception as exc:  # the brief must not fail because of the control plane
+        return {"error": f"{type(exc).__name__}: {str(exc)[:200]}"}
+
+
 def collect_brief(vault: Path, config: CaptureConfig, *, fetch: bool = True) -> tuple[str, Path]:
     """Write today's brief input; returns its id and file."""
     raw = config.brief
@@ -139,6 +156,10 @@ def collect_brief(vault: Path, config: CaptureConfig, *, fetch: bool = True) -> 
         "experiences": _touched(vault / "10-Experience", cutoff, vault),
         "extra": extra,
     }
+    if raw.get("plane", True):
+        plane = _plane_block(vault, cutoff)
+        if plane is not None:
+            content["plane"] = plane
     if fetch and raw.get("aihot", True):
         content["aihot"] = _fetch_aihot(since)
     digest = hashlib.sha256(json.dumps(content, sort_keys=True, ensure_ascii=False).encode())
