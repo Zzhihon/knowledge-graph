@@ -126,6 +126,23 @@ class RunResult:
     notes: list[str] = field(default_factory=list)
 
 
+def _close_gone(conn: sqlite3.Connection, gone: Sequence[str], now: int) -> list:
+    """A resource that disappeared gets no more signals, so no rule could ever close its open
+    incidents (an exposed dev server that was stopped, say). Close them here, saying why."""
+    from kg.plane.rules import Change
+    from kg.plane.store import close_incident, list_incidents
+
+    changes = []
+    for rid in gone:
+        for incident in list_incidents(conn, open_only=True, resource_id=rid):
+            iid = close_incident(conn, resource_id=rid, rule=incident["rule"], closed_at=now,
+                                 evidence={"ts": now, "reason": "gone"})
+            if iid is not None:
+                changes.append(Change("close", iid, rid, incident["rule"], now,
+                                      incident["severity"], "资源已消失"))
+    return changes
+
+
 def run_collector(conn: sqlite3.Connection, collector: Collector, *,
                   ctx: CollectContext | None = None, dry_run: bool = False,
                   compact_after: bool = True) -> RunResult:
@@ -154,6 +171,7 @@ def run_collector(conn: sqlite3.Connection, collector: Collector, *,
                                 prefixes=collection.scopes)
         append_signals(conn, sorted(collection.signals, key=lambda s: s.ts))
         result.changes = evaluate(conn, Counter(s.resource_id for s in collection.signals), kinds)
+        result.changes += _close_gone(conn, result.gone, ctx.now)
         if compact_after:
             result.compacted = compact(conn, now=ctx.now)
     return result

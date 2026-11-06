@@ -64,6 +64,28 @@ n[::1]:42050
 """
 
 
+@pytest.fixture(autouse=True)
+def _no_real_launch_agents(tmp_path_factory: pytest.TempPathFactory,
+                           monkeypatch: pytest.MonkeyPatch) -> None:
+    """The services collector must not read this machine's ~/Library/LaunchAgents in tests."""
+    from kg.plane.collectors.services import ServicesCollector
+
+    monkeypatch.setattr(ServicesCollector, "launch_agents_dir", tmp_path_factory.mktemp("agents"))
+
+
+def _mine(vault: Path) -> Path:
+    """Register every com.example. job as the owner's own, so its failures alert.
+
+    The `node *:3000` listener in LSOF would count as the owner's dev server and raise an
+    exposure reminder; these tests are about job status, so it is ignored here.
+    """
+    file = vault / ".kg" / "plane" / "services.yaml"
+    file.parent.mkdir(parents=True, exist_ok=True)
+    file.write_text("groups:\n  mine: [com.example.]\nignore:\n  exposed: [port:3000]\n",
+                    encoding="utf-8")
+    return vault
+
+
 def _db(tmp_path: Path) -> sqlite3.Connection:
     return store.connect(tmp_path / "vault" / ".kg" / "plane" / "state.db")
 
@@ -281,6 +303,7 @@ def test_service_down_verdict_carries_evidence() -> None:
     verdict = service_down(history)
     assert verdict is not None and verdict.firing and verdict.severity == "critical"
     assert verdict.evidence == {"since": T0, "ts": T0 + 60, "last_exit": [78, 78]}
+    assert verdict.summary == "连续 2 次检查都没在运行（退出码 78）"
 
 
 # ── collector framework ──
@@ -381,7 +404,7 @@ def test_parse_lsof_listen() -> None:
 
 def _fake_run(outputs: dict[str, str | Exception]):  # type: ignore[no-untyped-def]
     def run(argv: list[str], timeout: float = 20) -> str:
-        out = outputs[argv[0]]
+        out = outputs.get(argv[0], CommandError(f"{argv[0]}: not in this test"))
         if isinstance(out, Exception):
             raise out
         return out
@@ -445,8 +468,10 @@ def test_broken_job_opens_an_incident_on_the_second_collect(tmp_path: Path) -> N
     conn = _db(tmp_path)
     collector = get_collector("services")
     run = _fake_run({"launchctl": LAUNCHCTL, "lsof": LSOF})
-    first = run_collector(conn, collector, ctx=CollectContext(now=T0, run=run))
-    second = run_collector(conn, collector, ctx=CollectContext(now=T0 + FIVE_MIN, run=run))
+    vault = _mine(tmp_path)
+    first = run_collector(conn, collector, ctx=CollectContext(now=T0, vault=vault, run=run))
+    second = run_collector(conn, collector,
+                           ctx=CollectContext(now=T0 + FIVE_MIN, vault=vault, run=run))
     assert first.changes == []
     assert [(c.action, c.resource_id) for c in second.changes] == [
         ("open", "service:launchd:com.example.broken")]
@@ -466,6 +491,7 @@ def test_cli_collect_autoloop_is_quiet_until_an_incident_opens(
     from kg.interfaces.cli.commands.plane import run_plane_collect_command
 
     _patch_services(monkeypatch, LAUNCHCTL)
+    _mine(tmp_path)
     console = Console(record=True)
     run_plane_collect_command(name="services", dry_run=False, autoloop=True, console=console,
                               vault=tmp_path)
@@ -503,6 +529,7 @@ def test_cli_status_summarises_the_store(tmp_path: Path, monkeypatch: pytest.Mon
     from kg.interfaces.cli.commands.plane import run_plane_collect_command, run_plane_status_command
 
     _patch_services(monkeypatch, LAUNCHCTL)
+    _mine(tmp_path)
     quiet = Console(record=True)
     for _ in range(2):
         run_plane_collect_command(name="services", dry_run=False, autoloop=False, console=quiet,
@@ -512,7 +539,8 @@ def test_cli_status_summarises_the_store(tmp_path: Path, monkeypatch: pytest.Mon
     text = console.export_text()
     assert "8 个资源在线" in text
     assert "services：8 个，asleep 1，down 1，unknown 1，up 5" in text
-    assert "[critical] service:launchd:com.example.broken" in text  # not eaten as markup
+    # An on-demand job's failed run is a warning (a must-run job that is down is critical).
+    assert "[warning] service:launchd:com.example.broken" in text  # not eaten as markup
     assert "未关闭的事故：1" in text and "service:launchd:com.example.broken" in text
 
 

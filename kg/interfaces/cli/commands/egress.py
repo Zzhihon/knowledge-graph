@@ -1,6 +1,11 @@
-"""`kg plane egress replay`: run the egress rules over a probe ndjson and print what they decide.
+"""`kg plane egress replay | import`: egress probe history, replayed or loaded into the store.
 
-Also runnable without registration: `python -m kg.interfaces.cli.commands.egress <file.ndjson>`.
+- `replay <file.ndjson>` runs the egress rules over a probe log and prints what they decide.
+- `import <file.ndjson>` appends the probes as signals of `egress:<line>` in the state store and
+  runs the store's rules over them one by one, exactly as minute-by-minute collection would;
+  then it checks that the store opened and closed the same incidents as the replay.
+
+Also runnable without registration: `python -m kg.interfaces.cli.commands.egress [import] <file>`.
 Expected exit IPs come from `--expect` or the `KG_EGRESS_EXPECT` environment variable (comma
 separated); without either, the probe's own `ip_ok` field is trusted.
 """
@@ -16,6 +21,7 @@ from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from kg.plane.egress import iter_probe_file
+from kg.plane.egress_import import import_history
 from kg.plane.egress_rules import replay
 from kg.plane.egress_sleep import SleepRules, parse_pmset_log
 
@@ -37,9 +43,7 @@ def run_egress_replay_command(
     interval: int | None = None,
     console: Console,
 ) -> None:
-    if not expect:
-        env = os.environ.get("KG_EGRESS_EXPECT", "")
-        expect = tuple(x.strip() for x in env.split(",") if x.strip())
+    expect = _expect(expect)
     events = parse_pmset_log(pmset_log.read_text(encoding="utf-8")) if pmset_log else []
     result = replay(
         list(iter_probe_file(path)),
@@ -80,9 +84,75 @@ def run_egress_replay_command(
     )
 
 
+def _expect(expect: tuple[str, ...]) -> tuple[str, ...]:
+    if expect:
+        return expect
+    env = os.environ.get("KG_EGRESS_EXPECT", "")
+    return tuple(x.strip() for x in env.split(",") if x.strip())
+
+
+def run_egress_import_command(
+    *,
+    path: Path,
+    db: Path | None = None,
+    line: str = "default",
+    expect: tuple[str, ...] = (),
+    pmset_log: Path | None = None,
+    interval: int | None = None,
+    dry_run: bool = False,
+    console: Console,
+) -> int:
+    """Returns 0 when the store decided exactly what the replay decided, 1 otherwise."""
+    if db is None:
+        from kg.infrastructure.config.loader import load_config
+        from kg.plane.store import db_path
+
+        db = db_path(load_config().vault_path)
+    expect = _expect(expect)
+    events = parse_pmset_log(pmset_log.read_text(encoding="utf-8")) if pmset_log else []
+    with path.open(encoding="utf-8") as f:
+        report = import_history(f, db=db, line=line, expected_ips=expect or None,
+                                power_events=events, interval_s=interval, dry_run=dry_run)
+    head = "[yellow]预览，不写入：[/]" if dry_run else ""
+    console.print(
+        f"{head}读到 {report.read} 次探测，新写入 {report.appended} 条信号到 {report.resource_id}"
+        f"（已有的 {report.skipped} 条跳过），周期 {report.interval_s}s"
+    )
+    for c in report.changes:
+        verb = "开" if c.action == "open" else "关"
+        console.print(f"  {verb} \\[{c.severity}] {c.rule}  {_t(c.ts)}  {c.summary}")
+    console.print(f"休眠标记 {report.asleep} 次；状态库事故 {len(report.store)} 个，"
+                  f"回放 {len(report.replay)} 个")
+    if report.store == report.replay:
+        console.print("[green]逐条进状态库和整段回放的结论一致[/]")
+        return 0
+    console.print("[red]不一致[/]")
+    for name, rows in (("状态库", report.store), ("回放", report.replay)):
+        for rule, opened, closed in rows:
+            console.print(f"  {name} {rule} 开 {_t(opened)} 关 {_t(closed)}")
+    return 1
+
+
 def main(argv: list[str] | None = None) -> int:
     from rich.console import Console
 
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv[:1] == ["import"]:
+        parser = argparse.ArgumentParser(description="把探测记录导入状态库并回放规则")
+        parser.add_argument("path", type=Path)
+        parser.add_argument("--db", type=Path, help="状态库文件，默认 <vault>/.kg/plane/state.db")
+        parser.add_argument("--line", default="default", help="线路名，资源 id 为 egress:<线路名>")
+        parser.add_argument("--expect", action="append", default=[], help="期望出口 IP，可重复")
+        parser.add_argument("--pmset-log", type=Path)
+        parser.add_argument("--interval", type=int)
+        parser.add_argument("--dry-run", action="store_true")
+        a = parser.parse_args(argv[1:])
+        return run_egress_import_command(path=a.path, db=a.db, line=a.line,
+                                         expect=tuple(a.expect), pmset_log=a.pmset_log,
+                                         interval=a.interval, dry_run=a.dry_run,
+                                         console=Console())
+    if argv[:1] == ["replay"]:
+        argv = argv[1:]
     parser = argparse.ArgumentParser(description="回放出口探测记录，打印事故和可用性")
     parser.add_argument("path", type=Path)
     parser.add_argument("--expect", action="append", default=[], help="期望出口 IP，可重复")

@@ -90,11 +90,40 @@ class EgressCollector:
 - `Collection.scopes` 写本轮**完整看过**的 id 前缀。某个数据源读失败时，不要把它的前缀写进去，再在 `notes` 里写原因。这样这部分资源不会被误记 `gone_at`。不写 `scopes`（`None`）表示这个采集器的全部资源都看过了。
 - 需要本地配置时，读 `<vault>/.kg/plane/config.yaml`，在仓库根目录的 `plane.yaml.example` 补模板。仓库是公开的，代码和模板里不写主机名、IP、账号、端口号、凭据。
 
-示例采集器 `services`（`kg/plane/collectors/services.py`）读 `launchctl list` 和 `lsof -nP -iTCP -sTCP:LISTEN -F pcn`：
+采集器 `services`（`kg/plane/collectors/services.py`，#3）只读本机：`launchctl list`、每个已加载任务的 `launchctl print gui/<uid>/<label>`（`runs` 启动次数、plist 路径）、`~/Library/LaunchAgents/*.plist`、`ps -axo pid=,ppid=,etime=`（启动时间、父进程）、`lsof -nP -iTCP -sTCP:LISTEN`，以及本人登记 `<vault>/.kg/plane/services.yaml`（模板 `services.yaml.example`）。
 
-- launchd 任务的 id 是 `service:launchd:<label>`。有 PID 记 `up`。没有 PID、上次退出码为 0 记 `asleep`（按需或定时任务的间隙）。上次被 SIGTERM / SIGKILL 结束的记 `unknown`（用户退出、注销、内存回收，单靠 `launchctl list` 判断不了该不该在跑）。其他情况记 `down`。
-- 监听端口的 id 是 `service:port:<端口>`，列出来就记 `up`。不再监听时记 `gone_at`。`attrs.exposed` 表示是否监听在回环地址以外。
-- 默认忽略 `com.apple.` 和 `application.`（应用实例，每次启动 label 都变）开头的 label。额外的前缀写在 `config.yaml` 的 `services.ignore_prefixes`。
+- launchd 任务的 id 是 `service:launchd:<label>`：已加载的、`~/Library/LaunchAgents` 里没加载的、登记了但哪里都找不到的，都各记一个。
+- 任务按 plist 分三种：`keepalive`（`KeepAlive` 为 true，必须常驻）、`scheduled`（`StartInterval` / `StartCalendarInterval`）、`ondemand`（其余，包括 `KeepAlive` 是条件字典的）。
+
+  | 情况 | 状态 |
+  |---|---|
+  | 有 PID | `up`；登记的端口不在、或健康检查失败时 `degraded` |
+  | 没 PID，上次被 SIGTERM / SIGKILL 结束 | `unknown`（用户退出、注销、内存回收，判断不了） |
+  | 没 PID，`keepalive` | `down`，退出码是 0 也算 |
+  | 没 PID，`scheduled` / `ondemand`，上次退出码 0 | `asleep` |
+  | 没 PID，`scheduled` / `ondemand`，上次退出码非 0 | `down`（定时任务上次跑失败） |
+  | 登记了但没加载 | `down` |
+  | 没登记、只有 plist、没加载 | `unknown` |
+
+- 监听端口的 id 是 `service:port:<端口>`。顺着父进程找到所属的 launchd 任务，记在 `attrs.owner`。没登记的端口不再监听时记 `gone_at`；登记成 `port:<n>` 的端口不在时照样上报，记 `down`。`attrs.exposed` 表示监听在回环地址以外。
+- 分组 `mine`（本人的）/ `tool`（工具的）/ `system`（系统的）：登记里写的 `group` 优先，其次 `groups` 里的 label 前缀；都没有时 `~/Library/LaunchAgents` 里的算 `tool`，其他算 `system`。端口跟所属任务同组；不属于任何任务、进程名是 node / python 之类的算 `mine`（`attrs.inferred`，多半是自己起的开发服务）。
+- 只有 `mine` 默认告警，登记里的 `alert` 可以单独打开或关掉。信号的 `detail.alert` 为 false 时所有规则都判"应该关"，所以关掉告警也会关掉它已经开着的事故。
+- 健康检查：登记了 `health` 的，每轮用 `curl --noproxy '*'` 打一次，只打 `127.0.0.1` / `[::1]`，记状态码和延迟（`value`，单位 ms）。2xx / 3xx 算健康，`expect` 里列的状态码也算（例如要钥匙的接口回 401）。
+- 默认忽略 `com.apple.` 和 `application.`（应用实例，每次启动 label 都变）开头的 label。额外的前缀写在 `services.yaml` 的 `ignore.labels`（`config.yaml` 的 `services.ignore_prefixes` 仍然有效）。登记过的 label 不受忽略前缀影响。
+
+服务的异常规则（都在 `services.py` 里，合成序列测试在 `tests/test_plane_services.py`）：
+
+| 规则 | 开 | 关 |
+|---|---|---|
+| `service.down` | 连续 2 次 `down`。`keepalive` 和端口是 critical，定时 / 按需任务是 warning | 一次 `up` 或 `degraded` |
+| `service.port_missing` | 进程在，登记的端口连续 2 次不在 | 端口回来 |
+| `service.health` | 进程在，健康检查连续 2 次失败 | 一次成功 |
+| `service.flapping` | `keepalive` 任务 10 分钟内退出 ≥ 3 次（按 `runs` 的增量，没有时按 PID 变化），"反复重启" | 最近 10 分钟（至少 5 分钟的读数）没再退出 |
+| `service.exposed` | `mine` 的端口监听在回环以外，且不在 `ignore.exposed` 里，安全提醒 | 改回只听本机，或加进忽略 |
+
+资源消失（`gone_at`）后不会再有信号，`run_collector` 会把它未关闭的事故一并关掉，`evidence.closed.reason` 记 `gone`。
+
+日志末尾：`GET /api/plane/services/{id}/log?lines=20` 只读这个任务 plist 里登记的 `StandardOutPath` / `StandardErrorPath`，每行先过 `kg/plane/redact.py`（基于 `kg/eval/retrieval.py` 的 `_SECRETISH`）再返回；只接受 Host 是本机的请求。
 
 ## 加一条异常规则
 
@@ -180,5 +209,47 @@ kg plane status                       # 每个采集器的资源数、各状态�
 | `GET /api/plane/resources/{id}` | | 单个资源；不存在时返回 404 |
 | `GET /api/plane/signals` | `resource`（必填）、`since`（默认 24 小时前）、`until`、`limit`（默认 2000） | 按时间从旧到新；条数超过 `limit` 时只返回最新的 `limit` 条 |
 | `GET /api/plane/incidents` | `open=1`、`resource`、`limit` | 按开的时间从新到旧 |
+| `GET /api/plane/services` | | 本地服务页用：`groups.mine/tool/system`，组内有事故的、状态更坏的排前面；端口挂在所属任务下面（`ports`），每项带未关闭事故、最近一次重启（`last_restart`）、健康检查 |
+| `GET /api/plane/services/{id}/log` | `lines`（默认 20，最多 200） | 日志末尾，已脱敏；路径只来自 plist（`agents/api_routes/services.py`） |
 
 还没有状态库时，所有列表都返回空，不会创建库文件。状态库路径由 `plane_db_path` 依赖提供，测试用 `app.dependency_overrides` 换成临时文件。
+
+## 出口采集器（egress）
+
+配置 `.kg/plane/egress.yaml`（模板 `egress.yaml.example`）。每分钟对每条线路做分段探测：本地代理端口 TCP → 代理内核控制接口（当前节点、节点延迟）→ 经代理请求 trace（出口 IP / 地区 / 机房）→ 经代理对目标 API 域名做无凭据 HEAD。每次探测是 `egress:<线路>` 的一条 signal，`detail` 里是整个观测，规则据此重建观测再判断，所以逐次采集和 `kg plane egress replay` 整段回放开、关事故的时间一致（`tests/test_plane_egress_live.py` 验证）。
+
+- 探测请求只经 `kg/plane/egress_probe.py` 的 `curl_argv` 发出：`curl -q`（不读 ~/.curlrc）、干净环境变量、除固定 User-Agent 外不带任何请求头。控制接口的密钥只发给回环地址。
+- 休眠：和上次探测的空档超过 2.5 个周期，或 `kern.waketime` 显示刚醒，这次失败就是"唤醒后"。唤醒后的第一次失败在本轮内隔 `recheck_delay_s`（默认 75 秒）再探一次，两次都写 signal，规则据此判断是唤醒首包还是断线的开始。
+- 规则：`egress.outage`（warning，1 分钟周期下连续 3 分钟失败）、`egress.identity`（critical，第一次出口不符就开）、`egress.purity`（info，纯净度检查变差时提醒）。
+- 纯净度（每小时 + 出口 IP 变化时）写在 `egress:<线路>:purity`：IP 画像、DNS 泄漏、直连泄漏抽样、时区 / 语言提示；出口 IP 24 小时稳定性由接口从探测 signal 计算。每项带 `checked_at`。
+- 旧探测记录：`kg plane egress import <file.ndjson> [--db 路径] [--line 名字]`，导入后逐条跑状态库规则，并和整段回放比对，不一致时退出码 1。
+- 接口：`GET /api/plane/egress?hours=24[&now=Unix秒]`。看板"出口"页（`web/src/views/EgressView.tsx`）。
+
+## 进行中看板：`sessions` 采集器
+
+`kg plane collect sessions` 回答"现在有哪些项目在推进、最新的会话做到哪一步、哪里在等我"。代码在 `kg/plane/collectors/sessions.py`，判断都是 `kg/plane/progress.py` 里的纯函数。
+
+```
+.kg/capture/config.yaml 的 allow / deny ─┐
+Claude / Codex 会话文件 ─▶ session_reader（按 mtime / 大小增量读，缓存 .kg/plane/sessions-cursor.json）
+orca worktree ps / project list --json ─┤
+git status / log / remote ──────────────┼─▶ judge_project ─▶ project:<名字>、session:<来源>:<id>
+GitHub 汇总快照（只读文件）──────────────┤
+07-Projects/proj-*.md 的 Current State ─┘
+```
+
+- **会话**：和夜间沉淀用同一套解析和跳过规则（子 agent、无头运行、导入副本、agent-autoloop 派的活），另外跳过 `codex exec` 和不在白名单里的目录。每个文件记读到的字节位置、大小和 mtime；文件没变就不打开，变长了只读新增的完整行，变短了从头读。文本先脱敏（链接、`kg eval mine` 的密钥规则、`token:` 后面的值、IPv4）再截断，缓存里也只有脱敏后的内容。只聊了一句"hi"、没有回复的会话不展示。
+- **会话状态**：`waiting`（Agent 最后一步在问你，或者挂着 AskUserQuestion 这类提问工具）、`working`（10 分钟内文件有变化）、`done`（停在一条普通回复上）、`interrupted`（停在你的话或工具调用上）。怎么算"在问你"见 `question_reason`，每条都写明依据。
+- **项目阶段**，按顺序判断：等你（3 天内有会话在等你）→ 活跃（有会话在写，或 1 小时内有会话、提交、Orca 终端输出）→ 停滞（3 天没动，但有未提交改动或未合并 PR）→ 已收尾（没有未提交改动和未合并 PR）→ 歇着（其余）。信号状态：活跃 `up`，等你、停滞 `degraded`，歇着、已收尾 `asleep`。
+- **规则 `project.stalled`**：项目停滞时开一条 info 事故，不再停滞就关，`--autoloop` 会发 `plane.incident.*` 事件。
+- **Orca** 读不到时 `orca` 记 `null`（未知），不报错；不在白名单里的工作区只计数，不写进状态库。
+- **未合并 PR** 只读 `sessions.github_snapshot` 指向的快照里本人的 PR，按 GitHub 仓库对到项目；快照没覆盖的仓库记 `null`。几个本地仓库指向同一个 GitHub 仓库时，PR 算在和仓库同名的项目上。
+
+接口（`agents/api_routes/sessions.py`）：
+
+| 端点 | 参数 | 返回 |
+|---|---|---|
+| `GET /api/plane/projects` | | 项目列表（等你、活跃、停滞、歇着、已收尾的顺序），`attention.waiting`（3 天内在等你的会话）、`attention.stalled`，`collected_at`、`stale`（超过两个周期没采集） |
+| `GET /api/plane/sessions` | `project`、`state`、`limit` | 最近 7 天的会话，新的在前；每条带 `resume` 恢复命令 |
+
+"在等你"的判断要用真实会话人工抽查：`python -m kg.plane.waiting_review export` 抽 20 个（一半判成在等、一半判成不在等）写到 `.kg/plane/waiting-review.jsonl`（不进 git），逐行把 `human` 填成 true / false，再 `python -m kg.plane.waiting_review score` 看一致率。`--days 30 --exclude <上一轮文件>` 用来抽一轮没见过的会话。

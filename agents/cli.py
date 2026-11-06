@@ -694,6 +694,23 @@ def plane_egress_replay(path: Path, expect: tuple[str, ...], pmset_log: Path | N
                               interval=interval, console=console)
 
 
+@plane_egress.command(name="import")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--db", type=click.Path(dir_okay=False, path_type=Path), help="状态库文件，默认 <vault>/.kg/plane/state.db")
+@click.option("--line", default="default", show_default=True, help="线路名，资源 id 为 egress:<线路名>")
+@click.option("--expect", multiple=True, help="期望出口 IP（只放本地），可重复")
+@click.option("--pmset-log", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--interval", type=int, help="探测周期（秒），默认按记录推断")
+@click.option("--dry-run", is_flag=True)
+def plane_egress_import(path: Path, db: Path | None, line: str, expect: tuple[str, ...], pmset_log: Path | None,
+                        interval: int | None, dry_run: bool) -> None:
+    """把旧探测记录导入状态库并逐条回放规则；和整段回放不一致时退出码 1。"""
+    from kg.interfaces.cli.commands.egress import run_egress_import_command
+
+    sys.exit(run_egress_import_command(path=path, db=db, line=line, expect=tuple(expect), pmset_log=pmset_log,
+                                       interval=interval, dry_run=dry_run, console=console))
+
+
 @cli.command()
 @click.option("--port", type=int, default=8765, help="API 服务器端口 (默认: 8765)")
 @click.option("--dev", is_flag=True, help="同时启动 Vite 开发服务器")
