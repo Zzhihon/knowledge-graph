@@ -16,8 +16,8 @@ from kg.retrieval.search import Result, Searcher
 if TYPE_CHECKING:
     from pathlib import Path
 
-# The configuration that scored best on evaluation set v1 (see kg/retrieval/README notes in
-# the delivery write-up); override with KG_SEARCH_MODE / KG_SEARCH_RERANK=0|1.
+# Best on evaluation set v1 (35 labelled questions): entry-level BM25 + vector, RRF, then the
+# local cross-encoder. Override with KG_SEARCH_MODE=bm25|vector|hybrid, KG_SEARCH_RERANK=0|1.
 DEFAULT_MODE = os.environ.get("KG_SEARCH_MODE", "hybrid")
 DEFAULT_RERANK = os.environ.get("KG_SEARCH_RERANK", "1") == "1"
 

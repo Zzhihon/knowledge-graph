@@ -164,7 +164,7 @@ class Index:
             for i, c in enumerate(chunks)
         ]
 
-    def rebuild(self, embedder: Embedder, *, granularity: str = "section",
+    def rebuild(self, embedder: Embedder, *, granularity: str = "entry",
                 progress: Callable[[str], None] | None = None) -> UpdateReport:
         return self._run(embedder, granularity=granularity, full=True, progress=progress)
 

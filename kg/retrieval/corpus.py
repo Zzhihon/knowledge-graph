@@ -1,6 +1,7 @@
 """Vault entries as index input: which files exist, and how one entry becomes chunks.
 
-A chunk is one section of an entry (split on Markdown headings outside code fences). The text
+By default a chunk is a whole entry (first ENTRY_CHARS of the body); with granularity
+"section" it is one section of an entry (split on Markdown headings outside code fences). The text
 that is embedded and BM25-indexed starts with the entry title, tags and heading path, so a
 section that only says "改成两阶段提交" still knows which entry and topic it belongs to.
 """

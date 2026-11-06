@@ -45,7 +45,7 @@ def run_index_command(
     try:
         if action == "rebuild":
             embedder = Embedder(model or DEFAULT_EMBED_MODEL, download=download)
-            report = index.rebuild(embedder, granularity=granularity or "section",
+            report = index.rebuild(embedder, granularity=granularity or "entry",
                                    progress=lambda m: console.print(f"[dim]{m}[/]"))
         else:
             manifest = index.manifest()
@@ -128,8 +128,9 @@ def index_update(model: str | None, download: bool, as_json: bool) -> None:
 
 
 @index_group.command(name="rebuild")
-@click.option("--granularity", type=click.Choice(["section", "entry"]), default="section",
-              show_default=True, help="按标题切小节，或整篇一块")
+@click.option("--granularity", type=click.Choice(["entry", "section"]), default="entry",
+              show_default=True,
+              help="整篇一块（评测集 v1 上最好），或按标题切小节")
 @_model_opt
 @_download_opt
 @_json_opt
