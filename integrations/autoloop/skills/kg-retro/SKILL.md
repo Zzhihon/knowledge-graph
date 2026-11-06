@@ -13,6 +13,7 @@ description: 把 kg plane notify 备好的一份事故资料（时间线、信�
 
 - 同目录已有 `result.md`：写"没事可做：事故 #<编号> 已写过复盘"，结束。
 - 资料不存在：写"没跑成：找不到事故 #<编号> 的资料"。
+- `write.entry_path` 已经存在，且 frontmatter 的 `source.incident` 就是这个编号：上一轮写到一半停了。不要重写、不要再补一节，直接从下面第 3 步接着做。
 
 资料里有：
 
