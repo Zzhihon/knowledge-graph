@@ -64,13 +64,27 @@ def register(plane: click.Group) -> None:
         """事故和知识条目的关联。"""
 
     @plane_incident.command(name="link")
-    @click.argument("incident_id", type=int)
-    @click.argument("entry_id")
+    @click.argument("incident_id", type=int, required=False)
+    @click.argument("entry_id", required=False)
     @click.option("--force", is_flag=True, help="条目不存在或没通过格式校验也写")
-    def plane_incident_link(incident_id: int, entry_id: str, force: bool) -> None:
+    @click.option("--pending", is_flag=True,
+                  help="把复盘 Agent 写好 result.md、还没挂回的复盘全部挂回事故")
+    @click.option("--autoloop", is_flag=True,
+                  help="按 agent-autoloop 回执格式输出（配合 --pending）")
+    def plane_incident_link(incident_id: int | None, entry_id: str | None, force: bool,
+                            pending: bool, autoloop: bool) -> None:
         """把复盘条目 id 写回事故（incident.entry_id）。"""
-        from kg.interfaces.cli.commands.plane_heal import run_incident_link_command
+        from kg.interfaces.cli.commands.plane_heal import (
+            run_incident_link_command,
+            run_incident_link_pending_command,
+        )
 
+        if pending:
+            ok = run_incident_link_pending_command(autoloop=autoloop, console=console)
+            # A problem is a card for the owner, not a failed round to retry.
+            sys.exit(0 if ok or autoloop else 1)
+        if incident_id is None or entry_id is None:
+            raise click.UsageError("要么给 <事故编号> <条目 id>，要么用 --pending")
         if not run_incident_link_command(incident_id=incident_id, entry_id=entry_id,
                                          force=force, console=console):
             sys.exit(1)

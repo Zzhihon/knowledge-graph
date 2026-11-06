@@ -422,7 +422,8 @@ def test_retro_event_on_close_and_previous_retro_on_the_next_card(tmp_path):
     data = json.loads((vault / event["detail"]).read_text())
     assert [s["status"] for s in data["timeline"]] == ["up", "down", "up"]
     assert data["incident"]["duration_minutes"] == 11.0
-    assert data["write"]["link_command"].startswith(f"kg plane incident link {iid} ke-")
+    # The write section is made up by the code: it must not be scrubbed into a mask.
+    assert data["write"]["entry_path"] == f"03-Debug/{data['write']['entry_id']}.md"
     assert "203.0.113.9" not in json.dumps(data, ensure_ascii=False)
     # Claude wrote the entry and linked it; the next outage's card points at it.
     entry_id = data["write"]["entry_id"]
@@ -695,3 +696,36 @@ def test_marking_the_index_keeps_the_index_builders_own_fields(tmp_path):
     mark_index_fresh(tmp_path, now=200)
     raw = json.loads(file.read_text())
     assert not raw["stale"] and raw["files"] == 3
+
+
+def test_pending_link_hooks_finished_retros_back_onto_their_incidents(tmp_path, capsys):
+    # The retro agent may only edit files, so it writes result.md and emits an event; the
+    # `incident link --pending` command run by a command agent does the linking.
+    from rich.console import Console
+
+    from kg.interfaces.cli.commands.plane_heal import run_incident_link_pending_command
+    from kg.plane.heal.retro import incident_dir
+
+    vault, conn = _vault(tmp_path)
+    good = _open(conn, EGRESS, "egress.outage", T0)
+    bad = _open(conn, EGRESS, "egress.identity", T0 + 60)
+    (vault / "03-Debug").mkdir()
+    good_entry = GOOD_ENTRY.replace("ke-20270115-egress-outage-incident-1", "ke-20261106-good")
+    (vault / "03-Debug" / "ke-20261106-good.md").write_text(good_entry, encoding="utf-8")
+    (vault / "03-Debug" / "ke-20261106-bad.md").write_text("---\nid: ke-20261106-bad\n---\n",
+                                                          encoding="utf-8")
+    for iid, entry in ((good, "ke-20261106-good"), (bad, "ke-20261106-bad")):
+        incident_dir(vault, iid).mkdir(parents=True, exist_ok=True)
+        (incident_dir(vault, iid) / "result.md").write_text(f"- 条目：[[{entry}]]（新建）\n")
+    conn.close()
+    assert not run_incident_link_pending_command(autoloop=True, console=Console(), vault=vault)
+    out = capsys.readouterr().out
+    assert out.startswith("待你处理：") and f"#{bad}" in out and "格式校验" in out
+    assert '"notice"' in out
+    conn = store.connect(store.db_path(vault))
+    assert get_incident(conn, good)["entry_id"] == "ke-20261106-good"
+    assert get_incident(conn, bad)["entry_id"] is None
+    conn.close()
+    # Running again leaves the linked one alone and still reports the broken one.
+    run_incident_link_pending_command(autoloop=True, console=Console(), vault=vault)
+    assert f"#{good}" not in capsys.readouterr().out.splitlines()[0]

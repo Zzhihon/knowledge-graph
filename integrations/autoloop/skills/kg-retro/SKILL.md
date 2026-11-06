@@ -1,6 +1,6 @@
 ---
 name: kg-retro
-description: 把 kg plane notify 备好的一份事故资料（时间线、信号证据、自愈动作）写成 03-Debug 复盘条目，带 mermaid 因果图，写回事故编号，最后写 result.md 结案。agent-autoloop 的 incident.retro.ready 事件触发。
+description: 把 kg plane notify 备好的一份事故资料（时间线、信号证据、自愈动作）写成 03-Debug 复盘条目，带 mermaid 因果图，写 result.md 结案，发事件让管控面把条目挂回事故。agent-autoloop 的 incident.retro.ready 事件触发。
 ---
 
 # 给一次事故写复盘
@@ -35,7 +35,7 @@ description: 把 kg plane notify 备好的一份事故资料（时间线、信�
    - 正文：一句话结论，一张 mermaid `flowchart LR`："现象 → 中间原因 → 根因 → 修法"，根因 `:::root`、修法 `:::fix`，节点不超过 8 个。然后 `## 现象`、`## 排查过程`、`## 根因`、`## 修复`、`## 怎么验证`、`## 以后怎么避免` 六节。
    - 时间线写到"几点几分开始失败、几点告警、自愈做了什么、几点恢复"，用资料里的时间。自愈动作照 `actions` 写，没做的不要编。
    - 推断的根因标"未验证"。资料里遮掉的（‹已遮›、‹IP›、‹链接›）保持遮掉，不要补。不写主机名、IP、账号、密钥。
-3. **写回事故**：运行 `write.link_command`（`kg plane incident link <编号> <条目 id>`）。它会先做格式校验；没过就按提示改条目再运行，最多两次。
+3. **自查格式**：frontmatter 有 id、title、type、domain、tags、status、scope、source、confidence、created、updated；正文有 `## 现象`、`## 根因`、`## 修复` 三节和一个 mermaid 块。挂回事故时会按这些校验，没过会发卡片给本人。
 4. **结案**：最后写 `write.result_path`：
 
 ```markdown
@@ -47,3 +47,9 @@ description: 把 kg plane notify 备好的一份事故资料（时间线、信�
 ```
 
 第一行结论写"写好事故 #<编号> 的复盘：[[<条目 id>]]"。不发 notice，第二天的日报会列出来。
+
+最后附一个回执，让管控面把条目挂回事故（你只改文件，不运行命令）：
+
+```agent-autoloop
+{"events":[{"id":"retro-written-<编号>","type":"incident.retro.written","subject":"incident:<编号>","summary":"事故 #<编号> 的复盘写好了"}]}
+```

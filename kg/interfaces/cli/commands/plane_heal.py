@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import time
 from typing import TYPE_CHECKING, Any
@@ -20,7 +21,13 @@ from kg.plane.heal.config import load_config as load_heal_config
 from kg.plane.heal.hub_actions import HttpHubActions
 from kg.plane.heal.notify import Notifier, read_context
 from kg.plane.heal.report import to_markdown, weekly_report
-from kg.plane.heal.retro import find_entry, get_incident, link_entry, validate_retro_entry
+from kg.plane.heal.retro import (
+    find_entry,
+    get_incident,
+    incident_dir,
+    link_entry,
+    validate_retro_entry,
+)
 from kg.plane.store import connect, db_path
 
 if TYPE_CHECKING:
@@ -165,3 +172,60 @@ def run_incident_link_command(*, incident_id: int, entry_id: str, force: bool, c
         conn.close()
     console.print(f"事故 #{incident_id} → {escape(entry_id)}")
     return True
+
+
+_RESULT_ENTRY = re.compile(r"\[\[(ke-\d{8}-[^\]|#\s]+)")
+
+
+def run_incident_link_pending_command(*, autoloop: bool, console: Console,
+                                      vault: Path | None = None) -> bool:
+    """Link every retro the kg-retro agent finished (its result.md) back to its incident.
+
+    The retro agent only edits files, so it cannot run `incident link` itself: it writes
+    result.md and emits `incident.retro.written`, and this command does the linking.
+    """
+    vault = vault or _vault(console)
+    root = incident_dir(vault, 0).parent
+    linked: list[str] = []
+    problems: list[str] = []
+    conn = connect(db_path(vault))
+    try:
+        folders = sorted((f for f in root.glob("*") if f.name.isdigit()), key=lambda f: int(f.name))
+        for folder in folders:
+            result = folder / "result.md"
+            iid = int(folder.name)
+            incident = get_incident(conn, iid)
+            if not result.is_file() or incident is None or incident.get("entry_id"):
+                continue
+            m = _RESULT_ENTRY.search(result.read_text(encoding="utf-8"))
+            if not m:
+                problems.append(f"事故 #{iid} 的 result.md 里没有 [[条目 id]]")
+                continue
+            entry_id = m.group(1)
+            entry = find_entry(vault, entry_id)
+            if entry is None:
+                problems.append(f"事故 #{iid} 的复盘条目 {entry_id} 在知识库里找不到")
+                continue
+            errors = validate_retro_entry(entry.read_text(encoding="utf-8"))
+            if errors:
+                problems.append(f"事故 #{iid} 的复盘条目 {entry_id} 没通过格式校验："
+                                f"{'；'.join(errors)}")
+                continue
+            link_entry(conn, iid, entry_id)
+            linked.append(f"#{iid} → {entry_id}")
+    finally:
+        conn.close()
+    if problems:
+        head = "待你处理：" + "；".join(problems)
+    elif linked:
+        head = "复盘挂回事故：" + "、".join(linked)
+    else:
+        head = "没事可做：没有等着挂回事故的复盘"
+    if not autoloop:
+        console.print(escape(head))
+        return not problems
+    print(head)
+    if problems:
+        notice = {"title": "有复盘没能挂回事故", "text": "；".join(problems)[:300]}
+        print(f"```agent-autoloop\n{json.dumps({'notice': [notice]}, ensure_ascii=False)}\n```")
+    return not problems
