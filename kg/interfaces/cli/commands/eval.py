@@ -84,7 +84,7 @@ def run_eval_run_command(*, retriever: str, console: Console, tag: str = "") -> 
             f"{name + suffix:14s} 题数 {result.cases}  hit@1 {result.hit1:.2f}  "
             f"recall@5 {result.recall5:.2f}  "
             f"recall@10 {result.recall10:.2f}  MRR@10 {result.mrr10:.2f}  出错 {result.errors}  "
-            f"{result.seconds}s  → {report.name}"
+            f"{result.seconds}s  p50 {result.p50_ms}ms  p95 {result.p95_ms}ms  → {report.name}"
         )
 
 

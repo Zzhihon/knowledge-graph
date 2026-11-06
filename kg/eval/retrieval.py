@@ -69,6 +69,19 @@ class Score:
     # Per labelled case, in file order: 1-based rank of the first expected entry (None = miss,
     # -1 = error) and recall@10, so splits (odd / even, answerable or not) can be re-scored.
     per_case: list[dict[str, Any]] = field(default_factory=list)
+    # Wall time of one retriever call, over the labelled cases (the retriever is warmed up first
+    # by `local_retriever`, so model loading is not in here).
+    p50_ms: float | None = None
+    p95_ms: float | None = None
+
+
+def _percentile(values: list[float], q: float) -> float | None:
+    """Nearest-rank percentile; None for no values."""
+    if not values:
+        return None
+    ordered = sorted(values)
+    rank = max(1, min(len(ordered), int(-(-q * len(ordered) // 1))))
+    return round(ordered[rank - 1], 1)
 
 
 def eval_dir(vault: Path) -> Path:
@@ -162,6 +175,7 @@ def score(name: str, retriever: Retriever, cases: list[Case], k: int = 10) -> Sc
     per_case: list[dict[str, Any]] = []
     for n, case in enumerate(labelled):
         failed = False
+        t0 = time.monotonic()
         try:
             got = retriever(case.q, k)
         except Exception as exc:  # a broken retriever scores zero, it does not stop the run
@@ -170,12 +184,14 @@ def score(name: str, retriever: Retriever, cases: list[Case], k: int = 10) -> Sc
             got = []
             code = getattr(exc, "code", type(exc).__name__)
             misses.append({"q": case.q, "error": f"[{code}] {str(exc)[:200]}"})
+        ms = round((time.monotonic() - t0) * 1000, 1)
         want = set(case.expected)
         ranks = [i for i, eid in enumerate(got[:k]) if eid in want]
         per_case.append({
             "i": n,
             "rank": -1 if failed else (ranks[0] + 1 if ranks else None),
             "recall10": len({got[i] for i in ranks}) / len(want),
+            "ms": ms,
         })
         hit1 += 1.0 if ranks and ranks[0] == 0 else 0.0
         r5 += len({got[i] for i in ranks if i < 5}) / len(want)
@@ -195,6 +211,8 @@ def score(name: str, retriever: Retriever, cases: list[Case], k: int = 10) -> Sc
         round(time.monotonic() - started, 1),
         misses,
         per_case,
+        _percentile([c["ms"] for c in per_case if c["rank"] != -1], 0.5),
+        _percentile([c["ms"] for c in per_case if c["rank"] != -1], 0.95),
     )
 
 
@@ -242,7 +260,11 @@ def local_retriever(name: str) -> tuple[Retriever, Callable[[], None]]:
         rerank=name.endswith("-rerank"),
         bm25="bm25s" if name == "jieba-bm25s" else "lance",
     )
-    return (lambda q, k: [h.entry_id for h in searcher.search(q, top_k=k).hits]), lambda: None
+    def run(q: str, k: int) -> list[str]:
+        return [h.entry_id for h in searcher.search(q, top_k=k).hits]
+
+    run("预热", 10)  # load the models now, so per-query latency is the steady state
+    return run, lambda: None
 
 
 LOCAL_RETRIEVERS = ("jieba-bm25", "jieba-bm25s", "vector", "hybrid", "hybrid-rerank")

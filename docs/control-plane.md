@@ -26,10 +26,11 @@ agent-autoloop 定时  ─▶  kg plane collect <采集器> --autoloop
                                service:port:8765
                                artifact:orca:<工件 id>
                                session:claude:<会话 uuid>
+                               index:kg:main（本库的检索索引）
 <kind>:<本地 id>               project:<slug>、egress:<线路名>（来源本身就唯一时）
 ```
 
-- `kind` 只能是 `service`、`egress`、`artifact`、`project`、`session`、`rule`，小写。
+- `kind` 只能是 `service`、`egress`、`artifact`、`project`、`session`、`rule`、`index`，小写。
 - 后面一段或多段，用 `:` 分隔。第一段写来源，最后一段原样写来源里的 id（launchd label、端口号、工件 id、会话 uuid）。
 - 每段不能为空，不能含 `:`、空白、控制字符。其他字符原样保留，包括大小写、点号和中文。
 - 总长不超过 256 字符。
@@ -285,6 +286,50 @@ GitHub 汇总快照（只读文件）──────────────�
 - **演练** `python -m kg.plane.heal.drill`：临时状态库 + 编造的探测 + 127.0.0.1 上的假中台，跑一遍断线 → 卡片 → 暂停 → 恢复 → 补跑 → 复盘事件，不碰真实出口和中台。
 
 规则：采集出口的规则自己**不能**写 `requires: ["egress"]`，否则断线时它被暂停，事故永远关不上。
+
+## 检索索引：`index:kg:main`（#7）
+
+`kg index update` / `rebuild` 每跑一次，不管成没成，都往状态库写一条 `index:kg:main` 的 signal（`kg/plane/collectors/index_build.py`）。这里没有可以轮询的东西，所以它不是 `kg plane collect` 的采集器：建索引的命令把这次的结果交给 `record_build`，后面照常走 `run_collector`（写资源、追加 signal、跑规则、折叠）。
+
+| 结果 | `status` | `detail` |
+|---|---|---|
+| 成功，没有读不了的文件或工件 | `up` | `action`、`model`、新增 / 修改 / 删除数、`seconds` 等 |
+| 成功，但 `errors` 不为空 | `degraded` | 同上，加 `errors`（前 5 条）、`error_count` |
+| 失败 | `down` | `code`（`index_missing`、`embedding_failed` 等，其他异常是 `index_failed`）、`message` |
+
+`value` 是用时（秒），失败时为空。
+
+规则 `index.failed`（warning）：一次 `down` 就开，下一次 `up` 或 `degraded` 就关。开着时自愈动作 `index_stale` 把 `.kg/index/status.json` 标成过期，检索提示"结果可能不全"；关时标回正常。合成序列测试在 `tests/test_plane_index.py`。
+
+```
+kg index update --autoloop   # agent-autoloop 用：一行结论，事故开关时带回执块（plane.incident.*）
+```
+
+`--autoloop` 和 `kg plane collect --autoloop` 同一套输出：没有事故开或关时以 `没事可做：` 开头。建索引失败时仍然**退出 0**：失败已经由事故带出去了，而退出码不是 0 时 agent-autoloop 会当成没跑成、丢掉回执。只有状态库也写不进去时才按原来的退出码（1 或 2）退出，失败不会悄悄过去。不加 `--autoloop` 时退出码和以前一样。
+
+定时规则（集成者把 `kg-index` 的命令改成带 `--autoloop`，规则加上 `emits`）：
+
+```json
+{
+  "agents": {
+    "kg-index": {
+      "name": "更新检索索引", "worker": "<worker>", "use": "command",
+      "command": ["{cwd}/.venv/bin/kg", "index", "update", "--autoloop"]
+    }
+  },
+  "rules": [
+    {
+      "name": "更新检索索引",
+      "when": { "cron": "30 5 * * *" },
+      "to": "kg-index",
+      "cwd": "/path/to/knowledge-graph",
+      "group": "kg-index",
+      "tell": "needed",
+      "emits": { "source": "kg", "types": ["plane.incident.opened", "plane.incident.closed"] }
+    }
+  ]
+}
+```
 
 ## 工件进检索（#6 → #7）
 

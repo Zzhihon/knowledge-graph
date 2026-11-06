@@ -19,10 +19,19 @@ if TYPE_CHECKING:
 DEFAULT_EMBED_MODEL = os.environ.get("KG_EMBED_MODEL", "BAAI/bge-m3")
 DEFAULT_RERANK_MODEL = os.environ.get("KG_RERANK_MODEL", "BAAI/bge-reranker-v2-m3")
 
-# Query-side instructions for models trained with one; bge-m3 uses none.
-_QUERY_PROMPTS = {
-    "Qwen/Qwen3-Embedding-0.6B": "Instruct: 根据问题检索能回答它的个人笔记段落\nQuery: ",
+# Query-side instructions for models trained with one; bge-m3 uses none, documents get none.
+# Qwen3-Embedding wants `Instruct: <task>\nQuery:<query>` and its model card advises writing the
+# task in English even for other languages (most training instructions were English).
+# KG_QUERY_INSTRUCT replaces the task for the model in use ("" = no instruction), for experiments.
+_QUERY_TASKS = {
+    "Qwen/Qwen3-Embedding-0.6B":
+        "Given a question, retrieve personal knowledge-base notes that answer it",
 }
+
+
+def query_prompt(model: str) -> str:
+    task = os.environ.get("KG_QUERY_INSTRUCT", _QUERY_TASKS.get(model))
+    return f"Instruct: {task}\nQuery:" if task else ""
 
 _lock = threading.Lock()
 _cache: dict[tuple[str, str], Any] = {}
@@ -104,7 +113,7 @@ class Embedder:
         model = self._model()
         try:
             vec = model.encode(
-                [_QUERY_PROMPTS.get(self.name, "") + text],
+                [query_prompt(self.name) + text],
                 normalize_embeddings=True,
                 convert_to_numpy=True,
                 show_progress_bar=False,
