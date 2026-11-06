@@ -196,7 +196,7 @@ def test_health_pills_from_store_with_staleness(make):
     egress = pills["egress"]
     assert egress["status"] == "up" and egress["availability"] == 0.75
     assert egress["period"] == 300 and egress["stale"] is True
-    assert pills["services"]["text"] == "规划中 #3"
+    assert pills["services"]["text"] == "未知"
     assert pills["index"]["text"] == "规划中 #7"
     assert pills["hub"]["status"] == "up"
 

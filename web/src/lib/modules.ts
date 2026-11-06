@@ -14,6 +14,10 @@ import HubView from '../views/HubView'
 import RulesRunsView from '../views/RulesRunsView'
 import EvalLabelView from '../views/EvalLabelView'
 import OverviewView from '../views/OverviewView'
+import ServicesView from '../views/ServicesView'
+import EgressView from '../views/EgressView'
+import InProgressView from '../views/InProgressView'
+import ArtifactsView from '../views/ArtifactsView'
 
 export const GROUPS = ['总览', '知识', '自动化', '运维', '进行中', '工具', '练习'] as const
 export type Group = (typeof GROUPS)[number]
@@ -55,16 +59,16 @@ export const MODULES: Module[] = [
   { id: 'rules', group: '自动化', label: '规则与运行', icon: Workflow, status: 'live', issue: 8, view: RulesRunsView, shell: 'reading',
     blurb: '定时和事件规则，运行记录' },
 
-  { id: 'services', group: '运维', label: '本地服务', icon: Server, status: 'planned', issue: 3, shell: 'reading',
+  { id: 'services', group: '运维', label: '本地服务', icon: Server, status: 'live', issue: 3, view: ServicesView, shell: 'reading',
     blurb: '本机的 launchd 任务和监听端口：哪些在跑、哪些挂了、24 小时可用性。' },
-  { id: 'egress', group: '运维', label: '出口', icon: Globe, status: 'planned', issue: 4, shell: 'reading',
+  { id: 'egress', group: '运维', label: '出口', icon: Globe, status: 'live', issue: 4, view: EgressView, shell: 'reading',
     blurb: '代理出口的探测记录：哪一段断了、出口身份对不对、休眠唤醒不误报。' },
-  { id: 'artifacts', group: '运维', label: '工件', icon: Package, status: 'planned', issue: 6, shell: 'reading',
+  { id: 'artifacts', group: '运维', label: '工件', icon: Package, status: 'live', issue: 6, view: ArtifactsView, shell: 'reading',
     blurb: '分享出去的页面和文件：在哪、谁能看、什么时候过期、有没有敏感内容。' },
   { id: 'incidents', group: '运维', label: '事故', icon: Siren, status: 'planned', issue: 9, shell: 'reading',
     blurb: '事故的开、关、证据和自愈记录，结案后沉淀成知识条目。右上角的"异常"徽标已经能列出未关闭的事故。' },
 
-  { id: 'inprogress', group: '进行中', label: '项目与会话', icon: FolderKanban, status: 'planned', issue: 5, shell: 'reading',
+  { id: 'inprogress', group: '进行中', label: '项目与会话', icon: FolderKanban, status: 'live', issue: 5, view: InProgressView, shell: 'reading',
     blurb: '最近活跃的项目和会话，哪些在等你回答。' },
 
   { id: 'ask', group: '工具', label: '探索与问答', icon: Search, status: 'live', shell: 'tool' },

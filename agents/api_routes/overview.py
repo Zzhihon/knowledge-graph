@@ -187,7 +187,9 @@ def plane_health(db: Path, vault: Path, now: int) -> list[dict[str, Any]]:
         index_res = [r for r in services if _matches(r["id"], index)] if index else []
         if key:
             services = [r for r in services if _matches(r["id"], key)]
-        groups = [("egress", "出口", egress, 4), ("services", "本地服务", services, 3),
+        # Egress (#4) and services (#3) have collectors, so no data there means "not collected
+        # yet"; the index has none until #7, so it says planned.
+        groups = [("egress", "出口", egress, None), ("services", "本地服务", services, None),
                   ("index", "索引", index_res, 7)]
         out = []
         for pid, label, res, issue in groups:
