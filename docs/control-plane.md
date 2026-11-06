@@ -286,6 +286,17 @@ GitHub 汇总快照（只读文件）──────────────�
 
 规则：采集出口的规则自己**不能**写 `requires: ["egress"]`，否则断线时它被暂停，事故永远关不上。
 
+## 工件进检索（#6 → #7）
+
+`kg index update` / `rebuild` 更新完条目后，再同步状态库里的工件：`kg.plane.artifact_docs.export_docs` 读出有本地文件的工件（HTML 去标签，凭据、IP、内网主机先遮掉），写进 LanceDB 的另一张表 `artifacts`。条目表 `chunks` 的结构和全文索引不变。
+
+- **增量**：`manifest.json` 的 `artifacts` 记每个 `ArtifactDoc.id` 的内容哈希。只重算哈希变了的；导出里没有了的 id 删掉。长页按约 1500 字切块（最多 40 块），搜索时合回一个结果。
+- **没有工件时什么都不做**：状态库不存在，或里面还没有 `artifact` 资源，就不碰工件表，也不报错。读状态库或写工件表失败，只记进这次的 `errors`，条目更新照常成功。
+- **默认不进条目检索。** 评测集 v1（hybrid-rerank）上，把工件和条目混在一起排，hit@1 从 0.43 掉到 0.34、recall@10 从 0.65 掉到 0.62（35 题里 8 题的正确条目被工件挤后）。所以 `kg ask` 的条目排序、`/api/query`、`search_knowledge` 默认只排条目；要工件得显式要：过滤条件 `kind=artifact`（或 `all`），`/api/typeahead?kind=artifact`，`board=工件`，环境变量 `KG_SEARCH_KINDS=entry,artifact` 改默认值。
+- **调用方怎么用**：⌘K 搜索另发一个 `kind=artifact` 请求，结果单列"工件"一组；`kg ask` 和网页问答在条目之外再查一次工件，最多补 2 个（`KG_ASK_ARTIFACTS=0` 关掉），上下文里放的是索引里脱敏后的正文，不读原文件。
+- **相关性门槛**：向量总会返回"最近的"，BM25 也会因为"做法"这类常见词命中，所以 `find_artifact` 和 `kg ask` 只要 BM25 命中且余弦 ≥ 0.42、或只靠向量但余弦 ≥ 0.55 的工件（`KG_ARTIFACT_WORD_SIM`、`KG_ARTIFACT_MIN_SIM`）。这两个值是在真实索引（19 个工件）上量的：用标题里独有的词搜，目标页余弦 0.47–0.61；无关问题最高 0.45。
+- 结果里 `kind` 是 `entry` 或 `artifact`；工件还带 `url`、`local_file`、`project`、`sensitive`（原文里有敏感内容，展示的是遮掉后的文本）。
+
 ## MCP 统一入口：`kg mcp serve`（#10）
 
 让 Claude Code、Codex 等本机 Agent 自己查管控面和知识库，不用本人再贴背景。走 stdio，由 Agent 当子进程启动，不开端口。工具全部只读（`readOnlyHint`），写操作（回答卡片、自愈、采集）不进 MCP。
@@ -298,12 +309,12 @@ Agent ──stdio JSON-RPC──▶ kg mcp serve（kg/mcp/server.py，官方 Pyt
 
 | 工具 | 回答什么 | 数据来自 |
 |---|---|---|
-| `search_knowledge(query, board?, limit=5, rerank=false)` | 知识条目：标题、摘要、路径、id | `kg.retrieval`（#7）。默认 BM25 + 向量 RRF，不重排（p50 约 0.1 秒）；`rerank=true` 加本地重排（十几秒）。`board` 收 项目 / 通识 / 经验 / 实验 / 排障、目录名或条目类型 |
+| `search_knowledge(query, board?, limit=5, rerank=false)` | 知识条目：标题、摘要、路径、id | `kg.retrieval`（#7）。默认 BM25 + 向量 RRF，不重排（p50 约 0.1 秒）；`rerank=true` 加本地重排（十几秒）。`board` 收 项目 / 通识 / 经验 / 实验 / 排障、目录名或条目类型；`board=工件` 只搜工件正文 |
 | `get_entry(id)` | 一条知识的全文和元数据 | 条目文件，id 或库内相对路径；超过 3 万字截断 |
 | `project_status(project)` | 阶段和原因、项目页摘要、最后结论、活跃会话、未提交改动、未合并 PR | `GET /api/plane/projects` 背后的 `get_projects`，和看板同一份；看板里没有时退回 `07-Projects` 项目页 |
 | `recent_sessions(project?, hours=24)` | 最近会话、状态、最后一句话和结论、恢复命令 | `get_sessions` |
 | `plane_health()` | 出口、本地服务、未关闭事故、等你的会话、索引是否落后 | 总览的 `plane_health` + `list_incidents` + `.kg/index/status.json` |
-| `find_artifact(query)` | 工件的链接、本地文件、过期时间、剩余天数 | 状态库里的工件（#6）和它们的本地文本 |
+| `find_artifact(query)` | 工件的链接、本地文件、过期时间、剩余天数 | 先查检索索引的工件表（见下节），再和状态库里的工件对上；索引不可用或没有相关结果时退回按词匹配标题和本地正文（返回里 `via` 是 `index` 或 `words`） |
 | `similar_incidents(text)` | 相似的历史事故（时长、自愈动作、复盘条目）和排障条目 | 状态库事故按词重合（idf 加权）排序；排障条目走检索 |
 
 - **失败原样返回。** 检索报错时结果为空，`error` 是 `{code, message, hint}`（`index_missing`、`index_stale`、`embedding_failed`、`rerank_failed`）；找不到项目时列出 `known_projects`。看板超过两个周期没采集、或状态库还没建时带 `warning`。

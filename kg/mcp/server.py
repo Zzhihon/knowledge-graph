@@ -32,7 +32,8 @@ INSTRUCTIONS = """本机知识库和管控面（只读）。
 返回里带 warning 时，回答里要提到数据可能过时。"""
 
 
-BOARD_HELP = "板块：项目 / 通识 / 经验 / 实验 / 排障，或目录名（03-Debug）、条目类型（debug）"
+BOARD_HELP = ("板块：项目 / 通识 / 经验 / 实验 / 排障，或目录名（03-Debug）、条目类型（debug）；"
+              "工件：只搜 Agent 产出的工件页正文")
 
 
 def build_server(plane: Plane) -> Any:

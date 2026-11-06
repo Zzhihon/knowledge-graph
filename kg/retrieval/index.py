@@ -1,12 +1,15 @@
 """The local retrieval index: one LanceDB table of chunks (text, jieba tokens, vector).
 
 Layout under `<vault>/.kg/index/` (not in git):
-  lancedb/        LanceDB database, table `chunks`
-  manifest.json   model, granularity, and per-file mtime / size / sha256 of what is indexed
+  lancedb/        LanceDB database: table `chunks` (vault entries), table `artifacts` (#6)
+  manifest.json   model, granularity, per-file mtime / size / sha256 of what is indexed, and
+                  per-artifact content hash (`artifacts`, see `kg.retrieval.artifacts`)
   status.json     last attempt, last success, last error, counts (read by health checks)
 
 `update()` only touches files whose mtime or size changed and whose content hash really
-differs; `rebuild()` drops everything and indexes the whole vault. Both write status.json on
+differs; `rebuild()` drops everything and indexes the whole vault. Both then sync the artifact
+table with the state store's artifacts (only changed ones are embedded); an artifact failure is
+reported in `errors` and does not undo the entry update. Both write status.json on
 success and on failure, and failures raise, so a nightly run cannot fail silently.
 """
 
@@ -62,6 +65,10 @@ class UpdateReport:
     chunks: int = 0
     seconds: float = 0.0
     embed_seconds: float = 0.0
+    artifacts_added: int = 0
+    artifacts_modified: int = 0
+    artifacts_deleted: int = 0
+    artifacts: int = 0  # artifact documents in the index after this run
     errors: list[str] = field(default_factory=list)
 
 
@@ -134,6 +141,85 @@ class Index:
         return Pending(added, modified, deleted)
 
     # ── writing ────────────────────────────────────────────────────────
+
+    def artifact_table(self) -> Any | None:
+        from kg.retrieval import artifacts
+
+        db = self._db()
+        if artifacts.TABLE not in db.list_tables().tables:
+            return None
+        return db.open_table(artifacts.TABLE)
+
+    def _sync_artifacts(self, embedder: Embedder, *, full: bool, old: dict[str, Any] | None,
+                        report: UpdateReport, say: Callable[[str], None]) -> dict[str, Any]:
+        """Bring the artifact table in line with the state store; returns the manifest part."""
+        from kg.retrieval import artifacts
+
+        known: dict[str, Any] = {} if full else dict((old or {}).get("artifacts") or {})
+        try:
+            docs = artifacts.load_docs(self.vault)
+        except Exception as exc:  # a broken state store must not cost the entry update
+            report.errors.append(f"工件：读状态库失败：{type(exc).__name__}: {exc}")
+            report.artifacts = len(known)
+            return known
+        if docs is None:  # no store, or no artifact resources yet: leave everything as it is
+            if full and self.artifact_table() is not None:
+                self._db().drop_table(artifacts.TABLE)
+            report.artifacts = 0 if full else len(known)
+            return {} if full else known
+        try:
+            if full and self.artifact_table() is not None:
+                self._db().drop_table(artifacts.TABLE)
+            table = None if full else self.artifact_table()
+            if table is None:  # first artifact sync, rebuild, or the table went missing
+                known = {}
+            by_id = {d.id: d for d in docs}
+            hashes = {i: artifacts.doc_hash(d) for i, d in by_id.items()}
+            changed = [i for i, h in hashes.items() if (known.get(i) or {}).get("sha") != h]
+            gone = [i for i in known if i not in by_id]
+            report.artifacts_added = sum(1 for i in changed if i not in known)
+            report.artifacts_modified = len(changed) - report.artifacts_added
+            report.artifacts_deleted = len(gone)
+            if not (changed or gone):
+                report.artifacts = len(known)
+                return known
+            todo = [c for i in changed for c in artifacts.chunks(by_id[i])]
+            if todo:
+                say(f"{len(changed)} 个工件 → {len(todo)} 块，计算向量……")
+            vectors = embedder.documents([c.text for c in todo]) if todo else None
+            if table is None:
+                table = self._db().create_table(
+                    artifacts.TABLE, data=artifacts.rows(todo, vectors), mode="overwrite")
+            else:
+                # Changed ids are deleted too, whatever the manifest says: never two copies.
+                stale = gone + changed
+                for i in range(0, len(stale), 200):
+                    batch = ", ".join("'" + x.replace("'", "''") + "'" for x in stale[i:i + 200])
+                    table.delete(f"entry_id IN ({batch})")
+                if todo:
+                    table.add(artifacts.rows(todo, vectors))
+            if table.count_rows():
+                from lancedb.index import FTS
+
+                table.create_index("tokens", replace=True, config=FTS(
+                    base_tokenizer="whitespace", lower_case=False, stem=False,
+                    remove_stop_words=False, ascii_folding=False, max_token_length=None))
+                if not full:
+                    table.optimize()
+            for i in gone:
+                known.pop(i, None)
+            for i in changed:
+                known[i] = {"sha": hashes[i], "file": by_id[i].file}
+            report.chunks_written += len(todo)
+        except Exception as exc:
+            report.errors.append(f"工件：更新失败：{type(exc).__name__}: {exc}")
+            # The table may be half written: keep the old hashes, so the next run redoes the
+            # changed ids (they are deleted before they are added again).
+            known = {} if full else dict((old or {}).get("artifacts") or {})
+            if full and self.artifact_table() is not None:
+                self._db().drop_table(artifacts.TABLE)
+        report.artifacts = len(known)
+        return known
 
     def _db(self) -> Any:
         import lancedb
@@ -276,6 +362,8 @@ class Index:
                     table.optimize()
             report.chunks_written = len(chunks)
             report.chunks = table.count_rows()
+            art_manifest = self._sync_artifacts(embedder, full=full, old=old, report=report,
+                                                say=say)
             manifest = {
                 "schema": SCHEMA_VERSION,
                 "model": embedder.name,
@@ -284,6 +372,7 @@ class Index:
                 "updated": _now(),
                 "terms": terms,
                 "files": files,
+                "artifacts": art_manifest,
             }
             report.entries = len({f["entry_id"] for f in files.values() if f.get("entry_id")})
             report.seconds = round(time.monotonic() - started, 1)
