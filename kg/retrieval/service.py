@@ -58,5 +58,10 @@ def search_full(query: str, *, top_k: int = 10, filters: dict[str, str] | None =
 def search(query: str, filters: dict[str, str] | None = None, top_k: int = 5,
            config: Any = None, **kw: Any) -> list[dict[str, Any]]:
     """Drop-in for the old `agents.query.search`: same result dicts, but failures raise."""
-    result = search_full(query, top_k=top_k, filters=filters, **kw)
-    return [h.to_dict() | {"metadata": {"file_path": h.path}} for h in result.hits]
+    searcher = get_searcher(kw.get("mode"), kw.get("rerank"))
+    result = searcher.search(query, top_k=top_k, filters=filters)
+    out = []
+    for h in result.hits:
+        path = str(searcher.vault / h.path)  # absolute: `kg ask` reads the file for context
+        out.append(h.to_dict() | {"file_path": path, "metadata": {"file_path": path}})
+    return out
