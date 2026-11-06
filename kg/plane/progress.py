@@ -29,8 +29,11 @@ STALL_AFTER = 3 * DAY  # no movement this long while work is left open: stalled
 REDACTED = "〔已隐去〕"
 _URL = re.compile(r"https?://\S+")
 _ASSIGNED = re.compile(
-    r"(?i:api[_ -]?key|secret|token|password|passwd|密钥|密码|口令)\s*(?:[:：=]|是|为)\s*\S+"
+    r"(?i:api[_ -]?key|access[_ -]?key(?:[_ -]?(?:id|secret))?|secret|token|password|passwd|"
+    r"密钥|密码|口令)\s*(?:[:：=]|是|为)\s*\S+"
 )
+# Cloud access key ids that `_SECRETISH` does not know (Alibaba Cloud, Tencent Cloud).
+_CLOUD_KEY = re.compile(r"\b(?:LTAI[0-9A-Za-z]{12,}|AKID[0-9A-Za-z]{16,})\b")
 _IPV4 = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
 _FENCE = re.compile(r"```.*?(?:```|\Z)", re.S)
 _SPACES = re.compile(r"[ \t]+")
@@ -42,6 +45,7 @@ def redact(text: str) -> str:
     text = _URL.sub("〔链接〕", text)
     text = _ASSIGNED.sub(REDACTED, text)
     text = _IPV4.sub("〔IP〕", text)
+    text = _CLOUD_KEY.sub(REDACTED, text)
     return _SECRETISH.sub(REDACTED, text)
 
 
@@ -58,6 +62,11 @@ def excerpt(text: str, limit: int, *, tail: bool = False) -> str:
 # Question marks count only near the end: a reply that asked something halfway and then went
 # on to report results is not waiting.
 _TAIL_CHARS = 360
+# A question followed only by the choices it offers ("要我先把哪块做起来？可选：① …；② …").
+# The question is still the last thing that needs an answer; the list is its menu, not new work.
+_ASK_WITH_CHOICES = re.compile(
+    r"[?？]\s*(?:可选|选项|选项如下|供你选|你定|你选|请选)[:：]?[^\n]{0,200}$"
+)
 _ENDS_ASKING = re.compile(
     r"[?？]\s*(?:[)）\]】*_`\"'”’]|[\U0001F300-\U0001FAFF\u2600-\u27BF])*\s*$"
 )
@@ -106,6 +115,8 @@ def question_reason(text: str) -> str:
     tail = body[-_TAIL_CHARS:]
     if _ENDS_ASKING.search(body):
         return "结尾是问句"
+    if _ASK_WITH_CHOICES.search(tail):
+        return "结尾是问句，后面只是选项"
     heading = _ASK_HEADINGS.search(tail)
     if heading:
         return f"有小标题「{heading.group(0).strip().strip('#* ')}」"
