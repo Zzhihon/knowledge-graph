@@ -631,6 +631,8 @@ def _down_summary(last: Signal, count: int) -> tuple[str, str]:
         return "critical", f"登记的端口连续 {count} 次没在监听"
     if d.get("loaded") is False:
         return "critical", f"登记了，但连续 {count} 次没加载到 launchd"
+    if d.get("reason") == "heartbeat_stale":  # remote services (remote.py)
+        return "critical", f"进程在，但心跳连续 {count} 次超过 {d.get('heartbeat_max_s')} 秒没更新"
     if d.get("mode") == "keepalive" or "mode" not in d:
         return "critical", f"连续 {count} 次检查都没在运行（退出码 {d.get('last_exit')}）"
     return "warning", f"上次运行失败（退出码 {d.get('last_exit')}），连续 {count} 次检查都是这样"
@@ -703,8 +705,11 @@ def exits_between(a: Signal, b: Signal) -> int:
     """How many times the job exited between two readings.
 
     From launchd's `runs` counter when both have it (a drop means it was reloaded: 0);
-    otherwise a changed PID, or a PID that went away, counts once.
+    otherwise a changed PID, or a PID that went away, counts once. A remote host that did not
+    answer (`reachable` false, remote.py) says nothing about exits.
     """
+    if _d(a).get("reachable") is False or _d(b).get("reachable") is False:
+        return 0
     ra, rb = _d(a).get("runs"), _d(b).get("runs")
     if isinstance(ra, int) and isinstance(rb, int):
         return max(rb - ra, 0)

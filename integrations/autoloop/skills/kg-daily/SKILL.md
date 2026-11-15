@@ -15,6 +15,7 @@ description: 根据 kg brief collect 备好的资料写当天的精简日报：�
 - `experiences`：新写的经验条目。
 - `extra`：附带的本机资料（比如 GitHub 每日汇总），`content` 是全文。
 - `plane`（可能没有）：本机管控面。`incidents` 是上次日报以来开过或关过的事故（`minutes` 是持续分钟，未关闭为 null），`retros` 是已写好的复盘条目（`entry_id`、`path`），`week` 是最近 7 天的周报 Markdown。有 `error` 时只说一句"管控面资料没读到"。
+- `fares`（可能没有）：其他机器上机票监控最近一次读到的近一天最低价，每项是一个服务（`name`、`status`、`ts`），`fares` 里每行 `from_city`→`to_city`、`depart_date`、`price`（元，含税）、`platform`、`flight_no`。有 `error` 时只说一句"机票价格没读到"。
 - `aihot`：`daily` 是 AIHOT 当天的日报，`items` 是精选条目（`title`、`summary`、`url`、`source`、`category`）。`summary` 是模型生成的，只能当线索用。
 
 ## 写什么
@@ -51,6 +52,9 @@ brief: <资料编号>
 - 事故：<资源> <规则> 持续 N 分钟，已恢复 / 还开着（只列 warning、critical）
 - 排障：[[ke-…]] 事故 #N 的复盘
 - 周一附上 `plane.week` 的表格；其余日子只在有资源错误预算剩余低于 50% 时写一句
+
+## 机票价格
+- 每条航线一行：`HKG→NRT 12-20`：最低 ￥价格（平台 航班号）。只列 `fares` 里有的，`status` 不是 `up` 时在行尾注明数据可能过时
 
 ## GitHub 待办
 - 从附带的 GitHub 汇总里摘最多 3 条要动手的

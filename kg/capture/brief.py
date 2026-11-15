@@ -3,7 +3,8 @@
 Writes `<vault>/.kg/brief/<date>/input.json`: capture batches processed since the
 last brief, project pages and experiments touched in that window, extra local
 files (such as the GitHub digest), the control plane's incidents, retro entries and
-weekly report (`plane`, when there is a state store), and AIHOT's daily report plus
+weekly report (`plane`, when there is a state store), the lowest airfares the remote
+collector last read (`fares`, from the same store), and AIHOT's daily report plus
 selected items.
 AIHOT is public and read-only; a failed fetch is recorded, not fatal.
 """
@@ -119,6 +120,24 @@ def _plane_block(vault: Path, since: float) -> dict[str, Any] | None:
         return {"error": f"{type(exc).__name__}: {str(exc)[:200]}"}
 
 
+def _fares_block(vault: Path) -> list[dict[str, Any]] | dict[str, Any] | None:
+    """Lowest fares per route from the latest `remote` readings; None when there are none."""
+    try:
+        from kg.plane.collectors.remote import fares_block
+        from kg.plane.store import connect, db_path
+
+        path = db_path(vault)
+        if not path.exists():
+            return None
+        conn = connect(path)
+        try:
+            return fares_block(conn) or None
+        finally:
+            conn.close()
+    except Exception as exc:  # the brief must not fail because of the control plane
+        return {"error": f"{type(exc).__name__}: {str(exc)[:200]}"}
+
+
 def collect_brief(vault: Path, config: CaptureConfig, *, fetch: bool = True) -> tuple[str, Path]:
     """Write today's brief input; returns its id and file."""
     raw = config.brief
@@ -160,6 +179,10 @@ def collect_brief(vault: Path, config: CaptureConfig, *, fetch: bool = True) -> 
         plane = _plane_block(vault, cutoff)
         if plane is not None:
             content["plane"] = plane
+    if raw.get("fares", True):
+        fares = _fares_block(vault)
+        if fares is not None:
+            content["fares"] = fares
     if fetch and raw.get("aihot", True):
         content["aihot"] = _fetch_aihot(since)
     digest = hashlib.sha256(json.dumps(content, sort_keys=True, ensure_ascii=False).encode())
