@@ -222,7 +222,8 @@ kg plane status                       # 每个采集器的资源数、各状态�
 - 资源 `service:remote:<主机>:<label>`，kind 是 `service`，`service.down`、`service.flapping` 照常判断（连续 2 次 down 开事故，一次 up 关）。
 - 状态：launchd 任务在跑且心跳文件新鲜是 `up`；任务没加载、没在跑，或心跳超过 `max_age_s` 是 `down`；被盯的推送通道最近 `fail_after` 次都失败是 `degraded`，并开 `remote.push_failing`（warning），下一次推送成功关；主机连不上（笔记本休眠）是 `unknown`，不开也不关事故，也不算重启。
 - 心跳年龄用远端自己的 `date +%s` 算，两台机器时钟不准也不会误判。
-- `fares_db`：可选，近一天每条航线、每个出发日的最低价写进这轮 signal 的 `detail.fares`，`kg brief collect` 从状态库读最新一条放进日报资料的 `fares`。日报不现连远端。
+- `fares_db`：可选，近一天每条航线、每个出发日的最低价写进这轮 signal 的 `detail.fares`，`kg brief collect` 从状态库读最新一条放进日报资料的 `fares`。日报不现连远端。往返行带 `ret_date`（取自 `extra` 里 `tripType=RT` 的 `backDate`），单程和往返分开取最低。
+- `routes`：可选，`{config, python}`。用远端应用自己的 Python（带 PyYAML）读配置里的航线和心理价，只打印航线、日期和 `alert_direct`，配置里的其他内容（推送 token、模型密钥）不出机器。「服务」页的机票卡片按它列出每条航线×出发日×返程日：最新最低价、心理价、差多少，以及从状态库 signal 按小时取最低的 7 天走势。
 - 推送账本只保留 `ts`、`ok`、`ch`，正文不进状态库。
 
 ## 出口采集器（egress）

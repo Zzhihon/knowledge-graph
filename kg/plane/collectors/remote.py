@@ -51,16 +51,30 @@ SSH_TIMEOUT = 30
 HEARTBEAT_MAX_S = 180
 PUSH_FAIL_AFTER = 2
 FARES_LIMIT = 20
-# Lowest price per route and departure date among rows fetched in the last day, with where it
-# came from (the cheapest row; the newest of equal prices). A window function, not MIN() with
-# bare columns: those follow the last aggregate once a query has two.
+# Lowest price per route, departure date and return date (round trips carry `backDate` in
+# `extra`; one-way rows get NULL) among rows fetched in the last day, with where it came from
+# (the cheapest row; the newest of equal prices). A window function, not MIN() with bare
+# columns: those follow the last aggregate once a query has two.
 FARES_SQL = (
-    "SELECT from_city, to_city, depart_date, price, platform, airline, flight_no, fetched_at "
-    "FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY from_city, to_city, depart_date "
-    "ORDER BY price, fetched_at DESC) AS rn FROM flight_prices "
-    "WHERE fetched_at >= datetime('now', 'localtime', '-1 day') "
-    "AND depart_date >= date('now', 'localtime')) WHERE rn = 1 "
-    f"ORDER BY from_city, to_city, depart_date LIMIT {FARES_LIMIT}"
+    "WITH t AS (SELECT *, CASE WHEN json_valid(extra) AND json_type(extra) = 'array' THEN "
+    "(SELECT json_extract(je.value, '$.backDate') FROM json_each(extra) je "
+    "WHERE json_extract(je.value, '$.tripType') = 'RT' LIMIT 1) END AS ret_date "
+    "FROM flight_prices WHERE fetched_at >= datetime('now', 'localtime', '-1 day') "
+    "AND depart_date >= date('now', 'localtime')) "
+    "SELECT from_city, to_city, depart_date, ret_date, price, platform, airline, flight_no, "
+    "fetched_at FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY from_city, to_city, "
+    "depart_date, IFNULL(ret_date, '') ORDER BY price, fetched_at DESC) AS rn FROM t) "
+    f"WHERE rn = 1 ORDER BY from_city, to_city, depart_date, ret_date LIMIT {FARES_LIMIT}"
+)
+# Route list with thresholds, read on the remote by the app's own Python so the rest of its
+# config (bot tokens, API keys) never leaves the machine: only these keys are printed.
+ROUTES_PY = (
+    "import sys, json, yaml\n"
+    "c = yaml.safe_load(open(sys.argv[1], encoding='utf-8')) or {}\n"
+    "keys = ('from', 'to', 'from_name', 'to_name', 'dates', 'ret_dates', 'alert_direct')\n"
+    "print(json.dumps([{k: r.get(k) for k in keys} for u in c.get('users') or []\n"
+    "                  for r in u.get('routes') or [] if isinstance(r, dict)],"
+    " ensure_ascii=False))\n"
 )
 
 
@@ -79,6 +93,8 @@ class RemoteService:
     push_channels: tuple[str, ...] = ()  # empty = every channel
     push_fail_after: int = PUSH_FAIL_AFTER
     fares_db: str = ""
+    routes_config: str = ""  # the app's config file; only routes and thresholds are read
+    routes_python: str = ""  # a Python with PyYAML on the remote (the app's venv)
     alert: bool = True
 
 
@@ -108,6 +124,8 @@ def _service(label: str, item: dict[str, Any]) -> RemoteService:
     push = push if isinstance(push, dict) else {}
     hb = item.get("heartbeat")
     hb = hb if isinstance(hb, dict) else {"path": hb}
+    routes = item.get("routes")
+    routes = routes if isinstance(routes, dict) else {}
     return RemoteService(
         label=label, about=str(item.get("about") or ""), repo=str(item.get("repo") or ""),
         dir=base, heartbeat=_path(base, hb.get("path")),
@@ -116,6 +134,8 @@ def _service(label: str, item: dict[str, Any]) -> RemoteService:
         push_channels=tuple(str(c) for c in push.get("channels") or ()),
         push_fail_after=max(int(push.get("fail_after") or PUSH_FAIL_AFTER), 1),
         fares_db=_path(base, item.get("fares_db")),
+        routes_config=_path(base, routes.get("config")),
+        routes_python=_path(base, routes.get("python")),
         alert=item.get("alert", True) is not False)
 
 
@@ -177,6 +197,10 @@ def build_script(host: RemoteHost) -> str:
         if s.fares_db:
             lines.append(f"echo @@fares {tag}; [ -f {_q(s.fares_db)} ] && /usr/bin/sqlite3"
                          f" -readonly -json {_q(s.fares_db)} {shlex.quote(FARES_SQL)} 2>&1")
+        if s.routes_config and s.routes_python:
+            lines.append(f"echo @@routes {tag}; [ -x {_q(s.routes_python)} ] && "
+                         f"{_q(s.routes_python)} -I -c {shlex.quote(ROUTES_PY)}"
+                         f" {_q(s.routes_config)} 2>&1")
     lines.append("echo @@end -")
     return "\n".join(lines) + "\n"
 
@@ -248,9 +272,34 @@ def parse_fares(body: str) -> tuple[list[dict[str, Any]], str | None]:
         rows = json.loads(body)
     except ValueError:
         return [], body[:200]
-    keep = ("from_city", "to_city", "depart_date", "price", "platform", "airline", "flight_no",
-            "fetched_at")
+    keep = ("from_city", "to_city", "depart_date", "ret_date", "price", "platform", "airline",
+            "flight_no", "fetched_at")
     return [{k: r.get(k) for k in keep} for r in rows if isinstance(r, dict)], None
+
+
+def parse_routes(body: str) -> tuple[list[dict[str, Any]], str | None]:
+    """Routes and their direct-flight threshold (每人含税心理价, 0 = none)."""
+    if not body:
+        return [], None
+    try:
+        rows = json.loads(body)
+    except ValueError:
+        return [], body[:200]
+    out = []
+    for r in rows if isinstance(rows, list) else []:
+        if not isinstance(r, dict) or not r.get("from") or not r.get("to"):
+            continue
+        try:
+            budget = float(r.get("alert_direct") or 0)
+        except (TypeError, ValueError):
+            budget = 0.0
+        out.append({"from": str(r["from"]), "to": str(r["to"]),
+                    "from_name": str(r.get("from_name") or r["from"]),
+                    "to_name": str(r.get("to_name") or r["to"]),
+                    "dates": [str(d) for d in r.get("dates") or []],
+                    "ret_dates": [str(d) for d in r.get("ret_dates") or []],
+                    "budget": budget})
+    return out, None
 
 
 def judge(s: RemoteService, sections: dict[str, str], now: int) -> tuple[str, dict[str, Any]]:
@@ -281,6 +330,10 @@ def judge(s: RemoteService, sections: dict[str, str], now: int) -> tuple[str, di
         detail["fares"], err = parse_fares(sections.get("fares", ""))
         if err:
             detail["fares_error"] = err
+    if s.routes_config and s.routes_python:
+        detail["routes"], err = parse_routes(sections.get("routes", ""))
+        if err:
+            detail["routes_error"] = err
     return status, detail
 
 

@@ -1,5 +1,9 @@
 """The 本地服务 page: services grouped by owner, and a redacted log tail on request.
 
+Also the services on other tailnet machines (the `remote` collector) and, for those that report
+them, the airfare card: each watched route's lowest fare against its threshold, with a 7-day
+hourly trend rebuilt from the stored signals (raw signals are kept 30 days, so 7 days are whole).
+
 Reads the same state store as `/api/plane/*` (and the same `plane_db_path` dependency, so tests
 override one thing). The log endpoint only ever opens the log paths the collector read from the
 job's own plist (`attrs.logs`), never a path from the request, and masks secrets before the lines
@@ -26,6 +30,7 @@ Conn = Annotated[sqlite3.Connection, Depends(_conn)]
 GROUPS = ("mine", "tool", "system")
 TAIL_BYTES = 64 * 1024
 _WORST = {"down": 0, "degraded": 1, "unknown": 2, "asleep": 3, "up": 4}
+TREND_DAYS = 7
 
 
 def _latest_detail(conn: sqlite3.Connection, rid: str) -> dict[str, Any]:
@@ -47,12 +52,17 @@ def _last_restart(conn: sqlite3.Connection, rid: str, started: int | None) -> in
     return restart
 
 
-def build_services(conn: sqlite3.Connection) -> dict[str, Any]:
-    resources = list_resources(conn, kind="service", source="services")
+def _open_incidents(conn: sqlite3.Connection) -> dict[str, list[dict[str, Any]]]:
     open_by: dict[str, list[dict[str, Any]]] = {}
     for i in list_incidents(conn, open_only=True, limit=2000):
         open_by.setdefault(i["resource_id"], []).append(
             {k: i[k] for k in ("id", "rule", "severity", "summary", "opened_at")})
+    return open_by
+
+
+def build_services(conn: sqlite3.Connection) -> dict[str, Any]:
+    resources = list_resources(conn, kind="service", source="services")
+    open_by = _open_incidents(conn)
     ports_of: dict[str, list[dict[str, Any]]] = {}
     rows: list[dict[str, Any]] = []
     for r in resources:
@@ -94,10 +104,83 @@ def build_services(conn: sqlite3.Connection) -> dict[str, Any]:
     }
 
 
+def build_remote(conn: sqlite3.Connection,
+                 open_by: dict[str, list[dict[str, Any]]]) -> list[dict[str, Any]]:
+    rows = []
+    for r in list_resources(conn, kind="service", source="remote"):
+        a, d = r["attrs"], _latest_detail(conn, r["id"])
+        push = d.get("push") or {}
+        rows.append({
+            "id": r["id"], "name": r["name"], "host": a.get("host"), "label": a.get("label"),
+            "about": a.get("about") or "", "repo": a.get("repo") or "", "status": r["status"],
+            "status_ts": r["status_ts"], "reachable": d.get("reachable", True),
+            "reason": d.get("reason"), "pid": d.get("pid"), "runs": d.get("runs"),
+            "heartbeat_age_s": d.get("heartbeat_age_s"), "push_last": push.get("last"),
+            "push_failing": bool(push.get("failing")), "incidents": open_by.get(r["id"], []),
+        })
+    rows.sort(key=lambda x: (not x["incidents"], _WORST.get(x["status"] or "", 9),
+                             x["host"] or "", x["name"].lower()))
+    return rows
+
+
+def _fare_key(f: dict[str, Any]) -> tuple[str, str, str, str]:
+    return (str(f.get("from_city")), str(f.get("to_city")), str(f.get("depart_date")),
+            str(f.get("ret_date") or ""))
+
+
+def build_fares(conn: sqlite3.Connection, now: int | None = None) -> list[dict[str, Any]]:
+    """One row per watched route × departure date × return date, from every remote service
+    that reports routes: the latest lowest fare, the threshold and the gap, and the hourly
+    lowest over the last week. Fares nobody watches (a manual probe) are left out."""
+    now = now or int(time.time())
+    out = []
+    for r in list_resources(conn, kind="service", source="remote"):
+        latest = _latest_detail(conn, r["id"])
+        routes = latest.get("routes")
+        if not routes:
+            continue
+        current = {_fare_key(f): f for f in latest.get("fares") or []}
+        hourly: dict[tuple[str, str, str, str], dict[int, float]] = {}
+        for sig in list_signals(conn, r["id"], since=now - TREND_DAYS * 86400):
+            for f in (sig.detail or {}).get("fares") or []:
+                try:
+                    price = float(f.get("price"))
+                except (TypeError, ValueError):
+                    continue
+                hour = sig.ts - sig.ts % 3600
+                bucket = hourly.setdefault(_fare_key(f), {})
+                bucket[hour] = min(price, bucket.get(hour, price))
+        for route in routes:
+            for dep in route.get("dates") or []:
+                for ret in route.get("ret_dates") or [""]:
+                    key = (route["from"], route["to"], dep, ret)
+                    f = current.get(key) or {}
+                    price = f.get("price")
+                    budget = route.get("budget") or 0
+                    out.append({
+                        "service": r["id"], "host": r["attrs"].get("host"),
+                        "label": f"{route.get('from_name') or route['from']}→"
+                                 f"{route.get('to_name') or route['to']}",
+                        "from": route["from"], "to": route["to"], "depart": dep,
+                        "return": ret or None, "budget": budget or None,
+                        "price": price, "platform": f.get("platform"),
+                        "flight_no": f.get("flight_no"), "fetched_at": f.get("fetched_at"),
+                        "gap": (price - budget) if price is not None and budget else None,
+                        "trend": sorted([h, p] for h, p in hourly.get(key, {}).items()),
+                    })
+    out.sort(key=lambda x: (x["gap"] is None, x["gap"] if x["gap"] is not None else 0,
+                            x["depart"], x["label"]))
+    return out
+
+
 @router.get("")
 def get_services(conn: Conn) -> dict[str, Any]:
-    """Every local service, grouped 本人的 / 工具的 / 系统的, worst first within a group."""
-    return build_services(conn)
+    """Every local service, grouped 本人的 / 工具的 / 系统的, worst first within a group; plus
+    the services on other machines and the airfare card."""
+    data = build_services(conn)
+    data["remote"] = build_remote(conn, _open_incidents(conn))
+    data["fares"] = build_fares(conn)
+    return data
 
 
 def tail(path: Path, lines: int) -> list[str]:

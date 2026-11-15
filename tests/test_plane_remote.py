@@ -11,6 +11,7 @@ import json
 import os
 import sqlite3
 import subprocess
+import sys
 import time
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
@@ -227,6 +228,52 @@ def test_fares_lowest_per_route_and_date(vault: Path, remote: Remote) -> None:
         ("HND", 2500, "NH860", "ctrip"), ("NRT", 1890, "UO846", "tongcheng")]
 
 
+def test_fares_split_one_way_and_round_trip(vault: Path, remote: Remote) -> None:
+    db = remote.app / "data" / "prices.db"
+    conn = sqlite3.connect(db)
+    conn.execute("""CREATE TABLE flight_prices (id INTEGER PRIMARY KEY, platform TEXT NOT NULL,
+        from_city TEXT NOT NULL, to_city TEXT NOT NULL, depart_date TEXT NOT NULL,
+        price REAL NOT NULL, airline TEXT, flight_no TEXT, depart_time TEXT, arrive_time TEXT,
+        fetched_at TEXT NOT NULL, extra TEXT, prov TEXT NOT NULL DEFAULT '')""")
+    fresh = (datetime.now() - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
+    dep = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
+    ret = (datetime.now() + timedelta(days=37)).strftime("%Y-%m-%d")
+    rt = json.dumps([{"tripType": "RT", "backDate": ret}])
+    rows = [("ctrip", 805, "CX500", None), ("ctrip", 2900, "CX504", rt),
+            ("tongcheng", 2650, "UO850", rt), ("ctrip", 990, "HX608", "not json")]
+    conn.executemany("INSERT INTO flight_prices (platform, from_city, to_city, depart_date, "
+                     "price, flight_no, fetched_at, extra) VALUES (?,'HKG','NRT',?,?,?,?,?)",
+                     [(p, dep, pr, f, fresh, ex) for p, pr, f, ex in rows])
+    conn.commit()
+    conn.close()
+    fares = _by_id(_collect(vault, remote))[RID].detail["fares"]
+    assert [(f["ret_date"], f["price"], f["flight_no"]) for f in fares] == [
+        (None, 805, "CX500"), (ret, 2650, "UO850")]
+
+
+def test_routes_bring_only_routes_and_thresholds(vault: Path, remote: Remote) -> None:
+    cfg = vault / ".kg" / "plane" / "remote.yaml"
+    cfg.write_text(CONFIG.replace(
+        "        fares_db: data/prices.db\n",
+        "        fares_db: data/prices.db\n"
+        f"        routes: {{config: config.yaml, python: {sys.executable}}}\n"), encoding="utf-8")
+    (remote.app / "config.yaml").write_text("""users:
+- name: hzh
+  routes:
+  - {from: HKG, to: NRT, from_name: 中国香港, to_name: 东京成田, dates: ['2027-03-28'],
+     ret_dates: ['2027-04-04'], alert_direct: 3500}
+  - {from: HKG, to: HND, dates: ['2027-03-28']}
+  notifier: {telegram: {bot_token: SECRET-TOKEN, llm: [{api_key: SECRET-KEY}]}}
+""", encoding="utf-8")
+    sig = _by_id(_collect(vault, remote))[RID]
+    assert sig.detail["routes"] == [
+        {"from": "HKG", "to": "NRT", "from_name": "中国香港", "to_name": "东京成田",
+         "dates": ["2027-03-28"], "ret_dates": ["2027-04-04"], "budget": 3500.0},
+        {"from": "HKG", "to": "HND", "from_name": "HKG", "to_name": "HND",
+         "dates": ["2027-03-28"], "ret_dates": [], "budget": 0.0}]
+    assert "SECRET" not in json.dumps(sig.detail)
+
+
 def test_cut_short_output_is_an_error() -> None:
     with pytest.raises(CommandError):
         parse_output("@@now 1\n@@launchd x\n\tstate = running\n")
@@ -310,3 +357,47 @@ def test_brief_carries_fares_from_the_store(vault: Path, remote: Remote) -> None
     _, file = collect_brief(vault, config, fetch=False)
     (block,) = json.loads(file.read_text())["fares"]
     assert block["resource"] == RID and block["name"] == "机票监控"
+
+
+def test_fares_card_gap_and_hourly_trend(tmp_path: Path, vault: Path, remote: Remote) -> None:
+    from agents.api_routes.services import build_fares, build_remote
+    from kg.plane.collectors import run_collector
+    from kg.plane.store import connect
+
+    cfg = vault / ".kg" / "plane" / "remote.yaml"
+    cfg.write_text(CONFIG.replace(
+        "        fares_db: data/prices.db\n",
+        "        fares_db: data/prices.db\n"
+        f"        routes: {{config: config.yaml, python: {sys.executable}}}\n"), encoding="utf-8")
+    dep = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
+    ret = (datetime.now() + timedelta(days=37)).strftime("%Y-%m-%d")
+    (remote.app / "config.yaml").write_text(
+        f"users:\n- routes:\n  - {{from: HKG, to: NRT, from_name: 中国香港, to_name: 东京成田,"
+        f" dates: ['{dep}'], ret_dates: ['{ret}'], alert_direct: 3000}}\n", encoding="utf-8")
+    db = sqlite3.connect(remote.app / "data" / "prices.db")
+    db.execute("""CREATE TABLE flight_prices (id INTEGER PRIMARY KEY, platform TEXT NOT NULL,
+        from_city TEXT NOT NULL, to_city TEXT NOT NULL, depart_date TEXT NOT NULL,
+        price REAL NOT NULL, airline TEXT, flight_no TEXT, depart_time TEXT, arrive_time TEXT,
+        fetched_at TEXT NOT NULL, extra TEXT, prov TEXT NOT NULL DEFAULT '')""")
+    rt = json.dumps([{"tripType": "RT", "backDate": ret}])
+
+    def add(price: float, fno: str) -> None:
+        db.execute("INSERT INTO flight_prices (platform, from_city, to_city, depart_date, price,"
+                   " flight_no, fetched_at, extra) VALUES ('ctrip','HKG','NRT',?,?,?,"
+                   " datetime('now','localtime'),?)", (dep, price, fno, rt))
+        db.commit()
+
+    conn = connect(tmp_path / "state.db")
+    now = int(time.time())
+    add(3400, "CX500")
+    run_collector(conn, RemoteCollector(), ctx=CollectContext(
+        now=now - 7200, vault=vault, run=remote.run))
+    add(3150, "CX504")
+    run_collector(conn, RemoteCollector(), ctx=CollectContext(now=now, vault=vault, run=remote.run))
+    [card] = build_fares(conn, now=now)
+    assert (card["label"], card["depart"], card["return"]) == ("中国香港→东京成田", dep, ret)
+    assert (card["price"], card["flight_no"], card["budget"], card["gap"]) == (
+        3150, "CX504", 3000, 150)
+    assert [p for _, p in card["trend"]] == [3400, 3150]
+    assert {r["label"] for r in build_remote(conn, {})} == {"local.ticket-monitor",
+                                                           "local.tg-tunnel"}
