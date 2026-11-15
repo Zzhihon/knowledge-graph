@@ -15,5 +15,6 @@ hosts:
           channels: [telegram]              # 只看这些通道；不写 = 全部
           fail_after: 2                     # 最近 N 次都失败 → degraded，开 remote.push_failing
         fares_db: data/prices.db            # 可选：近一天各航线最低价，进日报
+        routes: {config: config.yaml, python: .venv/bin/python}   # 可选：航线和心理价（用应用自己的 Python 只读这两项，密钥不出机器），给「服务」页机票卡片
       local.tg-tunnel:
         about: Telegram 出口隧道（ssh -D 到 hk-jump）

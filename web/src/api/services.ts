@@ -41,12 +41,53 @@ export interface Service {
   incidents: ServiceIncident[]
 }
 
+// A service on another tailnet machine (the remote collector). `unknown` = host asleep/offline.
+export interface RemoteService {
+  id: string
+  name: string
+  host: string | null
+  label: string | null
+  about: string
+  repo: string
+  status: ServiceStatus | null
+  status_ts: number | null
+  reachable: boolean
+  reason: string | null
+  pid: number | null
+  runs: number | null
+  heartbeat_age_s: number | null
+  push_last: { ts: string; ok: boolean; ch: string } | null
+  push_failing: boolean
+  incidents: ServiceIncident[]
+}
+
+// One watched route × departure × return date. price/gap are null until a fare is collected;
+// trend is [hour (Unix s), lowest price] over the last 7 days.
+export interface Fare {
+  service: string
+  host: string | null
+  label: string
+  from: string
+  to: string
+  depart: string
+  return: string | null
+  budget: number | null
+  price: number | null
+  platform: string | null
+  flight_no: string | null
+  fetched_at: string | null
+  gap: number | null
+  trend: [number, number][]
+}
+
 export interface ServicesOverview {
   groups: Record<ServiceGroup, Service[]>
   count: number
   collected_at: number | null
   incidents: number
   statuses: Record<ServiceStatus, number>
+  remote: RemoteService[]
+  fares: Fare[]
 }
 
 export interface LogFile { path: string; lines: string[]; error?: string; modified?: number }

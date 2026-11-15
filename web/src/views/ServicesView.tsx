@@ -1,8 +1,9 @@
 // 本地服务: every LaunchAgent and listening port the services collector saw, grouped 本人的 /
 // 工具的 / 系统的, with status, last restart, ports, open incidents and a redacted log tail.
+// Above them: the airfare card and the services on other machines (the remote collector).
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { RefreshCw, Search } from 'lucide-react'
-import { servicesApi, type Service, type ServiceGroup, type ServiceIncident, type ServiceLog, type ServicesOverview, type ServiceStatus } from '../api/services'
+import { servicesApi, type Fare, type RemoteService, type Service, type ServiceGroup, type ServiceIncident, type ServiceLog, type ServicesOverview, type ServiceStatus } from '../api/services'
 import { Drawer, KV, Problem, Section, btn } from '../components/k/HubBits'
 import { Empty } from './DailyView'
 
@@ -102,6 +103,74 @@ function Row({ s, onOpen }: { s: Service; onOpen: () => void }) {
         )}
       </span>
     </button>
+  )
+}
+
+const REMOTE_WHY: Record<string, string> = {
+  host_unreachable: '机器连不上（多半在休眠）', not_loaded: 'launchd 没加载', not_running: '没在运行',
+  heartbeat_stale: '心跳过期',
+}
+const yuan = (n: number) => `￥${Math.round(n).toLocaleString('zh-CN')}`
+
+function RemoteRow({ s }: { s: RemoteService }) {
+  const bits = [s.host && `${s.host}`, s.label]
+  if (s.reason) bits.push(REMOTE_WHY[s.reason] ?? s.reason)
+  else if (s.heartbeat_age_s !== null) bits.push(`心跳 ${s.heartbeat_age_s} 秒前`)
+  if (s.push_last) bits.push(`上次推送${s.push_last.ok ? '成功' : '失败'} ${s.push_last.ts.slice(5, 16)}`)
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 sm:flex-nowrap sm:px-5">
+      <span className="w-[58px] shrink-0"><Pill status={s.status} /></span>
+      <span className="min-w-0 flex-1 basis-[200px]">
+        <span className="block truncate text-[14.5px] font-medium text-k-ink">{s.about || s.label || s.name}</span>
+        <span className="k-mono block truncate text-[12.5px] text-k-ink4">{bits.filter(Boolean).join(' · ')}</span>
+      </span>
+      {s.incidents.length > 0 && (
+        <span className="k-chip shrink-0" style={s.incidents.some((i) => i.severity === 'critical') ? hot : amber}>
+          {s.incidents.length === 1 ? RULE[s.incidents[0].rule] ?? '事故' : `${s.incidents.length} 个事故`}
+        </span>
+      )}
+    </div>
+  )
+}
+
+// Hourly lowest over 7 days; the dashed line is the threshold when there is one.
+function Trend({ f }: { f: Fare }) {
+  const W = 132, H = 34, pad = 3
+  const pts = f.trend
+  if (pts.length < 2) return <span className="text-[12px] text-k-ink4">{pts.length ? '刚开始采集' : '还没有走势'}</span>
+  const ys = pts.map(([, p]) => p).concat(f.budget ? [f.budget] : [])
+  const lo = Math.min(...ys), hi = Math.max(...ys)
+  const t0 = pts[0][0], t1 = pts[pts.length - 1][0]
+  const x = (t: number) => pad + ((t - t0) / Math.max(t1 - t0, 1)) * (W - 2 * pad)
+  const y = (p: number) => H - pad - ((p - lo) / Math.max(hi - lo, 1)) * (H - 2 * pad)
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`7 天走势，最低 ${yuan(Math.min(...pts.map(([, p]) => p)))}`}>
+      {f.budget ? <line x1={pad} x2={W - pad} y1={y(f.budget)} y2={y(f.budget)} stroke="var(--k-ok)" strokeDasharray="3 3" strokeWidth="1" /> : null}
+      <polyline fill="none" stroke="var(--k-accent)" strokeWidth="1.6" strokeLinejoin="round"
+        points={pts.map(([t, p]) => `${x(t).toFixed(1)},${y(p).toFixed(1)}`).join(' ')} />
+    </svg>
+  )
+}
+
+function FareRow({ f }: { f: Fare }) {
+  const hit = f.gap !== null && f.gap <= 0
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3 sm:flex-nowrap sm:px-5">
+      <span className="min-w-0 flex-1 basis-[220px]">
+        <span className="block truncate text-[14.5px] font-medium text-k-ink">{f.label}</span>
+        <span className="k-mono block truncate text-[12.5px] text-k-ink4">
+          {f.depart}{f.return ? ` → ${f.return} 往返` : ' 单程'}
+          {f.platform && ` · ${f.platform} ${f.flight_no ?? ''}`}{f.fetched_at && ` · ${f.fetched_at.slice(5, 16)}`}
+        </span>
+      </span>
+      <span className="shrink-0"><Trend f={f} /></span>
+      <span className="w-[150px] shrink-0 text-right">
+        <span className="k-num block text-[19px] font-bold leading-tight text-k-ink">{f.price !== null ? yuan(f.price) : '—'}</span>
+        <span className="block text-[12.5px]" style={{ color: hit ? 'var(--k-ok)' : 'var(--k-ink-4)' }}>
+          {f.budget ? (f.gap === null ? `心理价 ${yuan(f.budget)}` : hit ? `已到心理价（低 ${yuan(-f.gap)}）` : `差 ${yuan(f.gap)} 到 ${yuan(f.budget)}`) : '没设心理价'}
+        </span>
+      </span>
+    </div>
   )
 }
 
@@ -272,6 +341,22 @@ export default function ServicesView() {
           <button aria-pressed={onlyTrouble} onClick={() => setOnlyTrouble(true)}>只看有事的</button>
         </div>
       </div>
+
+      {data.fares.length > 0 && (
+        <Section title="机票" aside={<>{data.fares.length} 个日期组合 · 每人含税总价，往返为往返总价 · 虚线是心理价</>}>
+          <div className="k-card divide-y divide-k-line-soft overflow-hidden">
+            {data.fares.map((f) => <FareRow key={`${f.service}|${f.from}|${f.to}|${f.depart}|${f.return ?? ''}`} f={f} />)}
+          </div>
+        </Section>
+      )}
+
+      {data.remote.length > 0 && (
+        <Section title="其他机器" aside={<>{data.remote.length} 个 · 经 tailnet 用 SSH 采集；机器休眠时显示「不确定」，不开事故</>}>
+          <div className="k-card divide-y divide-k-line-soft overflow-hidden">
+            {data.remote.map((s) => <RemoteRow key={s.id} s={s} />)}
+          </div>
+        </Section>
+      )}
 
       {data.count === 0 && (
         <p className="k-card mt-8 px-6 py-8 text-center text-[14.5px] text-k-ink4">
