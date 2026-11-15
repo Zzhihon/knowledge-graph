@@ -215,6 +215,16 @@ kg plane status                       # 每个采集器的资源数、各状态�
 
 还没有状态库时，所有列表都返回空，不会创建库文件。状态库路径由 `plane_db_path` 依赖提供，测试用 `app.dependency_overrides` 换成临时文件。
 
+## 其他机器上的服务（remote）
+
+配置 `.kg/plane/remote.yaml`（模板 `remote.yaml.example`）。每台主机每轮一次 `ssh -o BatchMode=yes -o ConnectTimeout=8 <别名> /bin/sh -c '<脚本>'`，脚本固定、只读，只调用 `/bin/sh`、`launchctl`、`stat`、`tail`、`date`、`/usr/bin/sqlite3`。没装 Xcode 命令行工具的 Mac 上 `python3`、`git` 是会弹安装框的占位程序，所以脚本不调用它们。
+
+- 资源 `service:remote:<主机>:<label>`，kind 是 `service`，`service.down`、`service.flapping` 照常判断（连续 2 次 down 开事故，一次 up 关）。
+- 状态：launchd 任务在跑且心跳文件新鲜是 `up`；任务没加载、没在跑，或心跳超过 `max_age_s` 是 `down`；被盯的推送通道最近 `fail_after` 次都失败是 `degraded`，并开 `remote.push_failing`（warning），下一次推送成功关；主机连不上（笔记本休眠）是 `unknown`，不开也不关事故，也不算重启。
+- 心跳年龄用远端自己的 `date +%s` 算，两台机器时钟不准也不会误判。
+- `fares_db`：可选，近一天每条航线、每个出发日的最低价写进这轮 signal 的 `detail.fares`，`kg brief collect` 从状态库读最新一条放进日报资料的 `fares`。日报不现连远端。
+- 推送账本只保留 `ts`、`ok`、`ch`，正文不进状态库。
+
 ## 出口采集器（egress）
 
 配置 `.kg/plane/egress.yaml`（模板 `egress.yaml.example`）。每分钟对每条线路做分段探测：本地代理端口 TCP → 代理内核控制接口（当前节点、节点延迟）→ 经代理请求 trace（出口 IP / 地区 / 机房）→ 经代理对目标 API 域名做无凭据 HEAD。每次探测是 `egress:<线路>` 的一条 signal，`detail` 里是整个观测，规则据此重建观测再判断，所以逐次采集和 `kg plane egress replay` 整段回放开、关事故的时间一致（`tests/test_plane_egress_live.py` 验证）。

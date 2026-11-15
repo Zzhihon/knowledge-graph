@@ -1,0 +1,19 @@
+# 其他机器上的服务登记（kg plane collect remote）。复制到 <vault>/.kg/plane/remote.yaml（.kg/ 不进 git）。
+# 每台主机每轮一次 ssh（BatchMode，连不上 8 秒放弃），远端只跑 /bin/sh、launchctl、stat、tail、
+# date 和 /usr/bin/sqlite3，只读。主机连不上（笔记本休眠）记 unknown，不开也不关事故。
+hosts:
+  mac-air:                     # 资源 id 用这个名字：service:remote:mac-air:<label>
+    ssh: mac-air               # ~/.ssh/config 里的别名，要能免密登录
+    services:
+      local.ticket-monitor:    # 远端 launchd label
+        about: 机票监控（Mac Air 常驻）
+        repo: ticket-monitoring
+        dir: ~/apps/ticket-monitoring   # 下面的相对路径以它为根；~/ 是远端 home
+        heartbeat: {path: data/.heartbeat, max_age_s: 180}   # 超过就算 down（连续 2 次开事故）
+        push:
+          ledger: logs/push_history.jsonl   # JSONL：ts / ok / ch
+          channels: [telegram]              # 只看这些通道；不写 = 全部
+          fail_after: 2                     # 最近 N 次都失败 → degraded，开 remote.push_failing
+        fares_db: data/prices.db            # 可选：近一天各航线最低价，进日报
+      local.tg-tunnel:
+        about: Telegram 出口隧道（ssh -D 到 hk-jump）
